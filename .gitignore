@@ -1,0 +1,20 @@
+# Generated files
+*.cache
+*.log
+*.tmp
+*.swp
+# Ignore IDE specific files
+*.idea/
+*.vscode/
+
+# Composer files
+/vendor/
+/composer.lock
+/composer.phar
+
+# Build data
+/build/
+
+# Ignore test coverage reports
+/coverage/
+coverage.xml
