@@ -264,9 +264,6 @@ class GdprProcessor implements ProcessorInterface
 
     /**
      * Set the audit logger callable.
-     *
-     * @param callable|null $auditLogger
-     * @return void
      */
     public function setAuditLogger(?callable $auditLogger): void
     {

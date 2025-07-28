@@ -303,6 +303,7 @@ class GdprProcessorTest extends TestCase
         };
         $processor = new GdprProcessor($invalidPattern);
         $processor->setAuditLogger($logger);
+
         $result = $processor->regExpMessage('test');
         $this->assertTrue($called, 'Audit logger should be called on preg_replace error');
         $this->assertSame('test', $result, 'Message should be unchanged if preg_replace fails');

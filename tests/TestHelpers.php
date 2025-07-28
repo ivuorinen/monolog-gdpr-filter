@@ -13,8 +13,6 @@ use Monolog\JsonSerializableDateTimeImmutable;
 use Monolog\Level;
 use Monolog\Logger;
 use Monolog\LogRecord;
-use ReflectionClass;
-use ReflectionException;
 use ReflectionMethod;
 use Stringable;
 
@@ -62,7 +60,7 @@ trait TestHelpers
         object|string $object,
         string $methodName = '',
     ): ReflectionMethod {
-        if (empty($methodName) && is_string($object)) {
+        if (($methodName === '' || $methodName === '0') && is_string($object)) {
             $method = new ReflectionMethod($object);
         } else {
             $method = new ReflectionMethod($object, $methodName);

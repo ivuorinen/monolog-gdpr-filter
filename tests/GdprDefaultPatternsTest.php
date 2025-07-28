@@ -127,8 +127,6 @@ class GdprDefaultPatternsTest extends TestCase
         $this->assertSame($notApiKey, $processor->maskMessage($notApiKey));
     }
 
-
-
     public function testPatternMac(): void
     {
         $patterns = GdprProcessor::getDefaultPatterns();

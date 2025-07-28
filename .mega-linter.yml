@@ -25,6 +25,8 @@ ENABLE_LINTERS:
   - JSON_PRETTIER
   - JAVASCRIPT_ES
   - TYPESCRIPT_ES
+  - PHP_PHPCS
+  - PHP_PSALM
 
 YAML_YAMLLINT_CONFIG_FILE: .yamllint.yml
 MARKDOWN_MARKDOWNLINT_CONFIG_FILE: .markdownlint.json
@@ -32,4 +34,4 @@ JAVASCRIPT_ES_CONFIG_FILE: .eslintrc.json
 TYPESCRIPT_ES_CONFIG_FILE: .eslintrc.json
 
 FILTER_REGEX_EXCLUDE: >
-  (node_modules|\.automation/test|docs/json-schemas|\.github/workflows)
+  (vendor|node_modules|\.automation/test|docs/json-schemas)

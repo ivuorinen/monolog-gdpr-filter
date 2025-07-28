@@ -1,8 +1,9 @@
 {
-  "$ref": "https://getcomposer.org/schema.json",
+  "$schema": "https://getcomposer.org/schema.json",
   "name": "ivuorinen/monolog-gdpr-filter",
   "description": "Monolog processor for GDPR masking with regex and dot-notation paths",
   "version": "1.0.0",
+  "license": "MIT",
   "type": "library",
   "scripts": {
     "lint": [
