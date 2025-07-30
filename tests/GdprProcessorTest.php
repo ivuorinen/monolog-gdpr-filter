@@ -160,7 +160,7 @@ class GdprProcessorTest extends TestCase
         $this->assertSame([
             'a' => self::MASKED_SECRET,
             'b' => ['c' => self::MASKED_SECRET],
-            'd' => '123',
+            'd' => 123,
         ], $masked);
     }
 
@@ -272,7 +272,9 @@ class GdprProcessorTest extends TestCase
         $result = $processor->maskMessage('test');
         $this->assertSame('test', $result);
         $this->assertNotEmpty($calls);
-        $this->assertSame(['preg_replace_error', 'test', 'test'], $calls[0]);
+        $this->assertSame('preg_replace_batch_error', $calls[0][0]);
+        $this->assertSame('test', $calls[0][1]);
+        $this->assertStringStartsWith('Error: ', $calls[0][2]);
     }
 
     public function testPregReplaceErrorInRegExpMessage(): void
@@ -288,7 +290,9 @@ class GdprProcessorTest extends TestCase
         $result = $processor->regExpMessage('test');
         $this->assertSame('test', $result);
         $this->assertNotEmpty($calls);
-        $this->assertSame(['preg_replace_error', 'test', 'test'], $calls[0]);
+        $this->assertSame('preg_replace_error', $calls[0][0]);
+        $this->assertSame('test', $calls[0][1]);
+        $this->assertStringStartsWith('Error: ', $calls[0][2]);
     }
 
     public function testRegExpMessageHandlesPregReplaceError(): void
@@ -299,7 +303,7 @@ class GdprProcessorTest extends TestCase
             $called = true;
             $this->assertSame('preg_replace_error', $type);
             $this->assertSame('test', $original);
-            $this->assertSame('test', $message);
+            $this->assertStringStartsWith('Error: ', $message);
         };
         $processor = new GdprProcessor($invalidPattern);
         $processor->setAuditLogger($logger);

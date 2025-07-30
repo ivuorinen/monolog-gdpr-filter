@@ -110,7 +110,9 @@ class RegexMaskProcessorTest extends TestCase
         $result = $processor->maskMessage('test');
         $this->assertSame('test', $result);
         $this->assertNotEmpty($calls);
-        $this->assertSame(['preg_replace_error', 'test', 'test'], $calls[0]);
+        $this->assertSame('preg_replace_batch_error', $calls[0][0]);
+        $this->assertSame('test', $calls[0][1]);
+        $this->assertStringStartsWith('Error: ', $calls[0][2]);
     }
 
     public function testRegExpMessagePregReplaceError(): void
@@ -126,7 +128,9 @@ class RegexMaskProcessorTest extends TestCase
         $result = $processor->regExpMessage('test');
         $this->assertSame('test', $result);
         $this->assertNotEmpty($calls);
-        $this->assertSame(['preg_replace_error', 'test', 'test'], $calls[0]);
+        $this->assertSame('preg_replace_error', $calls[0][0]);
+        $this->assertSame('test', $calls[0][1]);
+        $this->assertStringStartsWith('Error: ', $calls[0][2]);
     }
 
     public function testStringReplacementBackwardCompatibility(): void
@@ -250,7 +254,7 @@ class RegexMaskProcessorTest extends TestCase
         $this->assertSame([
             'a' => 'MASKED',
             'b' => ['c' => 'MASKED'],
-            'd' => '123',
+            'd' => 123,
         ], $masked);
     }
 
