@@ -13,7 +13,9 @@ use Monolog\Level;
 /**
  * Performance benchmark tests for GDPR processor optimizations.
  *
- * These tests measure and validate the performance improvements made in Phase 4.
+ * These tests measure and validate the performance improvements.
+ *
+ * @api
  */
 class PerformanceBenchmarkTest extends TestCase
 {
@@ -22,6 +24,11 @@ class PerformanceBenchmarkTest extends TestCase
         return new GdprProcessor(GdprProcessor::getDefaultPatterns());
     }
 
+    /**
+     * @return ((array|int|string)[]|int|string)[]
+     *
+     * @psalm-return array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array|int<1000, 9999>>|int<1000, 9999>>
+     */
     private function generateLargeNestedArray(int $depth, int $width): array
     {
         if ($depth <= 0) {
@@ -74,13 +81,8 @@ class PerformanceBenchmarkTest extends TestCase
         $this->assertLessThan(5.0, $avgTimePerOperation, 'Average time per regex operation should be under 5ms');
         $this->assertLessThan(1000, $memoryUsed, 'Memory usage should be under 1MB for 100 operations');
 
-        // Output benchmark results for monitoring
-        echo "\n";
-        echo "RegExp Message Performance Benchmark:\n";
-        echo sprintf('  - Iterations: %d%s', $iterations, PHP_EOL);
-        echo "  - Total time: " . round($duration, 2) . "ms\n";
-        echo "  - Average per operation: " . round($avgTimePerOperation, 4) . "ms\n";
-        echo "  - Memory used: " . round($memoryUsed, 2) . "KB\n";
+        // Performance metrics captured in assertions above
+        // Benchmark results: {$iterations} iterations, {$duration}ms total, {$avgTimePerOperation}ms avg, {$memoryUsed}KB memory
     }
 
     public function testRecursiveMaskPerformanceWithDepthLimit(): void
@@ -117,7 +119,7 @@ class PerformanceBenchmarkTest extends TestCase
             $this->assertLessThan(100, $duration, 'Processing should complete in under 100ms with depth limit ' . $maxDepth);
             $this->assertInstanceOf(LogRecord::class, $result);
 
-            echo sprintf('Depth limit %s: ', $maxDepth) . round($duration, 2) . "ms\n";
+            // Performance: Depth limit {$maxDepth}: {$duration}ms
         }
     }
 
@@ -139,7 +141,6 @@ class PerformanceBenchmarkTest extends TestCase
             }
 
             $startTime = microtime(true);
-            $startMemory = memory_get_peak_usage(true);
 
             // Use the processor via LogRecord to test array processing
             $logRecord = new LogRecord(
@@ -152,10 +153,9 @@ class PerformanceBenchmarkTest extends TestCase
             $result = $processor($logRecord);
 
             $endTime = microtime(true);
-            $endMemory = memory_get_peak_usage(true);
 
             $duration = ($endTime - $startTime) * 1000;
-            $memoryUsed = ($endMemory - $startMemory) / (1024 * 1024); // MB
+            // MB
 
             // Verify processing worked
             $this->assertInstanceOf(LogRecord::class, $result);
@@ -166,7 +166,7 @@ class PerformanceBenchmarkTest extends TestCase
             $timePerItem = $duration / $size;
             $this->assertLessThan(1.0, $timePerItem, 'Time per item should be under 1ms for array size ' . $size);
 
-            echo sprintf('Array size %s: ', $size) . round($duration, 2) . "ms (" . round($timePerItem, 4) . "ms per item), Memory: " . round($memoryUsed, 2) . "MB\n";
+            // Performance: Array size {$size}: {$duration}ms ({$timePerItem}ms per item), Memory: {$memoryUsed}MB
         }
     }
 
@@ -179,12 +179,12 @@ class PerformanceBenchmarkTest extends TestCase
         $testMessage = 'Contact john@example.com, SSN: 123-45-6789, Phone: +1-555-123-4567';
 
         // First run - patterns will be cached
-        $startTime = microtime(true);
+        microtime(true);
         for ($i = 0; $i < 100; $i++) {
             $processor->regExpMessage($testMessage);
         }
 
-        $firstRunTime = (microtime(true) - $startTime) * 1000;
+        microtime(true);
 
         // Second run - should benefit from caching
         $startTime = microtime(true);
@@ -202,15 +202,11 @@ class PerformanceBenchmarkTest extends TestCase
 
         $thirdRunTime = (microtime(true) - $startTime) * 1000;
 
-        // Caching should provide consistent performance
-        $improvementPercent = (($firstRunTime - $secondRunTime) / $firstRunTime) * 100;
-
-        echo "\n";
-        echo "Pattern Caching Performance:\n";
-        echo "  - First run (cache building): " . round($firstRunTime, 2) . "ms\n";
-        echo "  - Second run (cached): " . round($secondRunTime, 2) . "ms\n";
-        echo "  - Third run (cached): " . round($thirdRunTime, 2) . "ms\n";
-        echo "  - Improvement: " . round($improvementPercent, 1) . "%\n";
+        // Pattern Caching Performance:
+        // - First run (cache building): {$firstRunTime}ms
+        // - Second run (cached): {$secondRunTime}ms
+        // - Third run (cached): {$thirdRunTime}ms
+        // - Improvement: {$improvementPercent}%
 
         // Performance should be consistent after caching
         $variationPercent = abs(($thirdRunTime - $secondRunTime) / $secondRunTime) * 100;
@@ -262,10 +258,9 @@ class PerformanceBenchmarkTest extends TestCase
         // Memory usage should be reasonable even for large datasets
         $this->assertLessThan(50, $memoryUsed, 'Memory usage should be under 50MB for dataset');
 
-        echo "\n";
-        echo "Large Dataset Memory Usage:\n";
-        echo "  - Items processed: 2,000\n";
-        echo "  - Peak memory used: " . round($memoryUsed, 2) . "MB\n";
+        // Large Dataset Memory Usage:
+        // - Items processed: 2,000
+        // - Peak memory used: {$memoryUsed}MB
     }
 
     public function testConcurrentProcessingSimulation(): void
@@ -308,7 +303,7 @@ class PerformanceBenchmarkTest extends TestCase
             $endTime = microtime(true);
             $times[] = ($endTime - $startTime) * 1000;
 
-            echo sprintf('Concurrency %d: ', $concurrency) . round($times[$concurrency - 1], 2) . "ms\n";
+            // Performance: Concurrency {$concurrency}: {$times[$concurrency - 1]}ms
         }
 
         // Verify all processing completed correctly
@@ -352,20 +347,19 @@ class PerformanceBenchmarkTest extends TestCase
 
         // Simple benchmark without optimization features
         // (We can't easily disable optimizations, so we just measure the current performance)
-        $startTime = microtime(true);
+        microtime(true);
         for ($i = 0; $i < $iterations; $i++) {
             foreach ($patterns as $pattern => $replacement) {
                 $testMessage = preg_replace($pattern, $replacement, $testMessage) ?? $testMessage;
             }
         }
 
-        $simpleTime = (microtime(true) - $startTime) * 1000;
+        microtime(true);
 
-        echo "\n";
-        echo "Performance Comparison ({$iterations} iterations):\n";
-        echo "  - Optimized processor: " . round($optimizedTime, 2) . "ms\n";
-        echo "  - Simple processing: " . round($simpleTime, 2) . "ms\n";
-        echo "  - Improvement: " . round((($simpleTime - $optimizedTime) / $simpleTime) * 100, 1) . "%\n";
+        // Performance Comparison ({$iterations} iterations):
+        // - Optimized processor: {$optimizedTime}ms
+        // - Simple processing: {$simpleTime}ms
+        // - Improvement: {(($simpleTime - $optimizedTime) / $simpleTime) * 100}%
 
         // The optimized version should perform reasonably well
         $avgOptimizedTime = $optimizedTime / $iterations;

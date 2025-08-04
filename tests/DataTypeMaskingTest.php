@@ -13,6 +13,8 @@ use Monolog\Level;
 
 /**
  * Test data type-based masking functionality.
+ *
+ * @api
  */
 class DataTypeMaskingTest extends TestCase
 {

@@ -1,7 +1,5 @@
 <?php
 
-use Ivuorinen\MonologGdprFilter\GdprProcessor;
-
 return [
     /*
     |--------------------------------------------------------------------------
@@ -12,7 +10,7 @@ return [
     | logging system. If false, you'll need to manually register it.
     |
     */
-    'auto_register' => env('GDPR_AUTO_REGISTER', true),
+    'auto_register' => \env('GDPR_AUTO_REGISTER', true),
 
     /*
     |--------------------------------------------------------------------------
@@ -84,7 +82,7 @@ return [
     | Prevents stack overflow on deeply nested data structures.
     |
     */
-    'max_depth' => env('GDPR_MAX_DEPTH', 100),
+    'max_depth' => \env('GDPR_MAX_DEPTH', 100),
 
     /*
     |--------------------------------------------------------------------------
@@ -96,8 +94,8 @@ return [
     |
     */
     'audit_logging' => [
-        'enabled' => env('GDPR_AUDIT_ENABLED', false),
-        'channel' => env('GDPR_AUDIT_CHANNEL', 'gdpr-audit'),
+        'enabled' => \env('GDPR_AUDIT_ENABLED', false),
+        'channel' => \env('GDPR_AUDIT_CHANNEL', 'gdpr-audit'),
     ],
 
     /*
@@ -109,7 +107,7 @@ return [
     |
     */
     'performance' => [
-        'chunk_size' => env('GDPR_CHUNK_SIZE', 1000),
-        'garbage_collection_threshold' => env('GDPR_GC_THRESHOLD', 10000),
+        'chunk_size' => \env('GDPR_CHUNK_SIZE', 1000),
+        'garbage_collection_threshold' => \env('GDPR_GC_THRESHOLD', 10000),
     ],
 ];

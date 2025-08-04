@@ -13,6 +13,8 @@ use Monolog\Level;
 
 /**
  * Test conditional masking functionality based on context and log properties.
+ *
+ * @api
  */
 class ConditionalMaskingTest extends TestCase
 {
@@ -425,9 +427,13 @@ class ConditionalMaskingTest extends TestCase
         };
 
         // Create a rule that throws an exception
-        $faultyRule = function (LogRecord $record): bool {
-            throw new RuntimeException('Rule error');
-        };
+        $faultyRule =
+            /**
+             * @return never
+             */
+            function (LogRecord $record) {
+                throw new RuntimeException('Rule error');
+            };
 
         $processor = new GdprProcessor(
             ['/test@example\.com/' => '***EMAIL***'],

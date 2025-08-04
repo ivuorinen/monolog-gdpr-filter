@@ -15,6 +15,8 @@ use Monolog\Level;
 
 /**
  * Integration tests for GDPR processor with rate-limited audit logging.
+ *
+ * @api
  */
 class GdprProcessorRateLimitingIntegrationTest extends TestCase
 {

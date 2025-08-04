@@ -20,6 +20,8 @@ use Ivuorinen\MonologGdprFilter\Exceptions\InvalidRegexPatternException;
 
 /**
  * Tests for masking strategies.
+ *
+ * @api
  */
 class MaskingStrategiesTest extends TestCase
 {
@@ -141,8 +143,8 @@ class MaskingStrategiesTest extends TestCase
     {
         $baseStrategy = new RegexMaskingStrategy(['/test/' => '***MASKED***']);
         $conditions = [
-            'level' => fn(LogRecord $r) => $r->level === Level::Error,
-            'channel' => fn(LogRecord $r) => $r->channel === 'security',
+            'level' => fn(LogRecord $r): bool => $r->level === Level::Error,
+            'channel' => fn(LogRecord $r): bool => $r->channel === 'security',
         ];
 
         $strategy = new ConditionalMaskingStrategy($baseStrategy, $conditions);
@@ -255,6 +257,9 @@ class MaskingStrategiesTest extends TestCase
                 return $this->pathMatches($path, 'user.*');
             }
 
+            /**
+             * @psalm-return 'Test Strategy'
+             */
             public function getName(): string
             {
                 return 'Test Strategy';
@@ -380,16 +385,25 @@ class MaskingStrategiesTest extends TestCase
                 return $value;
             }
 
+            /**
+             * @return false
+             */
             public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
             {
                 return false;
             }
 
+            /**
+             * @psalm-return 'Invalid'
+             */
             public function getName(): string
             {
                 return 'Invalid';
             }
 
+            /**
+             * @return false
+             */
             public function validate(): bool
             {
                 return false;
