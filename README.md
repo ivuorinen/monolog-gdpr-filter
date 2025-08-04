@@ -255,6 +255,7 @@ echo "Processing time: " . ($time * 1000) . "ms\n";
 **Problem**: Custom regex pattern isn't masking expected data.
 
 **Solutions**:
+
 ```php
 // 1. Test pattern in isolation
 $testPattern = '/your-pattern/';
@@ -285,6 +286,7 @@ $auditLogger = function ($path, $original, $masked) {
 **Problem**: Slow log processing with many patterns.
 
 **Solutions**:
+
 ```php
 // 1. Reduce pattern count
 $essentialPatterns = [
@@ -312,6 +314,7 @@ if ($duration > 0.1) { // 100ms threshold
 **Problem**: Audit logger not being called or logging sensitive data.
 
 **Solutions**:
+
 ```php
 // 1. Verify audit logger is callable
 $auditLogger = function ($path, $original, $masked) {
@@ -340,6 +343,7 @@ if ($original === $masked) {
 **Problem**: GDPR processor not working in Laravel.
 
 **Solutions**:
+
 ```php
 // 1. Verify processor is registered
 Log::info('Test message with email@example.com');
@@ -362,7 +366,7 @@ class AppServiceProvider extends ServiceProvider
         $logger = Log::getLogger();
         $processor = new GdprProcessor($patterns, $fieldPaths);
         $logger->pushProcessor($processor);
-        
+
         // Test immediately
         Log::info('GDPR test: email@example.com should be masked');
     }
@@ -372,26 +376,31 @@ class AppServiceProvider extends ServiceProvider
 ### Error Messages
 
 #### "Invalid regex pattern"
+
 - **Cause**: Pattern fails validation due to syntax error or security risk
 - **Solution**: Check pattern syntax and avoid nested quantifiers
 
 #### "Compilation failed"
+
 - **Cause**: PHP regex compilation error
 - **Solution**: Test pattern with `preg_match()` in isolation
 
 #### "Unknown modifier"
+
 - **Cause**: Invalid regex modifiers or malformed pattern
 - **Solution**: Use standard modifiers like `/pattern/i` for case-insensitive
 
 ### Debugging Tips
 
 1. **Enable Error Logging**:
+
    ```php
    error_reporting(E_ALL);
    ini_set('display_errors', 1);
    ```
 
 2. **Test Patterns Separately**:
+
    ```php
    foreach ($patterns as $pattern => $replacement) {
        echo "Testing: {$pattern}\n";
@@ -403,6 +412,7 @@ class AppServiceProvider extends ServiceProvider
    ```
 
 3. **Monitor Performance**:
+
    ```php
    $processor = new GdprProcessor($patterns, $fieldPaths, [], function($path, $orig, $masked) {
        if (microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'] > 1.0) {

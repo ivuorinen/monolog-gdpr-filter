@@ -23,21 +23,25 @@ We actively support the following versions with security updates:
 This library includes several built-in security features:
 
 ### 🛡️ Regex Injection Protection
+
 - All regex patterns are validated before use
 - Input sanitization prevents malicious pattern injection
 - Built-in pattern validation using `isValidRegexPattern()`
 
 ### 🛡️ ReDoS (Regular Expression Denial of Service) Protection
+
 - Automatic detection of dangerous regex patterns
 - Protection against nested quantifiers and excessive backtracking
 - Safe pattern compilation with error handling
 
 ### 🛡️ Secure Error Handling
+
 - No error suppression (`@`) operators used
 - Proper exception handling for all regex operations
 - Comprehensive error logging for security monitoring
 
 ### 🛡️ Audit Trail Security
+
 - Secure audit logging with configurable callbacks
 - Protection against sensitive data exposure in audit logs
 - Validation of audit logger parameters
@@ -48,7 +52,7 @@ If you discover a security vulnerability, please follow these steps:
 
 ### 🚨 **DO NOT** create a public GitHub issue for security vulnerabilities
 
-### ✅ **DO** report privately using one of these methods:
+### ✅ **DO** report privately using one of these methods
 
 1. **GitHub Security Advisories** (Preferred):
    - Go to the [Security tab](https://github.com/ivuorinen/monolog-gdpr-filter/security)
@@ -84,6 +88,7 @@ Please provide as much information as possible:
 ### For Users of This Library
 
 #### ✅ Pattern Validation
+
 Always validate custom patterns before use:
 
 ```php
@@ -99,6 +104,7 @@ try {
 ```
 
 #### ✅ Secure Audit Logging
+
 Be careful with audit logger implementation:
 
 ```php
@@ -116,6 +122,7 @@ $auditLogger = function (string $path, mixed $original, mixed $masked): void {
 ```
 
 #### ✅ Input Validation
+
 Validate input when using custom callbacks:
 
 ```php
@@ -124,17 +131,18 @@ $customCallback = function (mixed $value): string {
     if (!is_string($value)) {
         return '***INVALID***';
     }
-    
+
     // Additional validation
     if (strlen($value) > 1000) {
         return '***TOOLONG***';
     }
-    
+
     return preg_replace('/sensitive/', '***MASKED***', $value) ?? '***ERROR***';
 };
 ```
 
 #### ✅ Regular Updates
+
 - Keep the library updated to get security fixes
 - Monitor security advisories
 - Review changelogs for security-related changes
@@ -149,6 +157,7 @@ $customCallback = function (mixed $value): string {
    - Review diffs before committing
 
 2. **Validate all regex patterns**:
+
    ```php
    // Always test new patterns for security
    if (!$this->isValidRegexPattern($pattern)) {
@@ -157,6 +166,7 @@ $customCallback = function (mixed $value): string {
    ```
 
 3. **Use proper error handling**:
+
    ```php
    // Good
    try {
@@ -164,7 +174,7 @@ $customCallback = function (mixed $value): string {
    } catch (\Error $e) {
        // Handle error
    }
-   
+
    // Bad
    $result = @preg_replace($pattern, $replacement, $input);
    ```
@@ -172,16 +182,19 @@ $customCallback = function (mixed $value): string {
 ## Known Security Considerations
 
 ### ⚠️ Performance Considerations
+
 - Complex regex patterns may cause performance issues
 - Large input strings should be validated for reasonable size
 - Consider implementing timeouts for regex operations
 
 ### ⚠️ Pattern Conflicts
+
 - Multiple patterns may interact unexpectedly
 - Pattern order matters for security
 - Test all patterns together, not just individually
 
 ### ⚠️ Audit Logging
+
 - Audit loggers can inadvertently log sensitive data
 - Implement audit loggers carefully
 - Consider what data is actually needed for compliance
@@ -238,7 +251,7 @@ $customCallback = function (mixed $value): string {
 
 For security-related questions or concerns:
 
-- **Security Issues**: Use GitHub Security Advisories or email security@ivuorinen.com
+- **Security Issues**: Use GitHub Security Advisories or email <security@ivuorinen.com>
 - **General Questions**: Create a GitHub Discussion
 - **Documentation**: Refer to README.md and inline code documentation
 

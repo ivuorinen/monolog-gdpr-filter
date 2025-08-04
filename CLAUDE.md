@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ### Development
+
 ```bash
 # Install dependencies
 composer install
@@ -28,6 +29,7 @@ composer lint:tool:rector    # Code refactoring
 ```
 
 ### Testing
+
 ```bash
 # Run all tests
 composer test
@@ -66,6 +68,7 @@ This is a Monolog processor library for GDPR compliance that masks sensitive dat
 ### Laravel Integration
 
 The library can be integrated with Laravel in two ways:
+
 1. Service Provider registration
 2. Using a Tap class to modify logging channels
 
