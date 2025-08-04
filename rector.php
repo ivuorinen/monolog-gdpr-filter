@@ -10,6 +10,8 @@ try {
         ->withPaths([
             __DIR__ . '/src',
             __DIR__ . '/tests',
+            __DIR__ . '/examples',
+            __DIR__ . '/config',
         ])
         ->withPhpVersion(80200)
         ->withPhpSets(php82: true)

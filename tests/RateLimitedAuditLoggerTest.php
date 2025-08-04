@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Closure;
 use PHPUnit\Framework\TestCase;
 use Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger;
 use Ivuorinen\MonologGdprFilter\RateLimiter;
 
 /**
  * Test rate-limited audit logging functionality.
+ *
+ * @api
  */
 class RateLimitedAuditLoggerTest extends TestCase
 {
@@ -29,7 +32,10 @@ class RateLimitedAuditLoggerTest extends TestCase
         parent::tearDown();
     }
 
-    private function createTestAuditLogger(): callable
+    /**
+     * @psalm-return Closure(string, mixed, mixed):void
+     */
+    private function createTestAuditLogger(): Closure
     {
         return function (string $path, mixed $original, mixed $masked): void {
             $this->logStorage[] = [

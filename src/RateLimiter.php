@@ -21,6 +21,16 @@ class RateLimiter
     private static array $requests = [];
 
     /**
+     * Last time global cleanup was performed.
+     */
+    private static int $lastCleanup = 0;
+
+    /**
+     * How often to perform global cleanup (in seconds).
+     */
+    private static int $cleanupInterval = 300; // 5 minutes
+
+    /**
      * @param int $maxRequests Maximum number of requests allowed
      * @param int $windowSeconds Time window in seconds
      */
@@ -49,8 +59,11 @@ class RateLimiter
             fn(int $timestamp): bool => $timestamp > $windowStart
         );
 
+        // Perform global cleanup periodically to prevent memory leaks
+        $this->performGlobalCleanupIfNeeded($now);
+
         // Check if we're under the limit
-        if (count(self::$requests[$key]) < $this->maxRequests) {
+        if (count(self::$requests[$key] ?? []) < $this->maxRequests) {
             // Add current request
             self::$requests[$key][] = $now;
             return true;
@@ -102,5 +115,99 @@ class RateLimiter
             'remaining_requests' => max(0, $this->maxRequests - $currentRequests),
             'time_until_reset' => $this->getTimeUntilReset($key),
         ];
+    }
+
+    /**
+     * Get remaining requests for a specific key.
+     *
+     * @param string $key The rate limiting key
+     * @return int The number of remaining requests
+     *
+     * @psalm-return int<0, max>
+     */
+    public function getRemainingRequests(string $key): int
+    {
+        return $this->getStats($key)['remaining_requests'] ?? 0;
+    }
+
+    public static function clearAll(): void
+    {
+        self::$requests = [];
+    }
+
+    public static function clearKey(string $key): void
+    {
+        if (isset(self::$requests[$key])) {
+            unset(self::$requests[$key]);
+        }
+    }
+
+    /**
+     * Perform global cleanup if enough time has passed.
+     * This prevents memory leaks from accumulating unused keys.
+     */
+    private function performGlobalCleanupIfNeeded(int $now): void
+    {
+        if ($now - self::$lastCleanup >= self::$cleanupInterval) {
+            $this->performGlobalCleanup($now);
+            self::$lastCleanup = $now;
+        }
+    }
+
+    /**
+     * Clean up all expired entries across all keys.
+     * This prevents memory leaks from accumulating old unused keys.
+     */
+    private function performGlobalCleanup(int $now): void
+    {
+        $windowStart = $now - $this->windowSeconds;
+
+        foreach (self::$requests as $key => $timestamps) {
+            // Filter out old timestamps
+            $validTimestamps = array_filter(
+                $timestamps,
+                fn(int $timestamp): bool => $timestamp > $windowStart
+            );
+
+            if ($validTimestamps === []) {
+                // Remove keys with no valid timestamps
+                unset(self::$requests[$key]);
+            } else {
+                // Update with filtered timestamps
+                self::$requests[$key] = array_values($validTimestamps);
+            }
+        }
+    }
+
+    /**
+     * Get memory usage statistics for debugging.
+     *
+     * @return int[]
+     *
+     * @psalm-return array{total_keys: int<0, max>, total_timestamps: int, estimated_memory_bytes: int<min, max>, last_cleanup: int, cleanup_interval: int}
+     */
+    public static function getMemoryStats(): array
+    {
+        $totalKeys = count(self::$requests);
+        $totalTimestamps = array_sum(array_map('count', self::$requests));
+        $estimatedMemory = $totalKeys * 50 + $totalTimestamps * 8; // Rough estimate
+
+        return [
+            'total_keys' => $totalKeys,
+            'total_timestamps' => $totalTimestamps,
+            'estimated_memory_bytes' => $estimatedMemory,
+            'last_cleanup' => self::$lastCleanup,
+            'cleanup_interval' => self::$cleanupInterval,
+        ];
+    }
+
+    /**
+     * Configure the global cleanup interval.
+     *
+     * @param int $seconds Cleanup interval in seconds (minimum 60)
+     */
+    public static function setCleanupInterval(int $seconds): void
+    {
+        self::$cleanupInterval = max(60, $seconds); // Minimum 1 minute
     }
 }

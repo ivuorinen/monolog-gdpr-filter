@@ -9,6 +9,7 @@ use Ivuorinen\MonologGdprFilter\RateLimiter;
 
 /**
  * Test rate limiting functionality.
+ * @api
  */
 class RateLimiterTest extends TestCase
 {
@@ -46,13 +47,13 @@ class RateLimiterTest extends TestCase
         $rateLimiter = new RateLimiter(5, 60);
         $key = 'test_key';
 
-        $this->assertEquals(5, $rateLimiter->getRemainingRequests($key));
+        $this->assertSame(5, $rateLimiter->getRemainingRequests($key));
 
         $rateLimiter->isAllowed($key); // Use 1 request
-        $this->assertEquals(4, $rateLimiter->getRemainingRequests($key));
+        $this->assertSame(4, $rateLimiter->getRemainingRequests($key));
 
         $rateLimiter->isAllowed($key); // Use another request
-        $this->assertEquals(3, $rateLimiter->getRemainingRequests($key));
+        $this->assertSame(3, $rateLimiter->getRemainingRequests($key));
     }
 
     public function testSlidingWindow(): void
@@ -147,7 +148,7 @@ class RateLimiterTest extends TestCase
         $key = 'test_key';
 
         $this->assertFalse($rateLimiter->isAllowed($key));
-        $this->assertEquals(0, $rateLimiter->getRemainingRequests($key));
+        $this->assertSame(0, $rateLimiter->getRemainingRequests($key));
     }
 
     public function testHighVolumeRequests(): void

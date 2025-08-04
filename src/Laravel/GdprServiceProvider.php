@@ -2,10 +2,10 @@
 
 namespace Ivuorinen\MonologGdprFilter\Laravel;
 
-use Log;
 use Exception;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Foundation\Application;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 use Ivuorinen\MonologGdprFilter\Laravel\Commands\GdprTestPatternCommand;
 use Ivuorinen\MonologGdprFilter\Laravel\Commands\GdprDebugCommand;
@@ -42,7 +42,7 @@ class GdprServiceProvider extends ServiceProvider
                         'path' => $path,
                         'original_type' => gettype($original),
                         'was_masked' => $original !== $masked,
-                        'timestamp' => now()->toISOString(),
+                        'timestamp' => \now()->toISOString(),
                     ]);
                 };
             }
@@ -66,7 +66,7 @@ class GdprServiceProvider extends ServiceProvider
     {
         // Publish configuration file
         $this->publishes([
-            __DIR__ . '/../../config/gdpr.php' => config_path('gdpr.php'),
+            __DIR__ . '/../../config/gdpr.php' => \config_path('gdpr.php'),
         ], 'gdpr-config');
 
         // Register artisan commands
@@ -78,7 +78,7 @@ class GdprServiceProvider extends ServiceProvider
         }
 
         // Auto-register with Laravel's logging system if enabled
-        if (config('gdpr.auto_register', true)) {
+        if (\config('gdpr.auto_register', true)) {
             $this->registerWithLogging();
         }
     }
@@ -92,7 +92,7 @@ class GdprServiceProvider extends ServiceProvider
         $processor = $this->app->make('gdpr.processor');
 
         // Get channels to apply GDPR processing to
-        $channels = config('gdpr.channels', ['single', 'daily', 'stack']);
+        $channels = \config('gdpr.channels', ['single', 'daily', 'stack']);
 
         foreach ($channels as $channelName) {
             try {

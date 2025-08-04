@@ -8,6 +8,11 @@ use Ivuorinen\MonologGdprFilter\GdprProcessor;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Tests for advanced regex masking processor.
+ *
+ * @api
+ */
 #[CoversClass(GdprProcessor::class)]
 class AdvancedRegexMaskProcessorTest extends TestCase
 {

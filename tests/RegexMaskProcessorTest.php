@@ -9,6 +9,11 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Test regex mask processor functionality.
+ *
+ * @api
+ */
 #[CoversClass(GdprProcessor::class)]
 #[CoversMethod(GdprProcessor::class, '__construct')]
 #[CoversMethod(GdprProcessor::class, '__invoke')]
@@ -99,6 +104,7 @@ class RegexMaskProcessorTest extends TestCase
 
     public function testMaskMessagePregReplaceError(): void
     {
+        // Invalid pattern triggers preg_replace error - suppress expected warning
         $patterns = [
             self::INVALID_REGEX => 'MASKED',
         ];
@@ -107,7 +113,7 @@ class RegexMaskProcessorTest extends TestCase
             $calls[] = [$path, $original, $masked];
         };
         $processor = new GdprProcessor($patterns, [], [], $auditLogger);
-        $result = $processor->maskMessage('test');
+        $result = @$processor->maskMessage('test');
         $this->assertSame('test', $result);
         $this->assertNotEmpty($calls);
         $this->assertSame('preg_replace_batch_error', $calls[0][0]);
@@ -117,6 +123,7 @@ class RegexMaskProcessorTest extends TestCase
 
     public function testRegExpMessagePregReplaceError(): void
     {
+        // Invalid pattern triggers preg_replace error - suppress expected warning
         $patterns = [
             self::INVALID_REGEX => 'MASKED',
         ];
@@ -125,7 +132,7 @@ class RegexMaskProcessorTest extends TestCase
             $calls[] = [$path, $original, $masked];
         };
         $processor = new GdprProcessor($patterns, [], [], $auditLogger);
-        $result = $processor->regExpMessage('test');
+        $result = @$processor->regExpMessage('test');
         $this->assertSame('test', $result);
         $this->assertNotEmpty($calls);
         $this->assertSame('preg_replace_error', $calls[0][0]);
@@ -240,7 +247,7 @@ class RegexMaskProcessorTest extends TestCase
             '/secret/' => 'MASKED',
         ];
         $processor = new class ($patterns) extends GdprProcessor {
-            public function callRecursiveMask($data)
+            public function callRecursiveMask($data): array|string
             {
                 return $this->recursiveMask($data);
             }
