@@ -9,6 +9,8 @@ namespace Ivuorinen\MonologGdprFilter;
  *
  * Uses a sliding window approach with memory-based storage.
  * For production use, consider implementing persistent storage.
+ *
+ * @api
  */
 class RateLimiter
 {

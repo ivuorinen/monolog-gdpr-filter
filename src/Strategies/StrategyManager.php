@@ -15,7 +15,7 @@ use Ivuorinen\MonologGdprFilter\Exceptions\GdprProcessorException;
  * Manages a collection of masking strategies, applies them in priority order,
  * and provides utilities for strategy validation and introspection.
  *
- * @psalm-api
+ * @api
  */
 class StrategyManager
 {
@@ -92,14 +92,17 @@ class StrategyManager
     public function removeStrategiesByClass(string $className): int
     {
         $removed = 0;
-        $this->strategies = array_filter($this->strategies, function ($strategy) use ($className, &$removed) {
-            if ($strategy instanceof $className) {
-                $removed++;
-                return false;
-            }
+        $this->strategies = array_filter(
+            $this->strategies,
+            function ($strategy) use ($className, &$removed) {
+                if ($strategy instanceof $className) {
+                    $removed++;
+                    return false;
+                }
 
-            return true;
-        });
+                return true;
+            }
+        );
 
         if ($removed > 0) {
             $this->strategies = array_values($this->strategies);
@@ -147,7 +150,11 @@ class StrategyManager
                     throw MaskingOperationFailedException::customCallbackFailed(
                         $path,
                         $value,
-                        sprintf("Strategy '%s' failed: %s", $strategy->getName(), $e->getMessage()),
+                        sprintf(
+                            "Strategy '%s' failed: %s",
+                            $strategy->getName(),
+                            $e->getMessage()
+                        ),
                         $e
                     );
                 }
@@ -263,7 +270,9 @@ class StrategyManager
                 $priority >= 20 => '20-39 (Low-Medium)',
                 default => '0-19 (Low)',
             };
-            $stats['priority_distribution'][$priorityRange] = ($stats['priority_distribution'][$priorityRange] ?? 0) + 1;
+            $stats['priority_distribution'][$priorityRange] = (
+                $stats['priority_distribution'][$priorityRange] ?? 0
+            ) + 1;
 
             // Individual strategy info
             $stats['strategies'][] = [

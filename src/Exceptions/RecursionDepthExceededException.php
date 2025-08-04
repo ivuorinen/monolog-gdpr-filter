@@ -15,7 +15,7 @@ use Throwable;
  * - Extremely deep nesting threatens stack overflow
  * - The configured maxDepth parameter is reached
  *
- * @psalm-api
+ * @api
  */
 class RecursionDepthExceededException extends GdprProcessorException
 {
@@ -27,9 +27,18 @@ class RecursionDepthExceededException extends GdprProcessorException
      * @param string $path The field path where the depth was exceeded
      * @param Throwable|null $previous Previous exception for chaining
      */
-    public static function depthExceeded(int $currentDepth, int $maxDepth, string $path, ?Throwable $previous = null): static
-    {
-        $message = sprintf("Maximum recursion depth of %d exceeded (current: %d) at path '%s'", $maxDepth, $currentDepth, $path);
+    public static function depthExceeded(
+        int $currentDepth,
+        int $maxDepth,
+        string $path,
+        ?Throwable $previous = null
+    ): static {
+        $message = sprintf(
+            "Maximum recursion depth of %d exceeded (current: %d) at path '%s'",
+            $maxDepth,
+            $currentDepth,
+            $path
+        );
 
         return self::withContext($message, [
             'error_type' => 'depth_exceeded',
@@ -48,9 +57,18 @@ class RecursionDepthExceededException extends GdprProcessorException
      * @param int $maxDepth The maximum allowed recursion depth
      * @param Throwable|null $previous Previous exception for chaining
      */
-    public static function circularReferenceDetected(string $path, int $currentDepth, int $maxDepth, ?Throwable $previous = null): static
-    {
-        $message = sprintf("Potential circular reference detected at path '%s' (depth: %d/%d)", $path, $currentDepth, $maxDepth);
+    public static function circularReferenceDetected(
+        string $path,
+        int $currentDepth,
+        int $maxDepth,
+        ?Throwable $previous = null
+    ): static {
+        $message = sprintf(
+            "Potential circular reference detected at path '%s' (depth: %d/%d)",
+            $path,
+            $currentDepth,
+            $maxDepth
+        );
 
         return self::withContext($message, [
             'error_type' => 'circular_reference',
@@ -70,9 +88,20 @@ class RecursionDepthExceededException extends GdprProcessorException
      * @param string $path The field path with deep nesting
      * @param Throwable|null $previous Previous exception for chaining
      */
-    public static function extremeNesting(string $dataType, int $currentDepth, int $maxDepth, string $path, ?Throwable $previous = null): static
-    {
-        $message = sprintf("Extremely deep nesting detected in %s at path '%s' (depth: %d/%d)", $dataType, $path, $currentDepth, $maxDepth);
+    public static function extremeNesting(
+        string $dataType,
+        int $currentDepth,
+        int $maxDepth,
+        string $path,
+        ?Throwable $previous = null
+    ): static {
+        $message = sprintf(
+            "Extremely deep nesting detected in %s at path '%s' (depth: %d/%d)",
+            $dataType,
+            $path,
+            $currentDepth,
+            $maxDepth
+        );
 
         return self::withContext($message, [
             'error_type' => 'extreme_nesting',
@@ -91,8 +120,11 @@ class RecursionDepthExceededException extends GdprProcessorException
      * @param string $reason The reason why the depth is invalid
      * @param Throwable|null $previous Previous exception for chaining
      */
-    public static function invalidDepthConfiguration(int $invalidDepth, string $reason, ?Throwable $previous = null): static
-    {
+    public static function invalidDepthConfiguration(
+        int $invalidDepth,
+        string $reason,
+        ?Throwable $previous = null
+    ): static {
         $message = sprintf('Invalid recursion depth configuration: %d (%s)', $invalidDepth, $reason);
 
         return self::withContext($message, [
@@ -112,9 +144,19 @@ class RecursionDepthExceededException extends GdprProcessorException
      * @param array<string> $recommendations List of recommendations
      * @param Throwable|null $previous Previous exception for chaining
      */
-    public static function withRecommendations(int $currentDepth, int $maxDepth, string $path, array $recommendations, ?Throwable $previous = null): static
-    {
-        $message = sprintf("Recursion depth limit reached at path '%s' (depth: %d/%d)", $path, $currentDepth, $maxDepth);
+    public static function withRecommendations(
+        int $currentDepth,
+        int $maxDepth,
+        string $path,
+        array $recommendations,
+        ?Throwable $previous = null
+    ): static {
+        $message = sprintf(
+            "Recursion depth limit reached at path '%s' (depth: %d/%d)",
+            $path,
+            $currentDepth,
+            $maxDepth
+        );
 
         return self::withContext($message, [
             'error_type' => 'depth_with_recommendations',

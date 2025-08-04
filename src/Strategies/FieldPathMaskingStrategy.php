@@ -15,7 +15,7 @@ use Ivuorinen\MonologGdprFilter\Exceptions\MaskingOperationFailedException;
  * Applies masking based on specific field paths using dot notation.
  * Supports static replacements, regex patterns, and removal of fields.
  *
- * @psalm-api
+ * @api
  */
 class FieldPathMaskingStrategy extends AbstractMaskingStrategy
 {

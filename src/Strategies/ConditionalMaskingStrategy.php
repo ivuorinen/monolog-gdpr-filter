@@ -15,7 +15,7 @@ use Ivuorinen\MonologGdprFilter\Exceptions\MaskingOperationFailedException;
  * channel, or custom context-based rules. This allows for fine-grained
  * control over when masking should occur.
  *
- * @psalm-api
+ * @api
  */
 class ConditionalMaskingStrategy extends AbstractMaskingStrategy
 {

@@ -19,11 +19,15 @@ use Illuminate\Support\Facades\Facade;
  * @method static LogRecord __invoke(LogRecord $record)
  *
  * @see \Ivuorinen\MonologGdprFilter\GdprProcessor
+ * @api
  */
 class Gdpr extends Facade
 {
     /**
      * Get the registered name of the component.
+     *
+     *
+     * @psalm-return 'gdpr.processor'
      */
     protected static function getFacadeAccessor(): string
     {

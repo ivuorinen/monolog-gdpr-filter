@@ -13,6 +13,8 @@ use Ivuorinen\MonologGdprFilter\GdprProcessor;
  *
  * This middleware automatically logs HTTP requests and responses
  * with GDPR filtering applied to sensitive data.
+ *
+ * @api
  */
 class GdprLogMiddleware
 {
@@ -88,8 +90,7 @@ class GdprLogMiddleware
         // Apply GDPR filtering
         $this->processor->recursiveMask($responseData);
 
-        $response->getStatusCode() >= 500 ? 'error' :
-                ($response->getStatusCode() >= 400 ? 'warning' : 'info');
+        $response->getStatusCode() >= 500 ? 'error' : ($response->getStatusCode() >= 400 ? 'warning' : 'info');
 
         Log::$level('HTTP Response', array_merge(
             ['method' => $request->method(), 'url' => $request->fullUrl()],

@@ -205,6 +205,7 @@ class GdprProcessor implements ProcessorInterface
                     if ($mask === 'true') {
                         return true;
                     }
+
                     // Return boolean if mask can be converted, otherwise return the mask string
                     if ($mask === 'false') {
                         return false;

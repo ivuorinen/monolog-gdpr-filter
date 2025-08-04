@@ -2,12 +2,12 @@
 
 /**
  * Conditional Masking Examples
- * 
+ *
  * This file demonstrates various ways to use conditional masking
  * to apply GDPR processing only when certain conditions are met.
  */
 
-require_once '../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 use Monolog\Logger;
@@ -181,7 +181,7 @@ $customRule = function (Monolog\LogRecord $record): bool {
     $context = $record->context;
     $isHighPrivilegeUser = isset($context['user_id']) && $context['user_id'] > 1000;
     $isBusinessHours = (int)date('H') >= 9 && (int)date('H') <= 17;
-    
+
     return $isHighPrivilegeUser && $isBusinessHours;
 };
 

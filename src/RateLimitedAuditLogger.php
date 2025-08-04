@@ -9,6 +9,8 @@ namespace Ivuorinen\MonologGdprFilter;
  *
  * This class wraps any audit logger callable and applies rate limiting
  * to prevent overwhelming the audit system with too many log entries.
+ *
+ * @api
  */
 class RateLimitedAuditLogger
 {

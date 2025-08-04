@@ -15,7 +15,7 @@ use Ivuorinen\MonologGdprFilter\Exceptions\MaskingOperationFailedException;
  * Useful for applying consistent masking patterns across all values
  * of specific types (e.g., all integers, all strings).
  *
- * @psalm-api
+ * @api
  */
 class DataTypeMaskingStrategy extends AbstractMaskingStrategy
 {

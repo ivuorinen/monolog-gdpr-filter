@@ -1,19 +1,22 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - vendor/nesbot/carbon/extension.neon
+
 parameters:
     level: max
     paths:
         - src
         - tests
-    
+
     # Type coverage requirements
     reportUnmatchedIgnoredErrors: true
-        
+
     # Ignore specific issues that are acceptable
     ignoreErrors:
         # Allow mixed types in some contexts for backward compatibility
         - '#Parameter \#\d+ \$value of method .* expects .*, mixed given#'
         # Allow callable types that are validated at runtime
         - '#Cannot call callable .* on .* type callable#'
-    
+
     # Extensions for better analysis
     phpVersion: 80200  # PHP 8.2.0
-    
