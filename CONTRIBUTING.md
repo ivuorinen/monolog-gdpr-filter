@@ -31,17 +31,20 @@ Please be respectful in all interactions.
 ### Development Setup
 
 1. **Fork and clone the repository:**
+
    ```bash
    git clone https://github.com/yourusername/monolog-gdpr-filter.git
    cd monolog-gdpr-filter
    ```
 
 2. **Install dependencies:**
+
    ```bash
    composer install
    ```
 
 3. **Verify the setup:**
+
    ```bash
    composer test
    composer lint
@@ -60,6 +63,7 @@ Please be respectful in all interactions.
 ### Workflow
 
 1. **Create a feature branch:**
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
@@ -67,12 +71,14 @@ Please be respectful in all interactions.
 2. **Make your changes** following our coding standards
 
 3. **Test your changes:**
+
    ```bash
    composer test
    composer lint
    ```
 
 4. **Commit your changes:**
+
    ```bash
    git commit -m "feat: add new GDPR pattern for vehicle registration"
    ```
@@ -111,9 +117,9 @@ public function testNewGdprPattern(): void
     $processor = new GdprProcessor([
         '/your-pattern/' => '***MASKED***',
     ]);
-    
+
     $result = $processor->regExpMessage('sensitive data');
-    
+
     $this->assertSame('***MASKED***', $result);
 }
 ```
@@ -123,6 +129,7 @@ public function testNewGdprPattern(): void
 ### Coding Standards
 
 This project follows:
+
 - **PSR-12** coding standard
 - **PHPStan level max** for static analysis
 - **Psalm** for additional type checking
@@ -179,7 +186,7 @@ composer lint:tool:rector    # Code refactoring
 
 Follow [Conventional Commits](https://conventionalcommits.org/):
 
-```
+```text
 type(scope): description
 
 [optional body]
@@ -188,6 +195,7 @@ type(scope): description
 ```
 
 Types:
+
 - `feat`: New features
 - `fix`: Bug fixes
 - `docs`: Documentation changes
@@ -221,11 +229,11 @@ public function testNewPattern(): void
 {
     $patterns = GdprProcessor::getDefaultPatterns();
     $processor = new GdprProcessor($patterns);
-    
+
     // Test positive case
     $result = $processor->regExpMessage('sensitive-data-123');
     $this->assertSame('***MASKED_TYPE***', $result);
-    
+
     // Test negative case (should not match)
     $result = $processor->regExpMessage('normal-data');
     $this->assertSame('normal-data', $result);
@@ -261,6 +269,7 @@ If you discover a security vulnerability, please refer to our
 ## Recognition
 
 Contributors are recognized in:
+
 - Git commit history
 - Release notes for significant contributions
 - Special thanks for security fixes

@@ -46,21 +46,21 @@ php artisan vendor:publish --tag=gdpr-config
 return [
     'auto_register' => true,
     'channels' => ['single', 'daily', 'stack'],
-    
+
     'field_paths' => [
         'user.email' => '', // Mask with regex
         'user.ssn' => GdprProcessor::removeField(),
         'payment.card_number' => GdprProcessor::replaceWith('[CARD]'),
         'request.password' => GdprProcessor::removeField(),
     ],
-    
+
     'custom_callbacks' => [
         'user.ip' => fn($value) => hash('sha256', $value), // Hash IPs
         'user.name' => fn($value) => strtoupper($value),   // Transform names
     ],
-    
+
     'max_depth' => 100,
-    
+
     'audit_logging' => [
         'enabled' => env('GDPR_AUDIT_ENABLED', false),
         'channel' => 'gdpr-audit',
@@ -81,29 +81,29 @@ return [
         '/\binternal-id-\d+\b/' => '***INTERNAL***',
         '/\bcustomer-\d{6}\b/' => '***CUSTOMER***',
     ],
-    
+
     'field_paths' => [
         // User data
         'user.email' => '',
         'user.phone' => GdprProcessor::replaceWith('[PHONE]'),
         'user.address' => GdprProcessor::removeField(),
-        
+
         // Payment data
         'payment.card_number' => GdprProcessor::replaceWith('[CARD]'),
         'payment.cvv' => GdprProcessor::removeField(),
         'payment.account_number' => GdprProcessor::replaceWith('[ACCOUNT]'),
-        
+
         // Request data
         'request.password' => GdprProcessor::removeField(),
         'request.token' => GdprProcessor::replaceWith('[TOKEN]'),
         'headers.authorization' => GdprProcessor::replaceWith('[AUTH]'),
     ],
-    
+
     'custom_callbacks' => [
         // Hash sensitive identifiers
         'user.ip' => fn($ip) => 'ip_' . substr(hash('sha256', $ip), 0, 8),
         'session.id' => fn($id) => 'sess_' . substr(hash('sha256', $id), 0, 12),
-        
+
         // Mask parts of identifiers
         'user.username' => function($username) {
             if (strlen($username) <= 3) return '***';
@@ -171,10 +171,10 @@ class UserService
             'request_ip' => request()->ip(),
             'timestamp' => now(),
         ]);
-        
+
         // User creation logic...
     }
-    
+
     public function loginAttempt(string $email, bool $success)
     {
         Log::info('Login attempt', [
@@ -254,7 +254,7 @@ class ApiRequestLogger
     public function handle(Request $request, Closure $next)
     {
         $startTime = microtime(true);
-        
+
         // Log request
         Log::info('API Request', [
             'method' => $request->method(),
@@ -262,16 +262,16 @@ class ApiRequestLogger
             'headers' => $request->headers->all(),
             'body' => $request->all(),
         ]);
-        
+
         $response = $next($request);
-        
+
         // Log response
         Log::info('API Response', [
             'status' => $response->getStatusCode(),
             'duration' => round((microtime(true) - $startTime) * 1000, 2),
             'memory' => memory_get_peak_usage(true),
         ]);
-        
+
         return $response;
     }
 }
@@ -296,13 +296,13 @@ class GdprTest extends TestCase
         $result = Gdpr::regExpMessage('Contact john@example.com');
         $this->assertStringContains('***EMAIL***', $result);
     }
-    
+
     public function test_custom_pattern()
     {
         $processor = new GdprProcessor([
             '/\bcustomer-\d+\b/' => '***CUSTOMER***'
         ]);
-        
+
         $result = $processor->regExpMessage('Order for customer-12345');
         $this->assertEquals('Order for ***CUSTOMER***', $result);
     }
@@ -329,13 +329,13 @@ class GdprLoggingTest extends TestCase
                 // Verify that email is masked
                 return str_contains($context['user_data']['email'], '***EMAIL***');
             }));
-            
+
         $response = $this->postJson('/api/users', [
             'name' => 'John Doe',
             'email' => 'john@example.com',
             'phone' => '+1234567890',
         ]);
-        
+
         $response->assertStatus(201);
     }
 }
@@ -354,14 +354,14 @@ return [
         'chunk_size' => 500, // Smaller chunks for memory-constrained environments
         'garbage_collection_threshold' => 5000, // More frequent GC
     ],
-    
+
     // Use more specific patterns to reduce processing time
     'patterns' => [
         '/\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/' => '***EMAIL***',
         '/\b\d{3}-\d{2}-\d{4}\b/' => '***SSN***',
         // Avoid overly broad patterns
     ],
-    
+
     // Prefer field paths over regex for known locations
     'field_paths' => [
         'user.email' => '',

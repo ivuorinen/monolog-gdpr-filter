@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - **Phase 6: Code Quality & Architecture ✅ COMPLETED (2025-07-29)**:
   - **Custom Exception Classes**: Comprehensive exception hierarchy with rich context and error reporting
     - `GdprProcessorException` - Base exception with context support for key-value error reporting
@@ -73,7 +74,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - National ID patterns (UK National Insurance, Canadian SIN)
   - Bank account patterns (UK sort codes, Canadian transit numbers)
   - Health insurance patterns (US Medicare, European Health Insurance Cards)
-- **Enhanced Security**: 
+- **Enhanced Security**:
   - Regex pattern validation to prevent injection attacks
   - ReDoS (Regular Expression Denial of Service) protection
   - Comprehensive error handling replacing `@` suppression
@@ -92,6 +93,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Comprehensive linting with Psalm, PHPStan, and PHPCS
 
 ### Changed
+
 - **Phase 6: Code Quality & Architecture (2025-07-29)**:
   - **Exception System**: Replaced generic exceptions with specific, context-rich exception classes
   - **Strategy Pattern**: Refactored masking logic into pluggable strategy system with priority management
@@ -104,6 +106,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Type Safety**: Stricter type declarations and validation throughout
 
 ### Security
+
 - **Phase 6: Enhanced Security (2025-07-29)**:
   - **ReDoS Protection**: Enhanced regular expression denial of service detection in InvalidRegexPatternException
   - **Type Safety**: Improved parameter validation and type coercion safety
@@ -115,6 +118,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Enhanced audit logger security measures
 
 ### Fixed
+
 - **Phase 6: Code Quality Fixes (2025-07-29)**:
   - Fixed 287 PHPCS formatting and style issues
   - Resolved Psalm type coercion warnings and parameter type issues
@@ -129,6 +133,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Previous Versions]
 
 ### [1.0.0] - Initial Release
+
 - Basic GDPR processor implementation
 - Initial pattern set (Finnish SSN, US SSN, IBAN, etc.)
 - Monolog integration
@@ -144,17 +149,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### From 1.x to 2.x (Upcoming)
 
 #### Breaking Changes
+
 - None currently - maintaining backward compatibility
 
 #### Deprecated Features
+
 - `setAuditLogger()` method parameter type changed (constructor parameter preferred)
 
 #### New Features
+
 - 15+ new GDPR patterns available by default
 - Enhanced security validation
 - Improved error handling and logging
 
 #### Security Improvements
+
 - All regex patterns now validated for safety
 - ReDoS protection enabled by default
 - Enhanced audit logging security
@@ -162,13 +171,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Developer Notes
 
 #### Pattern Validation
+
 New patterns are automatically validated for:
+
 - Basic regex syntax correctness
 - ReDoS attack patterns
 - Security vulnerabilities
 
 #### Error Handling
+
 The library now uses proper exception handling instead of error suppression:
+
 ```php
 // Old (deprecated)
 $result = @preg_replace($pattern, $replacement, $input);
@@ -185,7 +198,9 @@ try {
 ```
 
 #### Type Safety
+
 Enhanced type declarations provide better IDE support and error detection:
+
 ```php
 // Improved type annotations
 /**
