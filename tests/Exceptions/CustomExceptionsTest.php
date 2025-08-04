@@ -15,6 +15,7 @@ use RuntimeException;
 
 /**
  * Tests for custom GDPR processor exceptions.
+ * @api
  */
 class CustomExceptionsTest extends TestCase
 {

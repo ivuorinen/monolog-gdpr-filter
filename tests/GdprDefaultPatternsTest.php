@@ -8,6 +8,11 @@ use PHPUnit\Framework\TestCase;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 
+/**
+ * GDPR Default Patterns Test
+ *
+ * @api
+ */
 #[CoversClass(FieldMaskConfig::class)]
 #[CoversMethod(GdprProcessor::class, 'getDefaultPatterns')]
 class GdprDefaultPatternsTest extends TestCase

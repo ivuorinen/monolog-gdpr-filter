@@ -12,6 +12,11 @@ use Monolog\LogRecord;
 use Monolog\Level;
 use Monolog\JsonSerializableDateTimeImmutable;
 
+/**
+ * Unit tests for GDPR processor.
+ *
+ * @api
+ */
 #[CoversClass(GdprProcessor::class)]
 #[CoversMethod(GdprProcessor::class, '__invoke')]
 #[CoversMethod(GdprProcessor::class, 'getDefaultPatterns')]
@@ -146,7 +151,7 @@ class GdprProcessorTest extends TestCase
             '/secret/' => self::MASKED_SECRET,
         ];
         $processor = new class ($patterns) extends GdprProcessor {
-            public function callRecursiveMask($data)
+            public function callRecursiveMask($data): array|string
             {
                 return $this->recursiveMask($data);
             }
@@ -259,7 +264,7 @@ class GdprProcessorTest extends TestCase
 
     public function testPregReplaceErrorInMaskMessage(): void
     {
-        // Invalid pattern triggers preg_replace error
+        // Invalid pattern triggers preg_replace error - suppress expected warning
         $patterns = [
             self::INVALID_REGEX => 'MASKED',
         ];
@@ -269,7 +274,7 @@ class GdprProcessorTest extends TestCase
             $calls[] = [$path, $original, $masked];
         };
         $processor = new GdprProcessor($patterns, [], [], $auditLogger);
-        $result = $processor->maskMessage('test');
+        $result = @$processor->maskMessage('test');
         $this->assertSame('test', $result);
         $this->assertNotEmpty($calls);
         $this->assertSame('preg_replace_batch_error', $calls[0][0]);
@@ -279,6 +284,7 @@ class GdprProcessorTest extends TestCase
 
     public function testPregReplaceErrorInRegExpMessage(): void
     {
+        // Invalid pattern triggers preg_replace error - suppress expected warning
         $patterns = [
             self::INVALID_REGEX => 'MASKED',
         ];
@@ -287,7 +293,7 @@ class GdprProcessorTest extends TestCase
             $calls[] = [$path, $original, $masked];
         };
         $processor = new GdprProcessor($patterns, [], [], $auditLogger);
-        $result = $processor->regExpMessage('test');
+        $result = @$processor->regExpMessage('test');
         $this->assertSame('test', $result);
         $this->assertNotEmpty($calls);
         $this->assertSame('preg_replace_error', $calls[0][0]);
@@ -297,9 +303,10 @@ class GdprProcessorTest extends TestCase
 
     public function testRegExpMessageHandlesPregReplaceError(): void
     {
+        // Invalid pattern triggers preg_replace error - suppress expected warning
         $invalidPattern = ['/(unclosed[' => 'REPLACED'];
         $called = false;
-        $logger = function ($type, $original, $message) use (&$called) {
+        $logger = function ($type, $original, $message) use (&$called): void {
             $called = true;
             $this->assertSame('preg_replace_error', $type);
             $this->assertSame('test', $original);
@@ -308,7 +315,7 @@ class GdprProcessorTest extends TestCase
         $processor = new GdprProcessor($invalidPattern);
         $processor->setAuditLogger($logger);
 
-        $result = $processor->regExpMessage('test');
+        $result = @$processor->regExpMessage('test');
         $this->assertTrue($called, 'Audit logger should be called on preg_replace error');
         $this->assertSame('test', $result, 'Message should be unchanged if preg_replace fails');
     }

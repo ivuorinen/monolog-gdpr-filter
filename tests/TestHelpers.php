@@ -1,8 +1,9 @@
 <?php
 
-/** @noinspection GrazieInspection */
-
-/** @noinspection PhpMultipleClassDeclarationsInspection */
+/**
+ * @noinspection GrazieInspection
+ * @noinspection PhpMultipleClassDeclarationsInspection
+ */
 
 declare(strict_types=1);
 
@@ -66,7 +67,10 @@ trait TestHelpers
             $method = new ReflectionMethod($object, $methodName);
         }
 
-        /** @noinspection PhpExpressionResultUnusedInspection */
+        /**
+         * @noinspection PhpExpressionResultUnusedInspection
+         * @psalm-suppress UnusedMethodCall
+         */
         $method->setAccessible(true);
         return $method;
     }
@@ -74,7 +78,7 @@ trait TestHelpers
     /**
      * Returns a reflection of the given class.
      *
-     * @psalm-api
+     * @api
      * @noinspection PhpUnused
      */
     protected function noOperation(): void

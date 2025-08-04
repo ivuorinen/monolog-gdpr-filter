@@ -52,6 +52,52 @@ class RateLimitedAuditLogger
         }
     }
 
+    public function isOperationAllowed(string $path): bool
+    {
+        // Use a combination of path and operation type as the rate limiting key
+        $key = $this->generateRateLimitKey($path);
+
+        return $this->rateLimiter->isAllowed($key);
+    }
+
+    /**
+     * Get rate limiting statistics for all active operation types.
+     *
+     * @return int[][]
+     *
+     * @psalm-return array{'audit:general_operations'?: array{current_requests: int<1, max>, remaining_requests: int<0, max>, time_until_reset: int<0, max>}, 'audit:error_operations'?: array{current_requests: int<1, max>, remaining_requests: int<0, max>, time_until_reset: int<0, max>}, 'audit:regex_operations'?: array{current_requests: int<1, max>, remaining_requests: int<0, max>, time_until_reset: int<0, max>}, 'audit:conditional_operations'?: array{current_requests: int<1, max>, remaining_requests: int<0, max>, time_until_reset: int<0, max>}, 'audit:json_operations'?: array{current_requests: int<1, max>, remaining_requests: int<0, max>, time_until_reset: int<0, max>}}
+     */
+    public function getRateLimitStats(): array
+    {
+        // Get all possible operation types based on the classification logic
+        $operationTypes = [
+            'audit:json_operations',
+            'audit:conditional_operations',
+            'audit:regex_operations',
+            'audit:error_operations',
+            'audit:general_operations'
+        ];
+
+        $stats = [];
+        foreach ($operationTypes as $type) {
+            $typeStats = $this->rateLimiter->getStats($type);
+            // Only include operation types that have been used
+            if ($typeStats['current_requests'] > 0) {
+                $stats[$type] = $typeStats;
+            }
+        }
+
+        return $stats;
+    }
+
+    /**
+     * Clear all rate limiting data.
+     */
+    public function clearRateLimitData(): void
+    {
+        RateLimiter::clearAll();
+    }
+
     /**
      * Generate a rate limiting key based on the audit operation.
      *

@@ -1,5 +1,7 @@
 <?php
 
+use Monolog\LogRecord;
+
 /**
  * Rate Limiting for Audit Logging Examples
  *
@@ -7,7 +9,7 @@
  * audit log flooding while maintaining system performance.
  */
 
-require_once '../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 use Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger;
@@ -26,7 +28,7 @@ $baseAuditLogger = function (string $path, mixed $original, mixed $masked) use (
         'original' => $original,
         'masked' => $masked
     ];
-    echo "AUDIT: {$path} - {$original} -> {$masked}\n";
+    echo sprintf('AUDIT: %s - %s -> %s%s', $path, $original, $masked, PHP_EOL);
 };
 
 // Wrap with rate limiting (100 per minute by default)
@@ -46,7 +48,7 @@ $logger->pushProcessor($processor);
 // Simulate high-volume logging that would exceed rate limits
 for ($i = 0; $i < 10; $i++) {
     $logger->info('User activity', [
-        'user' => ['email' => "user{$i}@example.com"],
+        'user' => ['email' => sprintf('user%d@example.com', $i)],
         'action' => 'login'
     ]);
 }
@@ -88,12 +90,12 @@ $processor3 = new GdprProcessor(
 
 // Process some logs
 for ($i = 0; $i < 3; $i++) {
-    $logRecord = new \Monolog\LogRecord(
-        new \DateTimeImmutable(),
+    $logRecord = new LogRecord(
+        new DateTimeImmutable(),
         'app',
         Level::Info,
-        "Processing user{$i}@example.com",
-        ['sensitive_data' => "secret_value_{$i}"]
+        sprintf('Processing user%d@example.com', $i),
+        ['sensitive_data' => 'secret_value_' . $i]
     );
 
     $result = $processor3($logRecord);
@@ -109,7 +111,7 @@ $rateLimitedLogger4 = new RateLimitedAuditLogger($baseAuditLogger, 10, 60);
 
 // Generate some activity
 for ($i = 0; $i < 5; $i++) {
-    $rateLimitedLogger4('test_operation', "value_{$i}", "masked_{$i}");
+    $rateLimitedLogger4('test_operation', 'value_' . $i, 'masked_' . $i);
 }
 
 // Check statistics
@@ -118,8 +120,8 @@ echo "Rate Limit Statistics:\n";
 foreach ($stats as $operationType => $stat) {
     if ($stat['current_requests'] > 0) {
         echo "  {$operationType}:\n";
-        echo "    Current requests: {$stat['current_requests']}\n";
-        echo "    Remaining requests: {$stat['remaining_requests']}\n";
+        echo sprintf('    Current requests: %d%s', $stat['current_requests'], PHP_EOL);
+        echo sprintf('    Remaining requests: %d%s', $stat['remaining_requests'], PHP_EOL);
         echo "    Time until reset: {$stat['time_until_reset']} seconds\n";
     }
 }
@@ -150,7 +152,9 @@ echo "\nOperation type stats:\n";
 $stats5 = $rateLimitedLogger5->getRateLimitStats();
 foreach ($stats5 as $type => $stat) {
     if ($stat['current_requests'] > 0) {
-        echo "  {$type}: {$stat['current_requests']}/{$stat['current_requests'] + $stat['remaining_requests']} used\n";
+        $current = $stat['current_requests'];
+        $all = $stat['current_requests'] + $stat['remaining_requests'];
+        echo "  {$type}: {$current}/{$all} used\n";
     }
 }
 

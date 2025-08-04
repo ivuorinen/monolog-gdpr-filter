@@ -12,6 +12,8 @@ use Monolog\Level;
 
 /**
  * Test JSON string masking functionality within log messages.
+ *
+ * @api
  */
 class JsonMaskingTest extends TestCase
 {
@@ -340,11 +342,35 @@ class JsonMaskingTest extends TestCase
      */
     private function extractJsonFromMessage(string $message): ?array
     {
-        if (preg_match('/\{[^}]+\}/', $message, $matches)) {
-            return json_decode($matches[0], true);
+        // Find the first opening brace
+        $startPos = strpos($message, '{');
+        if ($startPos === false) {
+            return null;
         }
 
-        return null;
+        // Count braces to find the matching closing brace
+        $braceCount = 0;
+        $length = strlen($message);
+        $endPos = -1;
+
+        for ($i = $startPos; $i < $length; $i++) {
+            if ($message[$i] === '{') {
+                $braceCount++;
+            } elseif ($message[$i] === '}') {
+                $braceCount--;
+                if ($braceCount === 0) {
+                    $endPos = $i;
+                    break;
+                }
+            }
+        }
+
+        if ($endPos === -1) {
+            return null;
+        }
+
+        $jsonString = substr($message, $startPos, $endPos - $startPos + 1);
+        return json_decode($jsonString, true);
     }
 
     /**

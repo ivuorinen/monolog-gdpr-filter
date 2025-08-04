@@ -1,13 +1,15 @@
 <?php
 
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Monolog\LogRecord;
+
 /**
  * Conditional Masking Examples
  *
  * This file demonstrates various ways to use conditional masking
  * to apply GDPR processing only when certain conditions are met.
  */
-
-require_once __DIR__ . '/../vendor/autoload.php';
 
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 use Monolog\Logger;
@@ -176,7 +178,7 @@ echo "\n";
 // Create a custom rule based on complex logic
 echo "=== Example 6: Custom Conditional Rule ===\n";
 
-$customRule = function (Monolog\LogRecord $record): bool {
+$customRule = function (LogRecord $record): bool {
     // Only mask for high-privilege users (user_id > 1000) during business hours
     $context = $record->context;
     $isHighPrivilegeUser = isset($context['user_id']) && $context['user_id'] > 1000;

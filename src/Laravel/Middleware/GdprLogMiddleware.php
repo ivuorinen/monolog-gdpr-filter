@@ -9,6 +9,14 @@ use Illuminate\Support\Facades\Log;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 
 /**
+ * Import Laravel helper functions
+ */
+function config(string $key, mixed $default = null): mixed
+{
+    return \config($key, $default);
+}
+
+/**
  * Middleware for GDPR-compliant request/response logging.
  *
  * This middleware automatically logs HTTP requests and responses
@@ -62,7 +70,7 @@ class GdprLogMiddleware
         ];
 
         // Apply GDPR filtering to the entire request data
-        $this->processor->recursiveMask($requestData);
+        $filteredData = $this->processor->recursiveMask($requestData);
 
         Log::info('HTTP Request', $filteredData);
     }
@@ -88,14 +96,24 @@ class GdprLogMiddleware
         }
 
         // Apply GDPR filtering
-        $this->processor->recursiveMask($responseData);
+        $filteredData = $this->processor->recursiveMask($responseData);
 
-        $response->getStatusCode() >= 500 ? 'error' : ($response->getStatusCode() >= 400 ? 'warning' : 'info');
+        $level = $response->getStatusCode() >= 500 ? 'error' : ($response->getStatusCode() >= 400 ? 'warning' : 'info');
 
-        Log::$level('HTTP Response', array_merge(
-            ['method' => $request->method(), 'url' => $request->fullUrl()],
-            $filteredData
-        ));
+        match ($level) {
+            'error' => Log::error('HTTP Response', array_merge(
+                ['method' => $request->method(), 'url' => $request->fullUrl()],
+                $filteredData
+            )),
+            'warning' => Log::warning('HTTP Response', array_merge(
+                ['method' => $request->method(), 'url' => $request->fullUrl()],
+                $filteredData
+            )),
+            default => Log::info('HTTP Response', array_merge(
+                ['method' => $request->method(), 'url' => $request->fullUrl()],
+                $filteredData
+            ))
+        };
     }
 
     /**

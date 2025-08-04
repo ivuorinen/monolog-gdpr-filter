@@ -370,10 +370,22 @@ class GdprProcessor implements ProcessorInterface
         $message = $this->regExpMessage($record->message);
         $context = $record->context;
         $accessor = new Dot($context);
+        $processedFields = [];
 
         if ($this->fieldPaths !== []) {
-            $this->maskFieldPaths($accessor);
+            $processedFields = array_merge($processedFields, $this->maskFieldPaths($accessor));
+        }
+
+        if ($this->customCallbacks !== []) {
+            $processedFields = array_merge($processedFields, $this->processCustomCallbacks($accessor));
+        }
+
+        if ($this->fieldPaths !== [] || $this->customCallbacks !== []) {
             $context = $accessor->all();
+            // Apply data type masking to the entire context after field/callback processing
+            if ($this->dataTypeMasks !== []) {
+                $context = $this->applyDataTypeMaskingToContext($context, $processedFields);
+            }
         } else {
             $context = $this->recursiveMask($context, 0);
         }
@@ -405,7 +417,7 @@ class GdprProcessor implements ProcessorInterface
             } catch (Throwable $e) {
                 // If a rule throws an exception, log it and default to applying masking
                 if ($this->auditLogger !== null) {
-                    ($this->auditLogger)('conditional_error', $ruleName, 'Rule error: ' . $e->getMessage());
+                    ($this->auditLogger)('conditional_error', $ruleName, 'Rule error: ' . $this->sanitizeErrorMessage($e->getMessage()));
                 }
 
                 continue;
@@ -574,7 +586,7 @@ class GdprProcessor implements ProcessorInterface
             // If successfully decoded, apply masking and re-encode
             if ($decoded !== null) {
                 $masked = $this->recursiveMask($decoded, 0);
-                $reEncoded = json_encode($masked, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                $reEncoded = $this->encodeJsonPreservingEmptyObjects($masked, $potentialJson);
 
                 if ($reEncoded !== false) {
                     // Log the operation if audit logger is available
@@ -593,12 +605,66 @@ class GdprProcessor implements ProcessorInterface
     }
 
     /**
-     * Mask only specified paths in context (fieldPaths)
+     * Encode JSON while preserving empty object structures from the original.
+     *
+     * @param array|string $data The data to encode.
+     * @param string $originalJson The original JSON string.
+     *
+     * @return false|null|string The encoded JSON string or false on failure.
+     */
+    private function encodeJsonPreservingEmptyObjects(array|string $data, string $originalJson): string|false|null
+    {
+        // Handle simple empty cases first
+        if ($data === '' || $data === '0' || $data === []) {
+            if ($originalJson === '{}') {
+                return '{}';
+            }
+
+            if ($originalJson === '[]') {
+                return '[]';
+            }
+        }
+
+        // Encode the processed data
+        $encoded = json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+        if ($encoded === false) {
+            return false;
+        }
+
+        // Fix empty arrays that should be empty objects by comparing with original
+        return $this->fixEmptyObjectsInEncodedJson($encoded, $originalJson);
+    }
+
+    /**
+     * Fix empty arrays that should be empty objects in the encoded JSON.
+     */
+    private function fixEmptyObjectsInEncodedJson(string $encoded, string $original): string|null
+    {
+        // Count empty objects in original and empty arrays in encoded
+        $originalEmptyObjects = substr_count($original, '{}');
+        $encodedEmptyArrays = substr_count($encoded, '[]');
+
+        // If we lost empty objects (they became arrays), fix them
+        if ($originalEmptyObjects > 0 && $encodedEmptyArrays >= $originalEmptyObjects) {
+            // Replace empty arrays with empty objects, up to the number we had originally
+            for ($i = 0; $i < $originalEmptyObjects; $i++) {
+                $encoded = preg_replace('/\[\]/', '{}', $encoded, 1);
+            }
+        }
+
+        return $encoded;
+    }
+
+    /**
+     * Mask field paths in the context using the configured field masks.
      *
      * @param Dot<array-key, mixed> $accessor
+     * @return array<string> Array of processed field paths
      */
-    private function maskFieldPaths(Dot $accessor): void
+    private function maskFieldPaths(Dot $accessor): array
     {
+        $processedFields = [];
         foreach ($this->fieldPaths as $path => $config) {
             if (!$accessor->has($path)) {
                 continue;
@@ -609,6 +675,7 @@ class GdprProcessor implements ProcessorInterface
             if ($action['remove'] ?? false) {
                 $accessor->delete($path);
                 $this->logAudit($path, $value, null);
+                $processedFields[] = $path;
                 continue;
             }
 
@@ -617,7 +684,80 @@ class GdprProcessor implements ProcessorInterface
                 $accessor->set($path, $masked);
                 $this->logAudit($path, $value, $masked);
             }
+            $processedFields[] = $path;
         }
+
+        return $processedFields;
+    }
+
+    /**
+     * Process custom callbacks on context fields.
+     *
+     * @param Dot<array-key, mixed> $accessor
+     * @return array<string> Array of processed field paths
+     */
+    private function processCustomCallbacks(Dot $accessor): array
+    {
+        $processedFields = [];
+        foreach ($this->customCallbacks as $path => $callback) {
+            if (!$accessor->has($path)) {
+                continue;
+            }
+
+            $value = $accessor->get($path);
+            try {
+                $masked = $callback($value);
+                if ($masked !== $value) {
+                    $accessor->set($path, $masked);
+                    $this->logAudit($path, $value, $masked);
+                }
+                $processedFields[] = $path;
+            } catch (Throwable $e) {
+                // Log callback error but continue processing
+                $this->logAudit($path . '_callback_error', $value, 'Callback failed: ' . $this->sanitizeErrorMessage($e->getMessage()));
+                $processedFields[] = $path;
+            }
+        }
+
+        return $processedFields;
+    }
+
+    /**
+     * Apply data type masking to an entire context structure.
+     *
+     * @param array<mixed> $context
+     * @param array<string> $processedFields Array of field paths that have already been processed
+     * @param string $currentPath Current dot-notation path for nested processing
+     * @return array<mixed>
+     */
+    private function applyDataTypeMaskingToContext(array $context, array $processedFields = [], string $currentPath = ''): array
+    {
+        $result = [];
+        foreach ($context as $key => $value) {
+            $fieldPath = $currentPath === '' ? (string)$key : $currentPath . '.' . $key;
+
+            // Skip fields that have already been processed by field paths or custom callbacks
+            if (in_array($fieldPath, $processedFields, true)) {
+                $result[$key] = $value;
+                continue;
+            }
+
+            if (is_array($value)) {
+                $result[$key] = $this->applyDataTypeMaskingToContext($value, $processedFields, $fieldPath);
+            } else {
+                $type = gettype($value);
+                if (isset($this->dataTypeMasks[$type])) {
+                    $masked = $this->applyDataTypeMasking($value);
+                    if ($masked !== $value) {
+                        $this->logAudit($fieldPath, $value, $masked);
+                    }
+                    $result[$key] = $masked;
+                } else {
+                    $result[$key] = $value;
+                }
+            }
+        }
+        return $result;
     }
 
     /**
@@ -722,13 +862,29 @@ class GdprProcessor implements ProcessorInterface
                 foreach ($chunk as $key => $value) {
                     $type = gettype($value);
 
-                    // Check if there's a specific data type mask for this type
-                    if ($this->dataTypeMasks !== [] && isset($this->dataTypeMasks[$type])) {
-                        $result[$key] = $this->applyDataTypeMasking($value);
-                    } elseif (is_string($value)) {
-                        $result[$key] = $this->regExpMessage($value);
+                    if (is_string($value)) {
+                        // For strings: apply regex patterns first, then data type masking if unchanged
+                        $regexResult = $this->regExpMessage($value);
+                        if ($regexResult !== $value) {
+                            // Regex patterns matched and changed the value
+                            $result[$key] = $regexResult;
+                        } elseif ($this->dataTypeMasks !== [] && isset($this->dataTypeMasks[$type])) {
+                            // No regex match, apply data type masking if configured
+                            $result[$key] = $this->applyDataTypeMasking($value);
+                        } else {
+                            // No masking applied
+                            $result[$key] = $value;
+                        }
                     } elseif (is_array($value)) {
-                        $result[$key] = $this->recursiveMask($value, $currentDepth + 1);
+                        // For arrays: apply data type masking if configured, otherwise recurse
+                        if ($this->dataTypeMasks !== [] && isset($this->dataTypeMasks[$type])) {
+                            $result[$key] = $this->applyDataTypeMasking($value);
+                        } else {
+                            $result[$key] = $this->recursiveMask($value, $currentDepth + 1);
+                        }
+                    } elseif ($this->dataTypeMasks !== [] && isset($this->dataTypeMasks[$type])) {
+                        // For other non-strings: apply data type masking if configured
+                        $result[$key] = $this->applyDataTypeMasking($value);
                     } else {
                         // Keep other types as-is if no specific masking is configured
                         $result[$key] = $value;
@@ -748,13 +904,29 @@ class GdprProcessor implements ProcessorInterface
         foreach ($data as $key => $value) {
             $type = gettype($value);
 
-            // Check if there's a specific data type mask for this type
-            if ($this->dataTypeMasks !== [] && isset($this->dataTypeMasks[$type])) {
-                $data[$key] = $this->applyDataTypeMasking($value);
-            } elseif (is_string($value)) {
-                $data[$key] = $this->regExpMessage($value);
+            if (is_string($value)) {
+                // For strings: apply regex patterns first, then data type masking if unchanged
+                $regexResult = $this->regExpMessage($value);
+                if ($regexResult !== $value) {
+                    // Regex patterns matched and changed the value
+                    $data[$key] = $regexResult;
+                } elseif ($this->dataTypeMasks !== [] && isset($this->dataTypeMasks[$type])) {
+                    // No regex match, apply data type masking if configured
+                    $data[$key] = $this->applyDataTypeMasking($value);
+                } else {
+                    // No masking applied
+                    $data[$key] = $value;
+                }
             } elseif (is_array($value)) {
-                $data[$key] = $this->recursiveMask($value, $currentDepth + 1);
+                // For arrays: apply data type masking if configured, otherwise recurse
+                if ($this->dataTypeMasks !== [] && isset($this->dataTypeMasks[$type])) {
+                    $data[$key] = $this->applyDataTypeMasking($value);
+                } else {
+                    $data[$key] = $this->recursiveMask($value, $currentDepth + 1);
+                }
+            } elseif ($this->dataTypeMasks !== [] && isset($this->dataTypeMasks[$type])) {
+                // For other non-strings: apply data type masking if configured
+                $data[$key] = $this->applyDataTypeMasking($value);
             } else {
                 // Keep other types as-is if no specific masking is configured
                 $data[$key] = $value;
@@ -822,11 +994,44 @@ class GdprProcessor implements ProcessorInterface
             return false;
         }
 
-        // Basic ReDoS protection - check for potentially dangerous patterns
+        // Enhanced ReDoS protection - check for potentially dangerous patterns
         $dangerousPatterns = [
-            '/\(\?.*\*.*\+/', // Nested quantifiers like (?:a+)+
-            '/\(.*\*.*\).*\*/', // Groups with multiple quantifiers
-            '/\+.*\*/', // Possessive quantifiers that can cause backtracking
+            // Nested quantifiers (classic ReDoS patterns)
+            '/\([^)]*\+[^)]*\)\+/',     // (a+)+ pattern
+            '/\([^)]*\*[^)]*\)\*/',     // (a*)* pattern
+            '/\([^)]*\+[^)]*\)\*/',     // (a+)* pattern
+            '/\([^)]*\*[^)]*\)\+/',     // (a*)+ pattern
+
+            // Alternation with overlapping patterns
+            '/\([^|)]*\|[^|)]*\)\*/',   // (a|a)* pattern
+            '/\([^|)]*\|[^|)]*\)\+/',   // (a|a)+ pattern
+
+            // Complex nested structures
+            '/\(\([^)]*\+[^)]*\)[^)]*\)\+/',  // ((a+)...)+ pattern
+
+            // Character classes with nested quantifiers
+            '/\[[^\]]*\]\*\*/',         // [a-z]** pattern
+            '/\[[^\]]*\]\+\+/',         // [a-z]++ pattern
+            '/\([^)]*\[[^\]]*\][^)]*\)\*/', // ([a-z])* pattern
+            '/\([^)]*\[[^\]]*\][^)]*\)\+/', // ([a-z])+ pattern
+
+            // Lookahead/lookbehind with quantifiers
+            '/\(\?\=[^)]*\)\([^)]*\)\+/', // (?=...)(...)+
+            '/\(\?\<[^)]*\)\([^)]*\)\+/', // (?<...)(...)+
+
+            // Word boundaries with dangerous quantifiers
+            '/\\\\w\+\*/',              // \w+* pattern
+            '/\\\\w\*\+/',              // \w*+ pattern
+
+            // Dot with dangerous quantifiers
+            '/\.\*\*/',                 // .** pattern
+            '/\.\+\+/',                 // .++ pattern
+            '/\(\.\*\)\+/',             // (.*)+ pattern
+            '/\(\.\+\)\*/',             // (.+)* pattern
+
+            // Legacy dangerous patterns (keeping for backward compatibility)
+            '/\(\?.*\*.*\+/',           // (?:...*...)+
+            '/\(.*\*.*\).*\*/',         // (...*...).*
         ];
 
         foreach ($dangerousPatterns as $dangerousPattern) {
@@ -869,5 +1074,72 @@ class GdprProcessor implements ProcessorInterface
                 throw new InvalidArgumentException('Invalid or unsafe regex pattern: ' . $pattern);
             }
         }
+    }
+
+    /**
+     * Sanitize error messages to prevent information disclosure.
+     *
+     * This method removes sensitive information from error messages
+     * before they are logged to prevent security vulnerabilities.
+     *
+     * @param string $message The original error message
+     *
+     * @return null|string The sanitized error message
+     */
+    private function sanitizeErrorMessage(string $message): string|null
+    {
+        // List of sensitive patterns to remove or mask
+        $sensitivePatterns = [
+            // Database credentials
+            '/password=\S+/i' => 'password=***',
+            '/pwd=\S+/i' => 'pwd=***',
+            '/pass=\S+/i' => 'pass=***',
+
+            // Database hosts and connection strings
+            '/host=[\w\.-]+/i' => 'host=***',
+            '/server=[\w\.-]+/i' => 'server=***',
+            '/hostname=[\w\.-]+/i' => 'hostname=***',
+
+            // User credentials
+            '/user=\S+/i' => 'user=***',
+            '/username=\S+/i' => 'username=***',
+            '/uid=\S+/i' => 'uid=***',
+
+            // API keys and tokens
+            '/api[_-]?key[=:]\s*\S+/i' => 'api_key=***',
+            '/token[=:]\s*\S+/i' => 'token=***',
+            '/bearer\s+\S+/i' => 'bearer ***',
+            '/sk_\w+/i' => 'sk_***',
+            '/pk_\w+/i' => 'pk_***',
+
+            // File paths (potential information disclosure)
+            '/\/[\w\/\.-]*\/(config|secret|private|key)[\w\/\.-]*/i' => '/***/$1/***',
+            '/[a-zA-Z]:\\\\[\w\\\\.-]*\\\\(config|secret|private|key)[\w\\\\.-]*/i' => 'C:\\***\\$1\\***',
+
+            // Connection strings
+            '/redis:\/\/[^@]*@[\w\.-]+:\d+/i' => 'redis://***:***@***:***',
+            '/mysql:\/\/[^@]*@[\w\.-]+:\d+/i' => 'mysql://***:***@***:***',
+            '/postgresql:\/\/[^@]*@[\w\.-]+:\d+/i' => 'postgresql://***:***@***:***',
+
+            // JWT secrets and other secrets
+            '/secret[_-]?key[=:\s]+\S+/i' => 'secret_key=***',
+            '/jwt[_-]?secret[=:\s]+\S+/i' => 'jwt_secret=***',
+
+            // IP addresses in internal ranges
+            '/\b(?:10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3})\b/' => '***.***.***',
+        ];
+
+        $sanitized = $message;
+
+        foreach ($sensitivePatterns as $pattern => $replacement) {
+            $sanitized = preg_replace($pattern, $replacement, $sanitized);
+        }
+
+        // Truncate very long messages to prevent log flooding
+        if (strlen((string) $sanitized) > 500) {
+            return substr((string) $sanitized, 0, 500) . '... (truncated for security)';
+        }
+
+        return $sanitized;
     }
 }
