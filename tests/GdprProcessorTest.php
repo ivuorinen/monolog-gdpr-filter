@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\TestCase;
@@ -12,6 +13,11 @@ use Monolog\LogRecord;
 use Monolog\Level;
 use Monolog\JsonSerializableDateTimeImmutable;
 
+/**
+ * Unit tests for GDPR processor.
+ *
+ * @api
+ */
 #[CoversClass(GdprProcessor::class)]
 #[CoversMethod(GdprProcessor::class, '__invoke')]
 #[CoversMethod(GdprProcessor::class, 'getDefaultPatterns')]
@@ -146,7 +152,7 @@ class GdprProcessorTest extends TestCase
             '/secret/' => self::MASKED_SECRET,
         ];
         $processor = new class ($patterns) extends GdprProcessor {
-            public function callRecursiveMask($data)
+            public function callRecursiveMask($data): array|string
             {
                 return $this->recursiveMask($data);
             }
@@ -160,7 +166,7 @@ class GdprProcessorTest extends TestCase
         $this->assertSame([
             'a' => self::MASKED_SECRET,
             'b' => ['c' => self::MASKED_SECRET],
-            'd' => '123',
+            'd' => 123,
         ], $masked);
     }
 
@@ -257,56 +263,41 @@ class GdprProcessorTest extends TestCase
         $this->assertArrayNotHasKey('missing', $processed->context['user']);
     }
 
-    public function testPregReplaceErrorInMaskMessage(): void
+    public function testInvalidRegexPatternThrowsExceptionOnConstruction(): void
     {
-        // Invalid pattern triggers preg_replace error
-        $patterns = [
-            self::INVALID_REGEX => 'MASKED',
-        ];
+        // Test that invalid regex patterns are caught during construction
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage("Invalid regex pattern: '/[invalid/'");
 
-        $calls = [];
-        $auditLogger = function ($path, $original, $masked) use (&$calls): void {
-            $calls[] = [$path, $original, $masked];
-        };
-        $processor = new GdprProcessor($patterns, [], [], $auditLogger);
-        $result = $processor->maskMessage('test');
-        $this->assertSame('test', $result);
-        $this->assertNotEmpty($calls);
-        $this->assertSame(['preg_replace_error', 'test', 'test'], $calls[0]);
+        new GdprProcessor([self::INVALID_REGEX => 'MASKED']);
     }
 
-    public function testPregReplaceErrorInRegExpMessage(): void
+    public function testValidRegexPatternsAreAcceptedDuringConstruction(): void
     {
-        $patterns = [
-            self::INVALID_REGEX => 'MASKED',
+        // Test that valid regex patterns work correctly
+        $validPatterns = [
+            '/test/' => 'REPLACED',
+            '/\d+/' => 'NUMBER',
+            '/[a-z]+/' => 'LETTERS'
         ];
-        $calls = [];
-        $auditLogger = function ($path, $original, $masked) use (&$calls): void {
-            $calls[] = [$path, $original, $masked];
-        };
-        $processor = new GdprProcessor($patterns, [], [], $auditLogger);
-        $result = $processor->regExpMessage('test');
-        $this->assertSame('test', $result);
-        $this->assertNotEmpty($calls);
-        $this->assertSame(['preg_replace_error', 'test', 'test'], $calls[0]);
+
+        $processor = new GdprProcessor($validPatterns);
+        $this->assertInstanceOf(GdprProcessor::class, $processor);
+
+        // Test that the patterns actually work
+        $result = $processor->maskMessage('test 123 abc');
+        $this->assertStringContainsString('REPLACED', $result);
+        $this->assertStringContainsString('NUMBER', $result);
+        $this->assertStringContainsString('LETTERS', $result);
     }
 
-    public function testRegExpMessageHandlesPregReplaceError(): void
+    public function testIncompleteRegexPatternThrowsExceptionOnConstruction(): void
     {
-        $invalidPattern = ['/(unclosed[' => 'REPLACED'];
-        $called = false;
-        $logger = function ($type, $original, $message) use (&$called) {
-            $called = true;
-            $this->assertSame('preg_replace_error', $type);
-            $this->assertSame('test', $original);
-            $this->assertSame('test', $message);
-        };
-        $processor = new GdprProcessor($invalidPattern);
-        $processor->setAuditLogger($logger);
+        // Test that incomplete regex patterns are caught during construction
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage("Invalid regex pattern: '/(unclosed['");
 
-        $result = $processor->regExpMessage('test');
-        $this->assertTrue($called, 'Audit logger should be called on preg_replace error');
-        $this->assertSame('test', $result, 'Message should be unchanged if preg_replace fails');
+        new GdprProcessor(['/(unclosed[' => 'REPLACED']);
     }
 
     public function testRegExpMessageReturnsOriginalIfResultIsEmptyString(): void

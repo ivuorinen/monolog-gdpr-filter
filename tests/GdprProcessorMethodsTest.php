@@ -11,6 +11,11 @@ use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
 use PHPUnit\Framework\TestCase;
 use Adbar\Dot;
 
+/**
+ * GDPR Processor Methods Test
+ *
+ * @api
+ */
 #[CoversClass(className: GdprProcessor::class)]
 #[CoversMethod(className: GdprProcessor::class, methodName: '__invoke')]
 #[CoversMethod(className: GdprProcessor::class, methodName: 'maskFieldPaths')]
@@ -55,7 +60,7 @@ class GdprProcessorMethodsTest extends TestCase
             'user.name' => GdprProcessor::maskWithRegex(),
         ];
         $customCallbacks = [
-            'user.name' => fn($value) => strtoupper((string) $value),
+            'user.name' => fn($value): string => strtoupper((string) $value),
         ];
         $processor = new GdprProcessor($patterns, $fieldPaths, $customCallbacks);
         $method = $this->getReflection($processor, 'maskValue');
