@@ -72,7 +72,7 @@ class GdprTestPatternCommand extends Command
         if ($validate) {
             $this->info('Validating pattern...');
             try {
-                GdprProcessor::validatePatterns([$pattern => $replacement]);
+                GdprProcessor::validatePatternsArray([$pattern => $replacement]);
                 $this->line('<info>✓</info> Pattern is valid and secure');
             } catch (InvalidArgumentException $e) {
                 $this->error('✗ Pattern validation failed: ' . $e->getMessage());

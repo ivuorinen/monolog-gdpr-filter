@@ -113,9 +113,9 @@ class CriticalBugRegressionTest extends TestCase
     /**
      * Data provider for PHP type testing
      *
-     * @return Generator<string,array{int,string}|array{float,string}|array{string,string}|array{bool,string}|array{null,string}|array{array<int,string>,string}|array{stdClass,string}|array{resource|bool,string}>
+     * @psalm-return Generator<string, list{'hello world'|123|bool|float|list{'a', 'b', 'c'}|null|resource|stdClass, string}, mixed, void>
      */
-    public static function phpTypesDataProvider(): \Generator
+    public static function phpTypesDataProvider(): Generator
     {
         $resource = fopen('php://memory', 'r');
         yield 'integer' => [123, 'integer'];
@@ -170,8 +170,8 @@ class CriticalBugRegressionTest extends TestCase
     #[Test]
     public function rateLimiterCleansUpOldEntriesAutomatically(): void
     {
-        // Force cleanup interval to be very short for testing
-        RateLimiter::setCleanupInterval(1);
+        // Force cleanup interval to be short for testing (minimum allowed is 60)
+        RateLimiter::setCleanupInterval(60);
 
         $rateLimiter = new RateLimiter(5, 2); // 5 requests per 2 seconds
 
@@ -207,7 +207,7 @@ class CriticalBugRegressionTest extends TestCase
     #[Test]
     public function rateLimiterDoesNotAccumulateUnlimitedKeys(): void
     {
-        RateLimiter::setCleanupInterval(1);
+        RateLimiter::setCleanupInterval(60);
         $rateLimiter = new RateLimiter(1, 1); // Very restrictive for quick expiry
 
         // Add many different keys
@@ -336,12 +336,12 @@ class CriticalBugRegressionTest extends TestCase
             $fullPattern = sprintf('/%s/', $pattern);
 
             try {
-                GdprProcessor::validatePatterns([$fullPattern => 'masked']);
+                GdprProcessor::validatePatternsArray([$pattern => 'masked']);
                 // These patterns might be allowed by current implementation
                 $this->assertTrue(true, 'Pattern validation completed for: ' . $fullPattern);
             } catch (InvalidArgumentException $e) {
                 // Also acceptable if caught
-                $this->assertStringContainsString('Invalid or unsafe regex pattern', $e->getMessage());
+                $this->assertStringContainsString('Invalid regex pattern', $e->getMessage());
             }
         }
     }
@@ -360,7 +360,7 @@ class CriticalBugRegressionTest extends TestCase
         ];
 
         // Should not throw exceptions for safe patterns
-        GdprProcessor::validatePatterns($safePatterns);
+        GdprProcessor::validatePatternsArray($safePatterns);
 
         // Should be able to create processor with safe patterns
         $processor = new GdprProcessor(

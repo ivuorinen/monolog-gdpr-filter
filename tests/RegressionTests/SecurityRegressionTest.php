@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\RegressionTests;
 
+use Generator;
 use Throwable;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
@@ -85,7 +86,7 @@ class SecurityRegressionTest extends TestCase
 
         foreach ($redosPatterns as $pattern) {
             try {
-                GdprProcessor::validatePatterns([$pattern => 'masked']);
+                GdprProcessor::validatePatternsArray([sprintf('%s', $pattern) => 'masked']);
                 // If validation passes, log for future improvement but don't fail
                 error_log('Warning: ReDoS pattern not caught by validation: ' . $pattern);
                 $this->assertTrue(true, 'Pattern validation completed for: ' . $pattern);
@@ -119,7 +120,7 @@ class SecurityRegressionTest extends TestCase
         ];
 
         // Should not throw exceptions
-        GdprProcessor::validatePatterns($legitimatePatterns);
+        GdprProcessor::validatePatternsArray($legitimatePatterns);
 
         // Should be able to create processor
         $processor = new GdprProcessor(
@@ -539,9 +540,9 @@ class SecurityRegressionTest extends TestCase
     /**
      * Data provider for boundary value testing
      *
-     * @psalm-return \Generator<string, list{int|string}, mixed, void>
+     * @psalm-return Generator<string, list{int|string}, mixed, void>
      */
-    public static function boundaryValuesProvider(): \Generator
+    public static function boundaryValuesProvider(): Generator
     {
         yield 'max_int' => [PHP_INT_MAX];
         yield 'min_int' => [PHP_INT_MIN];
