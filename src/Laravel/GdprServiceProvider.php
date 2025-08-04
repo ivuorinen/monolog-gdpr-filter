@@ -15,6 +15,8 @@ use Ivuorinen\MonologGdprFilter\Laravel\Commands\GdprDebugCommand;
  *
  * This service provider automatically registers the GDPR processor with Laravel's logging system
  * and provides configuration management and artisan commands.
+ *
+ * @api
  */
 class GdprServiceProvider extends ServiceProvider
 {

@@ -2,7 +2,7 @@
 
 /**
  * Rate Limiting for Audit Logging Examples
- * 
+ *
  * This file demonstrates how to use rate limiting to prevent
  * audit log flooding while maintaining system performance.
  */
@@ -95,7 +95,7 @@ for ($i = 0; $i < 3; $i++) {
         "Processing user{$i}@example.com",
         ['sensitive_data' => "secret_value_{$i}"]
     );
-    
+
     $result = $processor3($logRecord);
     echo "Processed: " . $result->message . "\n";
 }

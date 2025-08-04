@@ -16,7 +16,7 @@ use Throwable;
  * - Data type masking fails due to type conversion issues
  * - JSON masking fails due to malformed JSON structures
  *
- * @psalm-api
+ * @api
  */
 class MaskingOperationFailedException extends GdprProcessorException
 {
@@ -28,8 +28,12 @@ class MaskingOperationFailedException extends GdprProcessorException
      * @param string $reason The reason for the failure
      * @param Throwable|null $previous Previous exception for chaining
      */
-    public static function regexMaskingFailed(string $pattern, string $input, string $reason, ?Throwable $previous = null): static
-    {
+    public static function regexMaskingFailed(
+        string $pattern,
+        string $input,
+        string $reason,
+        ?Throwable $previous = null
+    ): static {
         $message = sprintf("Regex masking failed for pattern '%s': %s", $pattern, $reason);
 
         return self::withContext($message, [
@@ -49,8 +53,12 @@ class MaskingOperationFailedException extends GdprProcessorException
      * @param string $reason The reason for the failure
      * @param Throwable|null $previous Previous exception for chaining
      */
-    public static function fieldPathMaskingFailed(string $fieldPath, mixed $value, string $reason, ?Throwable $previous = null): static
-    {
+    public static function fieldPathMaskingFailed(
+        string $fieldPath,
+        mixed $value,
+        string $reason,
+        ?Throwable $previous = null
+    ): static {
         $message = sprintf("Field path masking failed for path '%s': %s", $fieldPath, $reason);
 
         return self::withContext($message, [
@@ -70,8 +78,12 @@ class MaskingOperationFailedException extends GdprProcessorException
      * @param string $reason The reason for the failure
      * @param Throwable|null $previous Previous exception for chaining
      */
-    public static function customCallbackFailed(string $fieldPath, mixed $value, string $reason, ?Throwable $previous = null): static
-    {
+    public static function customCallbackFailed(
+        string $fieldPath,
+        mixed $value,
+        string $reason,
+        ?Throwable $previous = null
+    ): static {
         $message = sprintf("Custom callback masking failed for path '%s': %s", $fieldPath, $reason);
 
         return self::withContext($message, [
@@ -91,8 +103,12 @@ class MaskingOperationFailedException extends GdprProcessorException
      * @param string $reason The reason for the failure
      * @param Throwable|null $previous Previous exception for chaining
      */
-    public static function dataTypeMaskingFailed(string $dataType, mixed $value, string $reason, ?Throwable $previous = null): static
-    {
+    public static function dataTypeMaskingFailed(
+        string $dataType,
+        mixed $value,
+        string $reason,
+        ?Throwable $previous = null
+    ): static {
         $message = sprintf("Data type masking failed for type '%s': %s", $dataType, $reason);
 
         return self::withContext($message, [
@@ -112,8 +128,12 @@ class MaskingOperationFailedException extends GdprProcessorException
      * @param int $jsonError Optional JSON error code
      * @param Throwable|null $previous Previous exception for chaining
      */
-    public static function jsonMaskingFailed(string $jsonString, string $reason, int $jsonError = 0, ?Throwable $previous = null): static
-    {
+    public static function jsonMaskingFailed(
+        string $jsonString,
+        string $reason,
+        int $jsonError = 0,
+        ?Throwable $previous = null
+    ): static {
         $message = 'JSON masking failed: ' . $reason;
 
         if ($jsonError !== 0) {

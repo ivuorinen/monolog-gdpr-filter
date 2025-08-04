@@ -20,7 +20,7 @@ try {
             codeQuality: true,
             codingStyle: true,
             earlyReturn: true,
-            phpunitCodeQuality: true
+            phpunitCodeQuality: true,
         );
 } catch (InvalidConfigurationException $e) {
     echo "Configuration error: " . $e->getMessage() . PHP_EOL;

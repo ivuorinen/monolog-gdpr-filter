@@ -16,7 +16,7 @@ use Ivuorinen\MonologGdprFilter\Exceptions\InvalidRegexPatternException;
  * Applies regex pattern matching to mask sensitive data based on patterns.
  * Supports multiple patterns with corresponding replacements.
  *
- * @psalm-api
+ * @api
  */
 class RegexMaskingStrategy extends AbstractMaskingStrategy
 {

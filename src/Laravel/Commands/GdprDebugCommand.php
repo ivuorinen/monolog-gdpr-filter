@@ -15,6 +15,8 @@ use Ivuorinen\MonologGdprFilter\GdprProcessor;
  *
  * This command provides information about the current GDPR configuration
  * and allows testing with sample log data.
+ *
+ * @api
  */
 class GdprDebugCommand extends Command
 {
@@ -23,7 +25,7 @@ class GdprDebugCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'gdpr:debug 
+    protected $signature = 'gdpr:debug
                            {--test-data= : JSON string of sample data to test}
                            {--show-patterns : Show all configured patterns}
                            {--show-config : Show current configuration}';
@@ -44,17 +46,17 @@ class GdprDebugCommand extends Command
         $this->line('=============================');
 
         // Show configuration if requested
-        if ($this->option('show-config')) {
+        if ((bool)$this->option('show-config')) {
             $this->showConfiguration();
         }
 
         // Show patterns if requested
-        if ($this->option('show-patterns')) {
+        if ((bool)$this->option('show-patterns')) {
             $this->showPatterns();
         }
 
         // Test with sample data if provided
-        $testData = $this->option('test-data');
+        $testData = (string)$this->option('test-data');
         if ($testData) {
             $this->testWithSampleData($testData);
         }
@@ -75,7 +77,7 @@ class GdprDebugCommand extends Command
         $this->info('Current Configuration:');
         $this->line('----------------------');
 
-        $config = config('gdpr', []);
+        $config = \config('gdpr', []);
 
         $this->line('Auto Register: ' . ($config['auto_register'] ?? true ? 'Yes' : 'No'));
         $this->line('Max Depth: ' . ($config['max_depth'] ?? 100));
@@ -100,10 +102,13 @@ class GdprDebugCommand extends Command
         $this->info('Configured Patterns:');
         $this->line('--------------------');
 
-        $config = config('gdpr', []);
-        $patterns = $config['patterns'] ?? GdprProcessor::getDefaultPatterns();
+        $config = \config('gdpr', []);
+        /**
+         * @var array<string, mixed>|null $patterns
+         */
+        $patterns = $config['patterns'] ?? null;
 
-        if (empty($patterns)) {
+        if (count($patterns) === 0 && empty($patterns)) {
             $this->line('No patterns configured - using defaults');
             $patterns = GdprProcessor::getDefaultPatterns();
         }
@@ -128,7 +133,7 @@ class GdprDebugCommand extends Command
         try {
             $data = json_decode($testData, true, 512, JSON_THROW_ON_ERROR);
 
-            $processor = app('gdpr.processor');
+            $processor = \app('gdpr.processor');
 
             // Test with a sample log record
             $logRecord = new LogRecord(
@@ -147,10 +152,10 @@ class GdprDebugCommand extends Command
             if ($logRecord->context !== []) {
                 $this->line('');
                 $this->line('Original Context:');
-                $this->line(json_encode($logRecord->context, JSON_PRETTY_PRINT));
+                $this->line((string)json_encode($logRecord->context, JSON_PRETTY_PRINT));
 
                 $this->line('Processed Context:');
-                $this->line(json_encode($result->context, JSON_PRETTY_PRINT));
+                $this->line((string)json_encode($result->context, JSON_PRETTY_PRINT));
             }
         } catch (JsonException $e) {
             $this->error('Invalid JSON data: ' . $e->getMessage());
@@ -169,11 +174,11 @@ class GdprDebugCommand extends Command
         $this->line('--------------');
 
         try {
-            $processor = app('gdpr.processor');
+            $processor = \app('gdpr.processor');
             $this->line('<info>✓</info> GDPR processor is registered and ready');
 
-            $config = config('gdpr', []);
-            $patterns = $config['patterns'] ?? GdprProcessor::getDefaultPatterns();
+            $config = \config('gdpr', []);
+            $patterns = $config['patterns'] ?? $processor::getDefaultPatterns();
             $this->line('Patterns configured: ' . count($patterns));
         } catch (Exception $exception) {
             $this->error('✗ GDPR processor is not properly configured: ' . $exception->getMessage());

@@ -15,7 +15,7 @@ use Monolog\LogRecord;
  * create custom masking logic while maintaining consistency with the library's
  * architecture.
  *
- * @psalm-api
+ * @api
  */
 interface MaskingStrategyInterface
 {

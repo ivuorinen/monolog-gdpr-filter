@@ -15,7 +15,7 @@ use Throwable;
  * - A regex pattern is detected as potentially vulnerable to ReDoS attacks
  * - A regex pattern compilation results in a PCRE error
  *
- * @psalm-api
+ * @api
  */
 class InvalidRegexPatternException extends GdprProcessorException
 {
@@ -27,8 +27,12 @@ class InvalidRegexPatternException extends GdprProcessorException
      * @param int $pcreError Optional PCRE error code
      * @param Throwable|null $previous Previous exception for chaining
      */
-    public static function forPattern(string $pattern, string $reason, int $pcreError = 0, ?Throwable $previous = null): static
-    {
+    public static function forPattern(
+        string $pattern,
+        string $reason,
+        int $pcreError = 0,
+        ?Throwable $previous = null
+    ): static {
         $message = sprintf("Invalid regex pattern '%s': %s", $pattern, $reason);
 
         if ($pcreError !== 0) {
@@ -51,8 +55,11 @@ class InvalidRegexPatternException extends GdprProcessorException
      * @param int $pcreError The PCRE error code
      * @param Throwable|null $previous Previous exception for chaining
      */
-    public static function compilationFailed(string $pattern, int $pcreError, ?Throwable $previous = null): static
-    {
+    public static function compilationFailed(
+        string $pattern,
+        int $pcreError,
+        ?Throwable $previous = null
+    ): static {
         return self::forPattern($pattern, 'Pattern compilation failed', $pcreError, $previous);
     }
 
@@ -62,9 +69,14 @@ class InvalidRegexPatternException extends GdprProcessorException
      * @param string $pattern The potentially vulnerable pattern
      * @param string $vulnerability Description of the vulnerability
      * @param Throwable|null $previous Previous exception for chaining
+     *
+     * @return InvalidRegexPatternException&static
      */
-    public static function redosVulnerable(string $pattern, string $vulnerability, ?Throwable $previous = null): static
-    {
+    public static function redosVulnerable(
+        string $pattern,
+        string $vulnerability,
+        ?Throwable $previous = null
+    ): static {
         return self::forPattern($pattern, 'Potential ReDoS vulnerability: ' . $vulnerability, 0, $previous);
     }
 
@@ -74,6 +86,7 @@ class InvalidRegexPatternException extends GdprProcessorException
      * @param int $errorCode The PCRE error code
      *
      * @return string Human-readable error message
+     * @psalm-return non-empty-string
      */
     private static function getPcreErrorMessage(int $errorCode): string
     {
