@@ -244,7 +244,9 @@ For security-related questions or concerns:
 
 ## Acknowledgments
 
-We appreciate responsible disclosure from security researchers and the community. Contributors who report valid security vulnerabilities will be acknowledged in release notes (unless they prefer to remain anonymous).
+We appreciate responsible disclosure from security researchers and the community.
+Contributors who report valid security vulnerabilities will be acknowledged
+in release notes (unless they prefer to remain anonymous).
 
 ---
 

@@ -15,7 +15,7 @@ use Throwable;
  * - Rate-limited audit logging encounters errors
  * - Audit logger configuration is invalid
  *
- * @psalm-api
+ * @api
  */
 class AuditLoggingException extends GdprProcessorException
 {
@@ -28,8 +28,13 @@ class AuditLoggingException extends GdprProcessorException
      * @param string $reason The reason for the failure
      * @param Throwable|null $previous Previous exception for chaining
      */
-    public static function callbackFailed(string $path, mixed $original, mixed $masked, string $reason, ?Throwable $previous = null): static
-    {
+    public static function callbackFailed(
+        string $path,
+        mixed $original,
+        mixed $masked,
+        string $reason,
+        ?Throwable $previous = null
+    ): static {
         $message = sprintf("Audit logging callback failed for path '%s': %s", $path, $reason);
 
         return self::withContext($message, [
@@ -51,8 +56,12 @@ class AuditLoggingException extends GdprProcessorException
      * @param string $reason The reason for the serialization failure
      * @param Throwable|null $previous Previous exception for chaining
      */
-    public static function serializationFailed(string $path, mixed $value, string $reason, ?Throwable $previous = null): static
-    {
+    public static function serializationFailed(
+        string $path,
+        mixed $value,
+        string $reason,
+        ?Throwable $previous = null
+    ): static {
         $message = sprintf("Audit data serialization failed for path '%s': %s", $path, $reason);
 
         return self::withContext($message, [
@@ -72,8 +81,13 @@ class AuditLoggingException extends GdprProcessorException
      * @param string $reason The reason for the failure
      * @param Throwable|null $previous Previous exception for chaining
      */
-    public static function rateLimitingFailed(string $operationType, int $currentRequests, int $maxRequests, string $reason, ?Throwable $previous = null): static
-    {
+    public static function rateLimitingFailed(
+        string $operationType,
+        int $currentRequests,
+        int $maxRequests,
+        string $reason,
+        ?Throwable $previous = null
+    ): static {
         $message = sprintf("Rate-limited audit logging failed for operation '%s': %s", $operationType, $reason);
 
         return self::withContext($message, [
@@ -92,8 +106,11 @@ class AuditLoggingException extends GdprProcessorException
      * @param array<string, mixed> $config The invalid configuration
      * @param Throwable|null $previous Previous exception for chaining
      */
-    public static function invalidConfiguration(string $configurationIssue, array $config, ?Throwable $previous = null): static
-    {
+    public static function invalidConfiguration(
+        string $configurationIssue,
+        array $config,
+        ?Throwable $previous = null
+    ): static {
         $message = 'Invalid audit logger configuration: ' . $configurationIssue;
 
         return self::withContext($message, [
@@ -110,8 +127,11 @@ class AuditLoggingException extends GdprProcessorException
      * @param string $reason The reason for the creation failure
      * @param Throwable|null $previous Previous exception for chaining
      */
-    public static function loggerCreationFailed(string $loggerType, string $reason, ?Throwable $previous = null): static
-    {
+    public static function loggerCreationFailed(
+        string $loggerType,
+        string $reason,
+        ?Throwable $previous = null
+    ): static {
         $message = sprintf("Audit logger creation failed for type '%s': %s", $loggerType, $reason);
 
         return self::withContext($message, [

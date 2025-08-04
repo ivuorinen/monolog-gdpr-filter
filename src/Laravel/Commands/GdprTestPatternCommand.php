@@ -8,10 +8,12 @@ use Illuminate\Console\Command;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 
 /**
- * Artisan command for testing GDPR regex patterns.
+ * Artisan cfinal ommand for testing GDPR regex patterns.
  *
  * This command allows developers to test regex patterns against sample data
  * to ensure they work correctly before deploying to production.
+ *
+ * @api
  */
 class GdprTestPatternCommand extends Command
 {
@@ -20,7 +22,7 @@ class GdprTestPatternCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'gdpr:test-pattern 
+    protected $signature = 'gdpr:test-pattern
                            {pattern : The regex pattern to test}
                            {replacement : The replacement text}
                            {test-string : The string to test against}
@@ -35,6 +37,8 @@ class GdprTestPatternCommand extends Command
 
     /**
      * Execute the console command.
+     *
+     * @psalm-return 0|1
      */
     public function handle(): int
     {

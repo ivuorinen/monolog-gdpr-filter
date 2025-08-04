@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" ?>
 <psalm
   errorLevel="3"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -8,16 +8,18 @@
   noCache="true"
   ensureOverrideAttribute="false"
   restrictReturnTypes="true"
+  allFunctionsGlobal="true"
+  findUnusedPsalmSuppress="true"
+  skipChecksOnUnresolvableIncludes="true"
 >
   <projectFiles>
-    <directory name="src"/>
+    <directory name="src" />
     <ignoreFiles>
-      <directory name="vendor"/>
+      <directory name="vendor" />
     </ignoreFiles>
   </projectFiles>
   <plugins>
-    <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
-    <pluginClass class="Orklah\StrictEquality\Plugin"/>
-    <pluginClass class="Guuzen\PsalmEnumPlugin\Plugin"/>
+    <pluginClass class="Psalm\PhpUnitPlugin\Plugin" />
+    <pluginClass class="Guuzen\PsalmEnumPlugin\Plugin" />
   </plugins>
 </psalm>

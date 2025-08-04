@@ -1,6 +1,7 @@
 # Contributing to Monolog GDPR Filter
 
-Thank you for your interest in contributing to Monolog GDPR Filter! This document provides guidelines and information about contributing to this project.
+Thank you for your interest in contributing to Monolog GDPR Filter!
+This document provides guidelines and information about contributing to this project.
 
 ## Table of Contents
 
@@ -16,7 +17,8 @@ Thank you for your interest in contributing to Monolog GDPR Filter! This documen
 
 ## Code of Conduct
 
-This project adheres to a code of conduct that promotes a welcoming and inclusive environment. Please be respectful in all interactions.
+This project adheres to a code of conduct that promotes a welcoming and inclusive environment.
+Please be respectful in all interactions.
 
 ## Getting Started
 
@@ -247,7 +249,8 @@ $result = $processor->regExpMessage('very-long-string-to-test-performance');
 
 ## Security Issues
 
-If you discover a security vulnerability, please refer to our [Security Policy](SECURITY.md) for responsible disclosure procedures.
+If you discover a security vulnerability, please refer to our
+[Security Policy](SECURITY.md) for responsible disclosure procedures.
 
 ## Questions and Support
 

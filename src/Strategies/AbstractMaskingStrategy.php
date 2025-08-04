@@ -13,10 +13,16 @@ use Ivuorinen\MonologGdprFilter\Exceptions\MaskingOperationFailedException;
  * Provides common functionality and utilities that most masking strategies
  * will need, reducing code duplication and ensuring consistent behavior.
  *
- * @psalm-api
+ * @api
  */
 abstract class AbstractMaskingStrategy implements MaskingStrategyInterface
 {
+    /**
+     * Constructor.
+     *
+     * @param int $priority The priority of the strategy
+     * @param array $configuration The configuration for the strategy
+     */
     public function __construct(
         protected readonly int $priority = 50,
         protected readonly array $configuration = []

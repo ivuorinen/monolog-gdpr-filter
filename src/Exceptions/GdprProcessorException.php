@@ -13,7 +13,7 @@ use Exception;
  * This serves as the parent class for all specific GDPR processing exceptions,
  * allowing consumers to catch all GDPR-related errors with a single catch block.
  *
- * @psalm-api
+ * @api
  */
 class GdprProcessorException extends Exception
 {
@@ -37,8 +37,12 @@ class GdprProcessorException extends Exception
      * @param int $code The exception code (default: 0)
      * @param Throwable|null $previous Previous exception for chaining
      */
-    public static function withContext(string $message, array $context, int $code = 0, ?Throwable $previous = null): static
-    {
+    public static function withContext(
+        string $message,
+        array $context,
+        int $code = 0,
+        ?Throwable $previous = null
+    ): static {
         $contextString = '';
         if ($context !== []) {
             $contextParts = [];

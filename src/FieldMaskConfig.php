@@ -7,7 +7,7 @@ namespace Ivuorinen\MonologGdprFilter;
 /**
  * FieldMaskConfig: configuration for masking/removal per field path.
  *
- * @psalm-api
+ * @api
  */
 final readonly class FieldMaskConfig
 {

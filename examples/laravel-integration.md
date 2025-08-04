@@ -209,7 +209,10 @@ php artisan gdpr:debug --show-config
 php artisan gdpr:debug --show-patterns
 
 # Test with sample data
-php artisan gdpr:debug --test-data='{"message":"Email: test@example.com", "context":{"user":{"email":"user@example.com"}}}'
+php artisan gdpr:debug \
+  --test-data='{
+    "message":"Email: test@example.com", "context":{"user":{"email":"user@example.com"}}
+  }'
 ```
 
 ## Middleware Integration
