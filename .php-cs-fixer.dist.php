@@ -13,7 +13,7 @@ return (new PhpCsFixer\Config())
     ->setRules([
         // PSR-12 compliance
         '@PSR12' => true,
-        
+
         // Additional rules for better code quality
         'array_syntax' => ['syntax' => 'short'],
         'binary_operator_spaces' => ['default' => 'single_space'],
@@ -113,7 +113,7 @@ return (new PhpCsFixer\Config())
         'unary_operator_spaces' => true,
         'visibility_required' => true,
         'whitespace_after_comma_in_array' => true,
-        
+
         // Risky rules for better code quality
         'strict_comparison' => true,
         'strict_param' => true,
