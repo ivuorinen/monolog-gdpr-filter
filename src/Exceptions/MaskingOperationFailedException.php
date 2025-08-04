@@ -27,6 +27,7 @@ class MaskingOperationFailedException extends GdprProcessorException
      * @param string $input The input string being processed
      * @param string $reason The reason for the failure
      * @param Throwable|null $previous Previous exception for chaining
+     * @psalm-suppress MoreSpecificReturnType
      */
     public static function regexMaskingFailed(
         string $pattern,
@@ -36,6 +37,7 @@ class MaskingOperationFailedException extends GdprProcessorException
     ): static {
         $message = sprintf("Regex masking failed for pattern '%s': %s", $pattern, $reason);
 
+        /** @psalm-suppress LessSpecificReturnStatement */
         return self::withContext($message, [
             'operation_type' => 'regex_masking',
             'pattern' => $pattern,
@@ -52,6 +54,7 @@ class MaskingOperationFailedException extends GdprProcessorException
      * @param mixed $value The value being masked
      * @param string $reason The reason for the failure
      * @param Throwable|null $previous Previous exception for chaining
+     * @psalm-suppress MoreSpecificReturnType
      */
     public static function fieldPathMaskingFailed(
         string $fieldPath,
@@ -61,6 +64,7 @@ class MaskingOperationFailedException extends GdprProcessorException
     ): static {
         $message = sprintf("Field path masking failed for path '%s': %s", $fieldPath, $reason);
 
+        /** @psalm-suppress LessSpecificReturnStatement */
         return self::withContext($message, [
             'operation_type' => 'field_path_masking',
             'field_path' => $fieldPath,
@@ -77,6 +81,7 @@ class MaskingOperationFailedException extends GdprProcessorException
      * @param mixed $value The value being processed
      * @param string $reason The reason for the failure
      * @param Throwable|null $previous Previous exception for chaining
+     * @psalm-suppress MoreSpecificReturnType
      */
     public static function customCallbackFailed(
         string $fieldPath,
@@ -86,6 +91,7 @@ class MaskingOperationFailedException extends GdprProcessorException
     ): static {
         $message = sprintf("Custom callback masking failed for path '%s': %s", $fieldPath, $reason);
 
+        /** @psalm-suppress LessSpecificReturnStatement */
         return self::withContext($message, [
             'operation_type' => 'custom_callback',
             'field_path' => $fieldPath,
@@ -102,6 +108,7 @@ class MaskingOperationFailedException extends GdprProcessorException
      * @param mixed $value The value being masked
      * @param string $reason The reason for the failure
      * @param Throwable|null $previous Previous exception for chaining
+     * @psalm-suppress MoreSpecificReturnType
      */
     public static function dataTypeMaskingFailed(
         string $dataType,
@@ -111,6 +118,7 @@ class MaskingOperationFailedException extends GdprProcessorException
     ): static {
         $message = sprintf("Data type masking failed for type '%s': %s", $dataType, $reason);
 
+        /** @psalm-suppress LessSpecificReturnStatement */
         return self::withContext($message, [
             'operation_type' => 'data_type_masking',
             'expected_type' => $dataType,
@@ -127,6 +135,7 @@ class MaskingOperationFailedException extends GdprProcessorException
      * @param string $reason The reason for the failure
      * @param int $jsonError Optional JSON error code
      * @param Throwable|null $previous Previous exception for chaining
+     * @psalm-suppress MoreSpecificReturnType
      */
     public static function jsonMaskingFailed(
         string $jsonString,
@@ -141,6 +150,7 @@ class MaskingOperationFailedException extends GdprProcessorException
             $message .= sprintf(' (JSON Error: %s)', $jsonErrorMessage);
         }
 
+        /** @psalm-suppress LessSpecificReturnStatement */
         return self::withContext($message, [
             'operation_type' => 'json_masking',
             'json_preview' => substr($jsonString, 0, 200) . (strlen($jsonString) > 200 ? '...' : ''),

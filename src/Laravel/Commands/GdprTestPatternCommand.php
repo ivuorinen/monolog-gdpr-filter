@@ -14,6 +14,7 @@ use Ivuorinen\MonologGdprFilter\GdprProcessor;
  * to ensure they work correctly before deploying to production.
  *
  * @api
+ * @psalm-suppress PropertyNotSetInConstructor
  */
 class GdprTestPatternCommand extends Command
 {
@@ -42,10 +43,23 @@ class GdprTestPatternCommand extends Command
      */
     public function handle(): int
     {
+        /** @psalm-param string $pattern */
         $pattern = $this->argument('pattern');
+        /** @psalm-param string $replacement */
         $replacement = $this->argument('replacement');
+        /** @psalm-param string $testString */
         $testString = $this->argument('test-string');
+        /** @psalm-param bool $validate */
         $validate = $this->option('validate');
+
+        $pattern = is_array($pattern) ? $pattern[0] : $pattern;
+        $replacement = is_array($replacement) ? $replacement[0] : $replacement;
+        $testString = is_array($testString) ? $testString[0] : $testString;
+        $validate = is_bool($validate) ? $validate : (bool)$validate;
+
+        $pattern = (string)($pattern ?? '');
+        $replacement = (string)($replacement ?? '');
+        $testString = (string)($testString ?? '');
 
         $this->info('Testing GDPR Pattern');
         $this->line('====================');
@@ -84,6 +98,17 @@ class GdprTestPatternCommand extends Command
 
             // Show detailed matching info
             $matches = [];
+
+            if ($pattern === '' || $pattern === '0') {
+                $this->error('✗ Pattern is empty');
+                return 1;
+            }
+
+            if ($testString === '' || $testString === '0') {
+                $this->error('✗ Test string is empty');
+                return 1;
+            }
+
             if (preg_match($pattern, $testString, $matches)) {
                 $this->line('');
                 $this->info('Match details:');
