@@ -33,7 +33,8 @@ class GdprProcessor implements ProcessorInterface
      *                                   fn(string $path, mixed $original, mixed $masked)
      * @param int $maxDepth Maximum recursion depth for nested structures (default: 100)
      * @param array<string,string> $dataTypeMasks Type-based masking: type => mask pattern
-     * @param array<string,callable(LogRecord):bool> $conditionalRules Conditional masking rules: rule_name => condition_callback
+     * @param array<string,callable(LogRecord):bool> $conditionalRules Conditional masking rules:
+     *                                   rule_name => condition_callback
      */
     public function __construct(
         private readonly array $patterns,
@@ -61,7 +62,16 @@ class GdprProcessor implements ProcessorInterface
      *
      * @return string[]
      *
-     * @psalm-return array{integer: '***INT***', double: '***FLOAT***', string: '***STRING***', boolean: '***BOOL***', NULL: '***NULL***', array: '***ARRAY***', object: '***OBJECT***', resource: '***RESOURCE***'}
+     * @psalm-return array{
+     *     integer: '***INT***',
+     *     double: '***FLOAT***',
+     *     string: '***STRING***',
+     *     boolean: '***BOOL***',
+     *     NULL: '***NULL***',
+     *     array: '***ARRAY***',
+     *     object: '***OBJECT***',
+     *     resource: '***RESOURCE***'
+     * }
      */
     public static function getDefaultDataTypeMasks(): array
     {
@@ -157,7 +167,7 @@ class GdprProcessor implements ProcessorInterface
     public static function createArrayAuditLogger(
         array &$logStorage,
         bool $rateLimited = false
-    ): Closure|RateLimitedAuditLogger|RateLimitedAuditLogger {
+    ): Closure|RateLimitedAuditLogger {
         $baseLogger = function (string $path, mixed $original, mixed $masked) use (&$logStorage): void {
             $logStorage[] = [
                 'path' => $path,
@@ -270,6 +280,7 @@ class GdprProcessor implements ProcessorInterface
      */
     public static function getDefaultPatterns(): array
     {
+        // @psalm-suppress LessSpecificReturnType, InvalidReturnType
         return [
             // Finnish SSN (HETU)
             '/\b\d{6}[-+A]?\d{3}[A-Z]\b/u' => '***HETU***',
@@ -328,7 +339,6 @@ class GdprProcessor implements ProcessorInterface
 
             // IPv6 address (specific pattern with colons)
             '/\b[0-9a-fA-F]{1,4}:[0-9a-fA-F:]{7,35}\b/' => '***IPv6***',
-
         ];
     }
 
@@ -349,8 +359,6 @@ class GdprProcessor implements ProcessorInterface
      *
      * @param LogRecord $record The log record to process
      * @return LogRecord The processed log record with masked message and context
-     *
-     * @psalm-suppress MissingOverrideAttribute Override is available from PHP 8.3
      */
     public function __invoke(LogRecord $record): LogRecord
     {
@@ -675,7 +683,7 @@ class GdprProcessor implements ProcessorInterface
      * @param int $currentDepth Current recursion depth
      * @return array<mixed>|string
      */
-    protected function recursiveMask(array|string $data, int $currentDepth = 0): array|string
+    public function recursiveMask(array|string $data, int $currentDepth = 0): array|string
     {
         if (is_string($data)) {
             return $this->regExpMessage($data);
@@ -686,7 +694,11 @@ class GdprProcessor implements ProcessorInterface
         // Prevent excessive recursion depth
         if ($currentDepth >= $this->maxDepth) {
             if ($this->auditLogger !== null) {
-                ($this->auditLogger)('max_depth_reached', $currentDepth, sprintf('Recursion depth limit (%d) reached', $this->maxDepth));
+                ($this->auditLogger)(
+                    'max_depth_reached',
+                    $currentDepth,
+                    sprintf('Recursion depth limit (%d) reached', $this->maxDepth)
+                );
             }
 
             return $data; // Return unmodified data when depth limit is reached
@@ -824,9 +836,10 @@ class GdprProcessor implements ProcessorInterface
         }
 
         // Test if the pattern is valid by trying to compile it
-        set_error_handler(/**
-         * @return true
-         */
+        set_error_handler(
+            /**
+             * @return true
+             */
             static fn(): bool => true
         );
 

@@ -17,6 +17,7 @@ use Ivuorinen\MonologGdprFilter\GdprProcessor;
  * and allows testing with sample log data.
  *
  * @api
+ * @psalm-suppress PropertyNotSetInConstructor
  */
 class GdprDebugCommand extends Command
 {
