@@ -35,6 +35,8 @@ class GdprProcessor implements ProcessorInterface
      * @param array<string,string> $dataTypeMasks Type-based masking: type => mask pattern
      * @param array<string,callable(LogRecord):bool> $conditionalRules Conditional masking rules:
      *                                   rule_name => condition_callback
+     *
+     * @throws InvalidArgumentException When any parameter is invalid
      */
     public function __construct(
         private readonly array $patterns,
@@ -45,6 +47,9 @@ class GdprProcessor implements ProcessorInterface
         private readonly array $dataTypeMasks = [],
         private readonly array $conditionalRules = []
     ) {
+        // Validate all constructor parameters
+        $this->validateConstructorParameters();
+
         // Pre-validate patterns for better performance
         $this->validatePatternsOnConstruct();
     }
@@ -184,6 +189,11 @@ class GdprProcessor implements ProcessorInterface
 
     /**
      * Apply data type-based masking to a value.
+     *
+     * @param mixed $value The value to mask.
+     * @return mixed The masked value.
+     *
+     * @psalm-param mixed $value The value to mask.
      */
     private function applyDataTypeMasking(mixed $value): mixed
     {
@@ -340,6 +350,206 @@ class GdprProcessor implements ProcessorInterface
             // IPv6 address (specific pattern with colons)
             '/\b[0-9a-fA-F]{1,4}:[0-9a-fA-F:]{7,35}\b/' => '***IPv6***',
         ];
+    }
+
+    /**
+     * Validate all constructor parameters for early error detection.
+     *
+     * @throws InvalidArgumentException When any parameter is invalid
+     */
+    private function validateConstructorParameters(): void
+    {
+        $this->validatePatterns();
+        $this->validateFieldPaths();
+        $this->validateCustomCallbacks();
+        $this->validateAuditLogger();
+        $this->validateMaxDepth();
+        $this->validateDataTypeMasks();
+        $this->validateConditionalRules();
+    }
+
+    /**
+     * Validate patterns array for proper structure and valid regex patterns.
+     *
+     * @throws InvalidArgumentException When patterns are invalid
+     */
+    private function validatePatterns(): void
+    {
+        foreach ($this->patterns as $pattern => $replacement) {
+            // Validate pattern key
+            if (!is_string($pattern)) {
+                throw new InvalidArgumentException(
+                    'Pattern keys must be strings, got: ' . gettype($pattern)
+                );
+            }
+
+            if (trim($pattern) === '') {
+                throw new InvalidArgumentException('Pattern cannot be empty');
+            }
+
+            // Validate replacement value
+            if (!is_string($replacement)) {
+                throw new InvalidArgumentException(
+                    'Pattern replacements must be strings, got: ' . gettype($replacement)
+                );
+            }
+
+            // Validate regex pattern syntax
+            if (!$this->isValidRegexPattern($pattern)) {
+                throw new InvalidArgumentException(sprintf("Invalid regex pattern: '%s'", $pattern));
+            }
+        }
+    }
+
+    /**
+     * Validate field paths array for proper structure.
+     *
+     * @throws InvalidArgumentException When field paths are invalid
+     */
+    private function validateFieldPaths(): void
+    {
+        foreach ($this->fieldPaths as $path => $config) {
+            // Validate path key
+            if (!is_string($path)) {
+                throw new InvalidArgumentException(
+                    'Field path keys must be strings, got: ' . gettype($path)
+                );
+            }
+
+            if (trim($path) === '') {
+                throw new InvalidArgumentException('Field path cannot be empty');
+            }
+
+            // Validate config value
+            if (!($config instanceof FieldMaskConfig) && !is_string($config)) {
+                throw new InvalidArgumentException(
+                    'Field path values must be FieldMaskConfig instances or strings, got: ' . gettype($config)
+                );
+            }
+
+            if (is_string($config) && trim($config) === '') {
+                throw new InvalidArgumentException(sprintf(
+                    "Field path '%s' cannot have empty string value",
+                    $path
+                ));
+            }
+        }
+    }
+
+    /**
+     * Validate custom callbacks array for proper structure.
+     *
+     * @throws InvalidArgumentException When custom callbacks are invalid
+     */
+    private function validateCustomCallbacks(): void
+    {
+        foreach ($this->customCallbacks as $path => $callback) {
+            // Validate path key
+            if (!is_string($path)) {
+                throw new InvalidArgumentException(
+                    'Custom callback path keys must be strings, got: ' . gettype($path)
+                );
+            }
+
+            if (trim($path) === '') {
+                throw new InvalidArgumentException('Custom callback path cannot be empty');
+            }
+
+            // Validate callback value
+            if (!is_callable($callback)) {
+                throw new InvalidArgumentException(sprintf(
+                    "Custom callback for path '%s' must be callable",
+                    $path
+                ));
+            }
+        }
+    }
+
+    /**
+     * Validate audit logger parameter.
+     *
+     * @throws InvalidArgumentException When audit logger is invalid
+     */
+    private function validateAuditLogger(): void
+    {
+        if ($this->auditLogger !== null && !is_callable($this->auditLogger)) {
+            throw new InvalidArgumentException('Audit logger must be callable or null, got: ' . gettype($this->auditLogger));
+        }
+    }
+
+    /**
+     * Validate max depth parameter for reasonable bounds.
+     *
+     * @throws InvalidArgumentException When max depth is invalid
+     */
+    private function validateMaxDepth(): void
+    {
+        if ($this->maxDepth <= 0) {
+            throw new InvalidArgumentException('Maximum depth must be a positive integer, got: ' . $this->maxDepth);
+        }
+
+        if ($this->maxDepth > 1000) {
+            throw new InvalidArgumentException('Maximum depth cannot exceed 1,000 for stack safety, got: ' . $this->maxDepth);
+        }
+    }
+
+    /**
+     * Validate data type masks array for proper structure.
+     *
+     * @throws InvalidArgumentException When data type masks are invalid
+     */
+    private function validateDataTypeMasks(): void
+    {
+        $validTypes = ['integer', 'double', 'string', 'boolean', 'NULL', 'array', 'object', 'resource'];
+
+        foreach ($this->dataTypeMasks as $type => $mask) {
+            // Validate type key
+            if (!is_string($type)) {
+                throw new InvalidArgumentException('Data type mask keys must be strings, got: ' . gettype($type));
+            }
+
+            if (!in_array($type, $validTypes, true)) {
+                throw new InvalidArgumentException(sprintf("Invalid data type '%s'. Must be one of: ", $type) . implode(', ', $validTypes));
+            }
+
+            // Validate mask value
+            if (!is_string($mask)) {
+                throw new InvalidArgumentException('Data type mask values must be strings, got: ' . gettype($mask));
+            }
+
+            if (trim($mask) === '') {
+                throw new InvalidArgumentException(sprintf("Data type mask for '%s' cannot be empty", $type));
+            }
+        }
+    }
+
+    /**
+     * Validate conditional rules array for proper structure.
+     *
+     * @throws InvalidArgumentException When conditional rules are invalid
+     */
+    private function validateConditionalRules(): void
+    {
+        foreach ($this->conditionalRules as $ruleName => $callback) {
+            // Validate rule name key
+            if (!is_string($ruleName)) {
+                throw new InvalidArgumentException(
+                    'Conditional rule names must be strings, got: ' . gettype($ruleName)
+                );
+            }
+
+            if (trim($ruleName) === '') {
+                throw new InvalidArgumentException('Conditional rule name cannot be empty');
+            }
+
+            // Validate callback value
+            if (!is_callable($callback)) {
+                throw new InvalidArgumentException(sprintf(
+                    "Conditional rule '%s' must have a callable callback",
+                    $ruleName
+                ));
+            }
+        }
     }
 
     /**
@@ -576,8 +786,10 @@ class GdprProcessor implements ProcessorInterface
 
     /**
      * Process a potential JSON candidate string.
+     *
+     * @return null|string
      */
-    private function processJsonCandidate(string $potentialJson): string
+    private function processJsonCandidate(string $potentialJson): string|null
     {
         try {
             // Try to parse as JSON
@@ -660,7 +872,10 @@ class GdprProcessor implements ProcessorInterface
      * Mask field paths in the context using the configured field masks.
      *
      * @param Dot<array-key, mixed> $accessor
-     * @return array<string> Array of processed field paths
+     *
+     * @return string[] Array of processed field paths
+     *
+     * @psalm-return list<string>
      */
     private function maskFieldPaths(Dot $accessor): array
     {
@@ -684,6 +899,7 @@ class GdprProcessor implements ProcessorInterface
                 $accessor->set($path, $masked);
                 $this->logAudit($path, $value, $masked);
             }
+
             $processedFields[] = $path;
         }
 
@@ -694,7 +910,10 @@ class GdprProcessor implements ProcessorInterface
      * Process custom callbacks on context fields.
      *
      * @param Dot<array-key, mixed> $accessor
-     * @return array<string> Array of processed field paths
+     *
+     * @return string[] Array of processed field paths
+     *
+     * @psalm-return list<string>
      */
     private function processCustomCallbacks(Dot $accessor): array
     {
@@ -711,6 +930,7 @@ class GdprProcessor implements ProcessorInterface
                     $accessor->set($path, $masked);
                     $this->logAudit($path, $value, $masked);
                 }
+
                 $processedFields[] = $path;
             } catch (Throwable $e) {
                 // Log callback error but continue processing
@@ -751,12 +971,14 @@ class GdprProcessor implements ProcessorInterface
                     if ($masked !== $value) {
                         $this->logAudit($fieldPath, $value, $masked);
                     }
+
                     $result[$key] = $masked;
                 } else {
                     $result[$key] = $value;
                 }
             }
         }
+
         return $result;
     }
 
@@ -1066,7 +1288,7 @@ class GdprProcessor implements ProcessorInterface
      * @param array<string, string> $patterns
      * @throws InvalidArgumentException If any pattern is invalid or unsafe
      */
-    public static function validatePatterns(array $patterns): void
+    public static function validatePatternsArray(array $patterns): void
     {
         foreach ($patterns as $pattern => $replacement) {
             $processor = new self([$pattern => $replacement]);

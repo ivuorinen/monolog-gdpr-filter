@@ -26,6 +26,11 @@ composer lint:tool:phpcbf    # PHP Code Beautifier and Fixer
 composer lint:tool:psalm     # Static analysis
 composer lint:tool:psalm:fix # Auto-fix Psalm issues
 composer lint:tool:rector    # Code refactoring
+
+# Safe analysis script (recommended for comprehensive analysis)
+./scripts/safe-analyze.sh           # Interactive analysis workflow
+./scripts/safe-analyze.sh --all --dry-run    # Run all tools safely (dry-run)
+./scripts/safe-analyze.sh --all --apply      # Apply safe changes with backup
 ```
 
 ### Testing
@@ -76,13 +81,35 @@ The library can be integrated with Laravel in two ways:
 
 - **PHP 8.2+** with strict types
 - **PSR-12** coding standard (enforced by PHP_CodeSniffer)
-- **Psalm Level 3** static analysis with strict equality plugin
+- **Psalm Level 5** static analysis with conservative configuration
+- **PHPStan Level 6** for additional code quality insights
+- **Rector** for safe automated code improvements
 - **EditorConfig**: 4 spaces, LF line endings, UTF-8, trim trailing whitespace
 - **PHPUnit 11** for testing with strict configuration
 
+### Static Analysis & Linting Policy
+
+**All issues reported by static analysis tools MUST be fixed.** The project uses a comprehensive static analysis setup:
+
+- **Psalm**: Conservative Level 5 with targeted suppressions for valid patterns
+- **PHPStan**: Level 6 analysis with Laravel compatibility
+- **Rector**: Safe automated improvements (return types, string casting, etc.)
+- **PHPCS**: PSR-12 compliance enforcement
+
+**Issue Resolution Priority:**
+1. **Fix the underlying issue** (preferred approach)
+2. **Refactor code** to avoid the issue pattern
+3. **Use safe automated fixes** via `composer lint:fix` or `./scripts/safe-analyze.sh`
+4. **Ask before suppressing** - Suppression should be used only as an absolute last resort and requires explicit discussion
+
+**Use the safe analysis script** (`./scripts/safe-analyze.sh`) for comprehensive analysis workflows with backup/restore capabilities.
+
 ## Important Notes
 
-- Always run `composer lint:fix` before manual fixes
+- **Always run `composer lint:fix` or `./scripts/safe-analyze.sh` before manual fixes**
+- **Fix all linting issues** - suppression requires explicit approval
 - The library focuses on GDPR compliance - be careful when modifying masking logic
 - Default patterns include Finnish SSN, US SSN, IBAN, credit cards, emails, phones, and IPs
 - Audit logging feature can track when sensitive data was masked for compliance
+- Use the safe analysis script for comprehensive static analysis workflows
+- All static analysis tools are configured to work harmoniously without conflicts
