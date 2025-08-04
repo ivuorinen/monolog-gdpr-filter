@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use InvalidArgumentException;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
@@ -102,42 +103,30 @@ class RegexMaskProcessorTest extends TestCase
         $this->assertSame(["user.email", "john.doe@example.com", "***EMAIL***"], $auditCalls[0]);
     }
 
-    public function testMaskMessagePregReplaceError(): void
+    public function testInvalidRegexPatternThrowsExceptionOnConstruction(): void
     {
-        // Invalid pattern triggers preg_replace error - suppress expected warning
-        $patterns = [
-            self::INVALID_REGEX => 'MASKED',
-        ];
-        $calls = [];
-        $auditLogger = function ($path, $original, $masked) use (&$calls): void {
-            $calls[] = [$path, $original, $masked];
-        };
-        $processor = new GdprProcessor($patterns, [], [], $auditLogger);
-        $result = @$processor->maskMessage('test');
-        $this->assertSame('test', $result);
-        $this->assertNotEmpty($calls);
-        $this->assertSame('preg_replace_batch_error', $calls[0][0]);
-        $this->assertSame('test', $calls[0][1]);
-        $this->assertStringStartsWith('Error: ', $calls[0][2]);
+        // Test that invalid regex patterns are caught during construction
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage("Invalid regex pattern: '/[invalid/'");
+
+        new GdprProcessor(['/[invalid/' => 'MASKED']);
     }
 
-    public function testRegExpMessagePregReplaceError(): void
+    public function testValidRegexPatternsWorkCorrectly(): void
     {
-        // Invalid pattern triggers preg_replace error - suppress expected warning
-        $patterns = [
-            self::INVALID_REGEX => 'MASKED',
+        // Test that valid regex patterns work correctly
+        $validPatterns = [
+            '/test/' => 'REPLACED',
+            '/\d+/' => 'NUMBER',
         ];
-        $calls = [];
-        $auditLogger = function ($path, $original, $masked) use (&$calls): void {
-            $calls[] = [$path, $original, $masked];
-        };
-        $processor = new GdprProcessor($patterns, [], [], $auditLogger);
-        $result = @$processor->regExpMessage('test');
-        $this->assertSame('test', $result);
-        $this->assertNotEmpty($calls);
-        $this->assertSame('preg_replace_error', $calls[0][0]);
-        $this->assertSame('test', $calls[0][1]);
-        $this->assertStringStartsWith('Error: ', $calls[0][2]);
+
+        $processor = new GdprProcessor($validPatterns);
+        $this->assertInstanceOf(GdprProcessor::class, $processor);
+
+        // Test that the patterns actually work
+        $result = $processor->regExpMessage('test 123');
+        $this->assertStringContainsString('REPLACED', $result);
+        $this->assertStringContainsString('NUMBER', $result);
     }
 
     public function testStringReplacementBackwardCompatibility(): void

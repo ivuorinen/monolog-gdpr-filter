@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use Ivuorinen\MonologGdprFilter\RateLimiter;
 
@@ -144,11 +145,11 @@ class RateLimiterTest extends TestCase
 
     public function testZeroLimit(): void
     {
-        $rateLimiter = new RateLimiter(0, 60); // No requests allowed
-        $key = 'test_key';
+        // Test that zero max requests throws an exception due to validation
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Maximum requests must be a positive integer, got: 0');
 
-        $this->assertFalse($rateLimiter->isAllowed($key));
-        $this->assertSame(0, $rateLimiter->getRemainingRequests($key));
+        new RateLimiter(0, 60);
     }
 
     public function testHighVolumeRequests(): void
@@ -199,10 +200,11 @@ class RateLimiterTest extends TestCase
     {
         $rateLimiter = new RateLimiter(2, 60);
 
-        // Empty string key should work
-        $this->assertTrue($rateLimiter->isAllowed(''));
-        $this->assertTrue($rateLimiter->isAllowed(''));
-        $this->assertFalse($rateLimiter->isAllowed(''));
+        // Empty string key should throw validation exception
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Rate limiting key cannot be empty');
+
+        $rateLimiter->isAllowed('');
     }
 
     public function testVeryShortWindow(): void

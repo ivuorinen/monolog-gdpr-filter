@@ -135,7 +135,7 @@ class ComprehensiveValidationTest extends TestCase
     public function memoryManagementPreventsUnboundedGrowth(): void
     {
         // Set very aggressive cleanup for testing
-        RateLimiter::setCleanupInterval(1);
+        RateLimiter::setCleanupInterval(60);
 
         $rateLimiter = new RateLimiter(5, 2); // 5 requests per 2 seconds
 
@@ -199,7 +199,7 @@ class ComprehensiveValidationTest extends TestCase
         // Test definitely dangerous patterns
         foreach ($definitelyDangerousPatterns as $pattern => $description) {
             try {
-                GdprProcessor::validatePatterns([sprintf('/%s/', $pattern) => 'masked']);
+                GdprProcessor::validatePatternsArray([sprintf('/%s/', $pattern) => 'masked']);
                 error_log(sprintf('⚠️  Pattern not caught: %s (%s)', $pattern, $description));
             } catch (Throwable) {
                 $caughtCount++;
@@ -210,7 +210,7 @@ class ComprehensiveValidationTest extends TestCase
         // Test possibly dangerous patterns (implementation may vary)
         foreach ($possiblyDangerousPatterns as $pattern => $description) {
             try {
-                GdprProcessor::validatePatterns([sprintf('/%s/', $pattern) => 'masked']);
+                GdprProcessor::validatePatternsArray([sprintf('/%s/', $pattern) => 'masked']);
                 error_log(sprintf('ℹ️  Pattern allowed: %s (%s)', $pattern, $description));
             } catch (Throwable) {
                 $caughtCount++;
@@ -514,9 +514,9 @@ class ComprehensiveValidationTest extends TestCase
     /**
      * Helper method to create deeply nested array
      *
-     * @return (array|string)[]
+     * @return (((array|string)[]|string)[]|string)[]
      *
-     * @psalm-return array{level?: array, end?: 'value'}
+     * @psalm-return array{level?: array{level?: array{level?: array, end?: 'value'}, end?: 'value'}, end?: 'value'}
      */
     private function createDeepArray(int $depth): array
     {
