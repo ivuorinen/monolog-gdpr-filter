@@ -42,7 +42,7 @@ jobs:
 
       - name: Code Coverage Summary Report
         id: coverage-summary
-        uses: saschanowak/CloverCodeCoverageSummary@217593f67675e88fe1e6afeab0175018eb37deaa # 1.1.0
+        uses: saschanowak/CloverCodeCoverageSummary@74291a4a2e8b848605aae10d27adbe7d17aa71e5 # 1.1.1
         with:
           filename: coverage.xml
 
