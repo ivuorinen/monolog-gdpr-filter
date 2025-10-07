@@ -147,11 +147,18 @@ final readonly class FieldMaskConfig
         // Validate type
         $validTypes = [self::MASK_REGEX, self::REMOVE, self::REPLACE];
         if (!in_array($type, $validTypes, true)) {
-            throw new InvalidArgumentException(sprintf("Invalid type '%s'. Must be one of: ", $type) . implode(', ', $validTypes));
+            $validList = implode(', ', $validTypes);
+            throw new InvalidArgumentException(
+                sprintf("Invalid type '%s'. Must be one of: %s", $type, $validList)
+            );
         }
 
         // Validate replacement for REPLACE type - only when explicitly provided
-        if ($type === self::REPLACE && array_key_exists('replacement', $data) && ($replacement === null || trim($replacement) === '')) {
+        if (
+            $type === self::REPLACE &&
+            array_key_exists('replacement', $data) &&
+            ($replacement === null || trim($replacement) === '')
+        ) {
             throw new InvalidArgumentException('Replacement value cannot be null or empty for REPLACE type');
         }
 
@@ -185,7 +192,7 @@ final readonly class FieldMaskConfig
             // Check for patterns that are effectively empty (like '//' or '/\s*/')
             // Extract the pattern content between delimiters
             if ($isValid && preg_match('/^(.)(.*?)\1[gimuxXs]*$/', $pattern, $matches)) {
-                $patternContent = $matches[2] ?? '';
+                $patternContent = $matches[2];
                 // Reject patterns that are empty or only whitespace-based
                 if ($patternContent === '' || trim($patternContent) === '' || $patternContent === '\s*') {
                     $isValid = false;

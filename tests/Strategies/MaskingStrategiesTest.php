@@ -25,6 +25,9 @@ use Ivuorinen\MonologGdprFilter\Exceptions\InvalidRegexPatternException;
  */
 class MaskingStrategiesTest extends TestCase
 {
+    /**
+     * @param array<mixed> $context
+     */
     private function createLogRecord(
         string $message = 'Test message',
         array $context = [],
@@ -276,6 +279,9 @@ class MaskingStrategiesTest extends TestCase
                 return $this->pathMatches($path, $pattern);
             }
 
+            /**
+             * @param array<string, mixed> $conditions
+             */
             public function testRecordMatches(LogRecord $logRecord, array $conditions): bool
             {
                 return $this->recordMatches($logRecord, $conditions);
@@ -406,8 +412,9 @@ class MaskingStrategiesTest extends TestCase
              */
             public function validate(): bool
             {
+                // Always invalid
                 return false;
-            } // Always invalid
+            }
         };
 
         $this->expectException(GdprProcessorException::class);

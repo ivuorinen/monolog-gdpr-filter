@@ -23,6 +23,7 @@
     <directory name="tests" />
     <ignoreFiles>
       <directory name="vendor" />
+      <directory name="src/Laravel" />
     </ignoreFiles>
   </projectFiles>
 
@@ -56,12 +57,6 @@
       </errorLevel>
     </InvalidReturnType>
 
-    <InvalidReturnStatement>
-      <errorLevel type="suppress">
-        <file name="src/GdprProcessor.php" />
-      </errorLevel>
-    </InvalidReturnStatement>
-
     <!-- Override attributes - suppress for now to avoid breaking changes -->
     <MissingOverrideAttribute errorLevel="suppress" />
 
@@ -78,30 +73,6 @@
     <MissingPropertyType errorLevel="suppress" />
 
     <!-- Test-specific suppressions -->
-    <UnusedMethod>
-      <errorLevel type="suppress">
-        <directory name="tests" />
-      </errorLevel>
-    </UnusedMethod>
-
-    <UnusedProperty>
-      <errorLevel type="suppress">
-        <directory name="tests" />
-      </errorLevel>
-    </UnusedProperty>
-
-    <UndefinedClass>
-      <errorLevel type="suppress">
-        <directory name="tests" />
-      </errorLevel>
-    </UndefinedClass>
-
-    <!-- Test method access issues -->
-    <UndefinedMethod>
-      <errorLevel type="suppress">
-        <directory name="tests" />
-      </errorLevel>
-    </UndefinedMethod>
 
     <!-- Test validation issues -->
     <InvalidArgument>
@@ -109,12 +80,6 @@
         <directory name="tests" />
       </errorLevel>
     </InvalidArgument>
-
-    <InvalidPropertyAssignmentValue>
-      <errorLevel type="suppress">
-        <directory name="tests" />
-      </errorLevel>
-    </InvalidPropertyAssignmentValue>
 
     <!-- Test function calls -->
     <UndefinedFunction>
@@ -150,24 +115,7 @@
     </InaccessibleMethod>
 
     <!-- Laravel-specific patterns -->
-    <UndefinedMethod>
-      <errorLevel type="suppress">
-        <directory name="src/Laravel" />
-      </errorLevel>
-    </UndefinedMethod>
-
-    <UndefinedPropertyFetch>
-      <errorLevel type="suppress">
-        <directory name="src/Laravel" />
-      </errorLevel>
-    </UndefinedPropertyFetch>
-
-    <!-- Example code flexibility -->
-    <UnusedVariable>
-      <errorLevel type="suppress">
-        <directory name="examples" />
-      </errorLevel>
-    </UnusedVariable>
+    <!-- (Laravel directory is excluded from scanning) -->
 
     <!-- Intentional design choices -->
     <PropertyNotSetInConstructor errorLevel="suppress" />

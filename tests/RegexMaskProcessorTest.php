@@ -53,7 +53,7 @@ class RegexMaskProcessorTest extends TestCase
             message: "Remove SSN",
             context: ["user" => ["ssn" => self::TEST_HETU, "name" => "John"]],
         );
-        $result = ($processor)($record);
+        $result = ($processor)($record)->toArray();
         $this->assertArrayNotHasKey("ssn", $result["context"]["user"]);
         $this->assertSame("John", $result["context"]["user"]["name"]);
     }
@@ -67,7 +67,7 @@ class RegexMaskProcessorTest extends TestCase
             message: "Payment processed",
             context: ["user" => ["card" => "1234123412341234"]],
         );
-        $result = ($processor)($record);
+        $result = ($processor)($record)->toArray();
         $this->assertSame("MASKED", $result["context"]["user"]["card"]);
     }
 
@@ -81,7 +81,7 @@ class RegexMaskProcessorTest extends TestCase
             message: "Name logged",
             context: ["user" => ["name" => "john"]],
         );
-        $result = ($processor)($record);
+        $result = ($processor)($record)->toArray();
         $this->assertSame("JOHN", $result["context"]["user"]["name"]);
     }
 
@@ -138,7 +138,7 @@ class RegexMaskProcessorTest extends TestCase
             message: self::USER_REGISTERED,
             context: ["user" => ["email" => self::TEST_EMAIL]],
         );
-        $result = ($processor)($record);
+        $result = ($processor)($record)->toArray();
         $this->assertSame('[MASKED]', $result["context"]["user"]["email"]);
     }
 
@@ -151,7 +151,7 @@ class RegexMaskProcessorTest extends TestCase
             message: self::USER_REGISTERED,
             context: ["user" => ["id" => 12345]],
         );
-        $result = ($processor)($record);
+        $result = ($processor)($record)->toArray();
         $this->assertSame('12345', $result["context"]["user"]["id"]);
     }
 
@@ -164,7 +164,7 @@ class RegexMaskProcessorTest extends TestCase
             message: self::USER_REGISTERED,
             context: ["user" => ["email" => self::TEST_EMAIL]],
         );
-        $result = ($processor)($record);
+        $result = ($processor)($record)->toArray();
         $this->assertArrayNotHasKey('missing', $result["context"]["user"]);
     }
 
@@ -173,7 +173,7 @@ class RegexMaskProcessorTest extends TestCase
         $testHetu = [self::TEST_HETU, "131052+308T", "131052A308T"];
         foreach ($testHetu as $hetu) {
             $record = $this->logEntry()->with(message: 'ID: ' . $hetu);
-            $result = ($this->processor)($record);
+            $result = ($this->processor)($record)->toArray();
             $this->assertSame("ID: ***MASKED***", $result["message"]);
         }
     }
@@ -184,7 +184,7 @@ class RegexMaskProcessorTest extends TestCase
             message: "Login",
             context: ["user" => ["ssn" => self::TEST_HETU]],
         );
-        $result = ($this->processor)($record);
+        $result = ($this->processor)($record)->toArray();
         $this->assertSame(self::GDPR_REPLACEMENT, $result["context"]["user"]["ssn"]);
     }
 
@@ -194,7 +194,7 @@ class RegexMaskProcessorTest extends TestCase
             message: "Order created",
             context: ["order" => ["total" => self::TEST_HETU . " €150"]],
         );
-        $result = ($this->processor)($record);
+        $result = ($this->processor)($record)->toArray();
         $this->assertSame("***MASKED*** €150", $result["context"]["order"]["total"]);
     }
 
@@ -204,7 +204,7 @@ class RegexMaskProcessorTest extends TestCase
             message: "No sensitive data here",
             context: ["user" => ["ssn" => "not-a-hetu"]],
         );
-        $result = ($this->processor)($record);
+        $result = ($this->processor)($record)->toArray();
         $this->assertSame("No sensitive data here", $result["message"]);
         $this->assertSame(self::GDPR_REPLACEMENT, $result["context"]["user"]["ssn"]);
     }
@@ -215,7 +215,7 @@ class RegexMaskProcessorTest extends TestCase
             message: "Missing field",
             context: ["user" => ["name" => "John"]],
         );
-        $result = ($this->processor)($record);
+        $result = ($this->processor)($record)->toArray();
         $this->assertArrayNotHasKey("ssn", $result["context"]["user"]);
     }
 
@@ -236,7 +236,7 @@ class RegexMaskProcessorTest extends TestCase
             '/secret/' => 'MASKED',
         ];
         $processor = new class ($patterns) extends GdprProcessor {
-            public function callRecursiveMask($data): array|string
+            public function callRecursiveMask(mixed $data): array|string
             {
                 return $this->recursiveMask($data);
             }

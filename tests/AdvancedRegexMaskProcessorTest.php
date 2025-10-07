@@ -20,9 +20,6 @@ class AdvancedRegexMaskProcessorTest extends TestCase
 
     private GdprProcessor $processor;
 
-    /**
-     * @psalm-suppress MissingOverrideAttribute
-     */
     protected function setUp(): void
     {
         parent::setUp();
@@ -46,7 +43,7 @@ class AdvancedRegexMaskProcessorTest extends TestCase
     public function testMaskCreditCardInMessage(): void
     {
         $record = $this->logEntry()->with(message: "Card: 1234567812345678");
-        $result = ($this->processor)($record);
+        $result = ($this->processor)($record)->toArray();
         $this->assertSame("Card: ***CC***", $result["message"]);
     }
 
@@ -54,7 +51,7 @@ class AdvancedRegexMaskProcessorTest extends TestCase
     {
         $record = $this->logEntry()->with(message: "Email: user@example.com");
 
-        $result = ($this->processor)($record);
+        $result = ($this->processor)($record)->toArray();
         $this->assertSame("Email: ***EMAIL***", $result["message"]);
     }
 
@@ -71,7 +68,7 @@ class AdvancedRegexMaskProcessorTest extends TestCase
             extra: [],
         );
 
-        $result = ($this->processor)($record);
+        $result = ($this->processor)($record)->toArray();
 
         $this->assertSame("[GDPR]", $result["context"]["user"]["ssn"]);
         $this->assertSame("[CC]", $result["context"]["payment"]["card"]);

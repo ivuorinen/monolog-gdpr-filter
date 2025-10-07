@@ -10,11 +10,11 @@ use Illuminate\Support\Facades\Facade;
  * Laravel Facade for GDPR Processor.
  *
  * @method static string regExpMessage(string $message = '')
- * @method static array getDefaultPatterns()
+ * @method static array<string, string> getDefaultPatterns()
  * @method static FieldMaskConfig maskWithRegex()
  * @method static FieldMaskConfig removeField()
  * @method static FieldMaskConfig replaceWith(string $replacement)
- * @method static void validatePatterns(array $patterns)
+ * @method static void validatePatterns(array<string, string> $patterns)
  * @method static void clearPatternCache()
  * @method static LogRecord __invoke(LogRecord $record)
  *

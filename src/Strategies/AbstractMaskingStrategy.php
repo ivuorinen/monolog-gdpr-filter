@@ -21,7 +21,7 @@ abstract class AbstractMaskingStrategy implements MaskingStrategyInterface
      * Constructor.
      *
      * @param int $priority The priority of the strategy
-     * @param array $configuration The configuration for the strategy
+     * @param array<string, mixed> $configuration The configuration for the strategy
      */
     public function __construct(
         protected readonly int $priority = 50,
