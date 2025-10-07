@@ -286,7 +286,7 @@ class GdprProcessor implements ProcessorInterface
      *
      * @return string[]
      *
-     * @psalm-return array{'/\\b\\d{6}[-+A]?\\d{3}[A-Z]\\b/u': '***HETU***', '/^\\d{3}-\\d{2}-\\d{4}$/': '***USSSN***', '/^FI\\d{2}(?: ?\\d{4}){3} ?\\d{2}$/u': '***IBAN***', '/^FI\\d{16}$/u': '***IBAN***', '/^\\+\\d{1,3}[\\s-]?\\d{1,4}[\\s-]?\\d{1,4}[\\s-]?\\d{1,9}$/': '***PHONE***', '/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$/': '***EMAIL***', '/^(19|20)\\d{2}-[01]\\d\\-[0-3]\\d$/': '***DOB***', '/^[0-3]\\d\\/[01]\\d\\/(19|20)\\d{2}$/': '***DOB***', '/^A\\d{6}$/': '***PASSPORT***', '/^(4111 1111 1111 1111|5500-0000-0000-0004|340000000000009|6011000000000004)$/': '***CC***', '/\\b[0-9]{16}\\b/u': '***CC***', '/^Bearer [A-Za-z0-9\\-\\._~\\+\\/]{10,}$/': '***TOKEN***', '/^(sk_(live|test)_[A-Za-z0-9]{16,}|[A-Za-z0-9\\-_]{20,})$/': '***APIKEY***', '/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/': '***MAC***', '/\\b(?:(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\b/': '***IPv4***', '/\\b[A-Z]{2,3}[-\\s]?\\d{3,4}\\b/': '***VEHICLE***', '/\\b\\d{3,4}[-\\s]?[A-Z]{2,3}\\b/': '***VEHICLE***', '/\\b[A-Z]{2}\\d{6}[A-Z]\\b/': '***UKNI***', '/\\b\\d{3}[-\\s]\\d{3}[-\\s]\\d{3}\\b/': '***CASIN***', '/\\b\\d{6}[-\\s]\\d{8}\\b/': '***UKBANK***', '/\\b\\d{5}[-\\s]\\d{7,12}\\b/': '***CABANK***', '/\\b\\d{3}[-\\s]\\d{2}[-\\s]\\d{4}\\b/': '***MEDICARE***', '/\\b\\d{2}[-\\s]\\d{4}[-\\s]\\d{4}[-\\s]\\d{4}[-\\s]\\d{1,4}\\b/': '***EHIC***', '/\\b[0-9a-fA-F]{1,4}:[0-9a-fA-F:]{7,35}\\b/': '***IPv6***'}
+     * @psalm-return array<string, string>
      */
     public static function getDefaultPatterns(): array
     {
@@ -473,7 +473,10 @@ class GdprProcessor implements ProcessorInterface
     private function validateAuditLogger(): void
     {
         if ($this->auditLogger !== null && !is_callable($this->auditLogger)) {
-            throw new InvalidArgumentException('Audit logger must be callable or null, got: ' . gettype($this->auditLogger));
+            $type = gettype($this->auditLogger);
+            throw new InvalidArgumentException(
+                "Audit logger must be callable or null, got: {$type}"
+            );
         }
     }
 
@@ -485,11 +488,15 @@ class GdprProcessor implements ProcessorInterface
     private function validateMaxDepth(): void
     {
         if ($this->maxDepth <= 0) {
-            throw new InvalidArgumentException('Maximum depth must be a positive integer, got: ' . $this->maxDepth);
+            throw new InvalidArgumentException(
+                "Maximum depth must be a positive integer, got: {$this->maxDepth}"
+            );
         }
 
         if ($this->maxDepth > 1000) {
-            throw new InvalidArgumentException('Maximum depth cannot exceed 1,000 for stack safety, got: ' . $this->maxDepth);
+            throw new InvalidArgumentException(
+                "Maximum depth cannot exceed 1,000 for stack safety, got: {$this->maxDepth}"
+            );
         }
     }
 
@@ -505,11 +512,17 @@ class GdprProcessor implements ProcessorInterface
         foreach ($this->dataTypeMasks as $type => $mask) {
             // Validate type key
             if (!is_string($type)) {
-                throw new InvalidArgumentException('Data type mask keys must be strings, got: ' . gettype($type));
+                $typeGot = gettype($type);
+                throw new InvalidArgumentException(
+                    "Data type mask keys must be strings, got: {$typeGot}"
+                );
             }
 
             if (!in_array($type, $validTypes, true)) {
-                throw new InvalidArgumentException(sprintf("Invalid data type '%s'. Must be one of: ", $type) . implode(', ', $validTypes));
+                $validList = implode(', ', $validTypes);
+                throw new InvalidArgumentException(
+                    sprintf("Invalid data type '%s'. Must be one of: %s", $type, $validList)
+                );
             }
 
             // Validate mask value
@@ -619,7 +632,11 @@ class GdprProcessor implements ProcessorInterface
                 if (!$ruleCallback($record)) {
                     // Log which rule prevented masking
                     if ($this->auditLogger !== null) {
-                        ($this->auditLogger)('conditional_skip', $ruleName, 'Masking skipped due to conditional rule');
+                        ($this->auditLogger)(
+                            'conditional_skip',
+                            $ruleName,
+                            'Masking skipped due to conditional rule'
+                        );
                     }
 
                     return false;
@@ -627,7 +644,8 @@ class GdprProcessor implements ProcessorInterface
             } catch (Throwable $e) {
                 // If a rule throws an exception, log it and default to applying masking
                 if ($this->auditLogger !== null) {
-                    ($this->auditLogger)('conditional_error', $ruleName, 'Rule error: ' . $this->sanitizeErrorMessage($e->getMessage()));
+                    $errorMsg = 'Rule error: ' . $this->sanitizeErrorMessage($e->getMessage());
+                    ($this->auditLogger)('conditional_error', $ruleName, $errorMsg);
                 }
 
                 continue;
@@ -819,7 +837,7 @@ class GdprProcessor implements ProcessorInterface
     /**
      * Encode JSON while preserving empty object structures from the original.
      *
-     * @param array|string $data The data to encode.
+     * @param array<mixed>|string $data The data to encode.
      * @param string $originalJson The original JSON string.
      *
      * @return false|null|string The encoded JSON string or false on failure.
@@ -934,7 +952,8 @@ class GdprProcessor implements ProcessorInterface
                 $processedFields[] = $path;
             } catch (Throwable $e) {
                 // Log callback error but continue processing
-                $this->logAudit($path . '_callback_error', $value, 'Callback failed: ' . $this->sanitizeErrorMessage($e->getMessage()));
+                $errorMsg = 'Callback failed: ' . $this->sanitizeErrorMessage($e->getMessage());
+                $this->logAudit($path . '_callback_error', $value, $errorMsg);
                 $processedFields[] = $path;
             }
         }
@@ -946,12 +965,15 @@ class GdprProcessor implements ProcessorInterface
      * Apply data type masking to an entire context structure.
      *
      * @param array<mixed> $context
-     * @param array<string> $processedFields Array of field paths that have already been processed
+     * @param array<string> $processedFields Array of field paths already processed
      * @param string $currentPath Current dot-notation path for nested processing
      * @return array<mixed>
      */
-    private function applyDataTypeMaskingToContext(array $context, array $processedFields = [], string $currentPath = ''): array
-    {
+    private function applyDataTypeMaskingToContext(
+        array $context,
+        array $processedFields = [],
+        string $currentPath = ''
+    ): array {
         $result = [];
         foreach ($context as $key => $value) {
             $fieldPath = $currentPath === '' ? (string)$key : $currentPath . '.' . $key;
@@ -1341,7 +1363,8 @@ class GdprProcessor implements ProcessorInterface
             // Connection strings
             '/redis:\/\/[^@]*@[\w\.-]+:\d+/i' => 'redis://***:***@***:***',
             '/mysql:\/\/[^@]*@[\w\.-]+:\d+/i' => 'mysql://***:***@***:***',
-            '/postgresql:\/\/[^@]*@[\w\.-]+:\d+/i' => 'postgresql://***:***@***:***',
+            '/postgresql:\/\/[^@]*@[\w\.-]+:\d+/i' =>
+            'postgresql://***:***@***:***',
 
             // JWT secrets and other secrets
             '/secret[_-]?key[=:\s]+\S+/i' => 'secret_key=***',

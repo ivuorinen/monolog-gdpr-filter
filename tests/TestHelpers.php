@@ -38,6 +38,8 @@ trait TestHelpers
     // ]'/' this should fix the issue with the regex breaking highlighting in the test
     /**
      * @source \Monolog\LogRecord::__construct
+     * @param array<mixed> $context
+     * @param array<mixed> $extra
      */
     protected function logEntry(
         int|string|Level $level = Level::Warning,
@@ -69,7 +71,6 @@ trait TestHelpers
 
         /**
          * @noinspection PhpExpressionResultUnusedInspection
-         * @psalm-suppress UnusedMethodCall
          */
         $method->setAccessible(true);
         return $method;

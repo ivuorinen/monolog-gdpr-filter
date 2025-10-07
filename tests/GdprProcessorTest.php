@@ -152,7 +152,7 @@ class GdprProcessorTest extends TestCase
             '/secret/' => self::MASKED_SECRET,
         ];
         $processor = new class ($patterns) extends GdprProcessor {
-            public function callRecursiveMask($data): array|string
+            public function callRecursiveMask(mixed $data): array|string
             {
                 return $this->recursiveMask($data);
             }

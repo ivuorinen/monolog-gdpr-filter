@@ -20,7 +20,7 @@ use Monolog\Level;
  */
 class GdprProcessorRateLimitingIntegrationTest extends TestCase
 {
-    /** @var array<array{path: string, original: mixed, masked: mixed, timestamp: int}> */
+    /** @var array<array{path: string, original: mixed, masked: mixed, timestamp?: int}> */
     private array $auditLogs;
 
     protected function setUp(): void

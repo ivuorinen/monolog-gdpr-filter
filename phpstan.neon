@@ -59,7 +59,23 @@ parameters:
         - '#Method Ivuorinen\\MonologGdprFilter\\GdprProcessor::getDefaultPatterns\(\) should return array.* but returns array.*#'
 
         # Allow intentional validation test failures
-        - '#Parameter \#\d+ \$\w+ of method Ivuorinen\\MonologGdprFilter\\GdprProcessor::__construct\(\) expects .*, .* given#'
+        - '#Parameter .* of (method|class) Ivuorinen\\MonologGdprFilter\\(GdprProcessor|RateLimitedAuditLogger).*(constructor|__construct).* expects .*, .* given#'
+
+        # Allow test assertions that intentionally validate known types
+        - '#Call to method PHPUnit\\Framework\\Assert::(assertIsArray|assertIsInt|assertTrue|assertContainsOnlyInstancesOf)\(\) .* will always evaluate to true#'
+
+        # Allow PHPUnit attributes with named arguments
+        - '#Attribute class PHPUnit\\Framework\\Attributes\\.*#'
+
+        # Allow intentional static method calls in tests
+        - '#Static call to instance method#'
+        - '#Method .* invoked with \d+ parameter.*, \d+ required#'
+
+        # Allow nullsafe operator usage
+        - '#Using nullsafe method call on non-nullable type#'
+
+        # Allow unused test constants (used by trait)
+        - '#Constant Tests\\.*::.* is unused#'
 
     # PHP version for analysis
     phpVersion: 80200

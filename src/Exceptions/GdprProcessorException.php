@@ -54,7 +54,10 @@ class GdprProcessorException extends Exception
             $contextString = ' [Context: ' . implode(', ', $contextParts) . ']';
         }
 
-        /** @psalm-suppress UnsafeInstantiation */
+        /**
+         * @psalm-suppress UnsafeInstantiation
+         * @phpstan-ignore new.static
+         */
         return new static($message . $contextString, $code, $previous);
     }
 }

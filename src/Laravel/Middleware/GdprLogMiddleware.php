@@ -36,6 +36,8 @@ class GdprLogMiddleware
     /**
      * Handle an incoming request.
      *
+     * @param Request $request
+     * @param Closure $next
      * @return mixed
      */
     public function handle(Request $request, Closure $next)
@@ -77,8 +79,10 @@ class GdprLogMiddleware
 
     /**
      * Log the response with GDPR filtering.
+     *
+     * @param \Illuminate\Http\Response|\Symfony\Component\HttpFoundation\Response $response
      */
-    protected function logResponse(Request $request, $response, float $startTime): void
+    protected function logResponse(Request $request, mixed $response, float $startTime): void
     {
         $duration = round((microtime(true) - $startTime) * 1000, 2);
 
@@ -146,8 +150,10 @@ class GdprLogMiddleware
 
     /**
      * Get response body safely.
+     *
+     * @param \Illuminate\Http\Response|\Symfony\Component\HttpFoundation\Response $response
      */
-    protected function getResponseBody($response): mixed
+    protected function getResponseBody(mixed $response): mixed
     {
         if (!method_exists($response, 'getContent')) {
             return null;
@@ -157,6 +163,7 @@ class GdprLogMiddleware
 
         // Try to decode JSON responses
         if (
+            is_object($response) && property_exists($response, 'headers') &&
             $response->headers->get('Content-Type') &&
             str_contains((string) $response->headers->get('Content-Type'), 'application/json')
         ) {
@@ -173,6 +180,9 @@ class GdprLogMiddleware
 
     /**
      * Filter sensitive headers.
+     *
+     * @param array<string, mixed> $headers
+     * @return array<string, mixed>
      */
     protected function filterHeaders(array $headers): array
     {
