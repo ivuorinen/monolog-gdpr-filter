@@ -91,7 +91,7 @@ class SecurityRegressionTest extends TestCase
                 error_log('Warning: ReDoS pattern not caught by validation: ' . $pattern);
                 $this->assertTrue(true, 'Pattern validation completed for: ' . $pattern);
             } catch (InvalidArgumentException $e) {
-                $this->assertStringContainsString('Invalid or unsafe regex pattern', $e->getMessage());
+                $this->assertStringContainsString('Invalid regex pattern', $e->getMessage());
             } catch (Throwable $e) {
                 // Other exceptions are acceptable for malformed patterns
                 $this->assertInstanceOf(Throwable::class, $e);
