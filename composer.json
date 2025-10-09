@@ -27,7 +27,7 @@
     "lint:tool:phpcbf": "./vendor/bin/phpcbf src/ tests/ examples/ config/ rector.php",
     "lint:tool:phpstan": "./vendor/bin/phpstan analyse --memory-limit=1G",
     "lint:tool:psalm": "./vendor/bin/psalm --show-info=true",
-    "lint:tool:psalm:fix": "./vendor/bin/psalm --alter --issues=all",
+    "lint:tool:psalm:fix": "./vendor/bin/psalm --alter --issues=MissingReturnType,MissingParamType,MissingClosureReturnType",
     "lint:tool:rector": "./vendor/bin/rector"
   },
   "require": {

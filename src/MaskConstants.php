@@ -23,6 +23,7 @@ final class MaskConstants
     public const MASK_RESOURCE = '***RESOURCE***';
 
     // Generic masks
+    public const MASK_GENERIC = '***';              // Simple generic mask
     public const MASK_MASKED = '***MASKED***';
     public const MASK_REDACTED = '***REDACTED***';
     public const MASK_FILTERED = '***FILTERED***';
@@ -38,12 +39,14 @@ final class MaskConstants
     // Financial information
     public const MASK_IBAN = '***IBAN***';
     public const MASK_CC = '***CC***';              // Credit Card
+    public const MASK_CARD = '***CARD***';          // Credit Card (alternative)
     public const MASK_UKBANK = '***UKBANK***';
     public const MASK_CABANK = '***CABANK***';
 
     // Contact information
     public const MASK_EMAIL = '***EMAIL***';
     public const MASK_PHONE = '***PHONE***';
+    public const MASK_IP = '***IP***';
 
     // Security tokens and keys
     public const MASK_TOKEN = '***TOKEN***';
@@ -65,6 +68,10 @@ final class MaskConstants
     public const MASK_INTERNAL = '***INTERNAL***';
     public const MASK_CUSTOMER = '***CUSTOMER***';
     public const MASK_NUMBER = '***NUMBER***';
+
+    // Custom mask patterns for partial masking
+    public const MASK_SSN_PATTERN = '***-**-****';      // SSN with format preserved
+    public const MASK_EMAIL_PATTERN = '***@***.***';    // Email with format preserved
 
     // Error states
     public const MASK_INVALID = '***INVALID***';

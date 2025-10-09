@@ -30,9 +30,7 @@ class PerformanceBenchmarkTest extends TestCase
     }
 
     /**
-     * @return (((((((((((((array|int|string)[]|int|string)[]|int|string)[]|int|string)[]|int|string)[]|int|string)[]|int|string)[]|int|string)[]|int|string)[]|int|string)[]|int|string)[]|int|string)[]|int|string)[]
-     *
-     * @psalm-return array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>
+     * @return array<string, mixed>
      */
     private function generateLargeNestedArray(int $depth, int $width): array
     {

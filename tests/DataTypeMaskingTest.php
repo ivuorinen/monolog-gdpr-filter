@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Ivuorinen\MonologGdprFilter\MaskConstants;
+use Tests\TestConstants;
 use DateTimeImmutable;
 use stdClass;
 use PHPUnit\Framework\TestCase;
@@ -31,8 +33,8 @@ class DataTypeMaskingTest extends TestCase
         $this->assertArrayHasKey('boolean', $masks);
         $this->assertArrayHasKey('array', $masks);
         $this->assertArrayHasKey('object', $masks);
-        $this->assertEquals('***INT***', $masks['integer']);
-        $this->assertEquals('***STRING***', $masks['string']);
+        $this->assertEquals(MaskConstants::MASK_INT, $masks['integer']);
+        $this->assertEquals(MaskConstants::MASK_STRING, $masks['string']);
     }
 
     public function testIntegerMasking(): void
@@ -43,15 +45,15 @@ class DataTypeMaskingTest extends TestCase
             [],
             null,
             100,
-            ['integer' => '***INT***']
+            ['integer' => MaskConstants::MASK_INT]
         );
 
         $logRecord = $this->createLogRecord('Test message', ['age' => 25, 'count' => 100]);
 
         $result = $processor($logRecord);
 
-        $this->assertEquals('***INT***', $result->context['age']);
-        $this->assertEquals('***INT***', $result->context['count']);
+        $this->assertEquals(MaskConstants::MASK_INT, $result->context['age']);
+        $this->assertEquals(MaskConstants::MASK_INT, $result->context['count']);
     }
 
     public function testFloatMasking(): void
@@ -167,7 +169,7 @@ class DataTypeMaskingTest extends TestCase
             [],
             null,
             100,
-            ['array' => 'recursive', 'integer' => '***INT***']
+            ['array' => 'recursive', 'integer' => MaskConstants::MASK_INT]
         );
 
         $logRecord = new LogRecord(
@@ -181,7 +183,7 @@ class DataTypeMaskingTest extends TestCase
         $result = $processor($logRecord);
 
         // The array should be processed recursively, and the integer should be masked
-        $this->assertEquals('***INT***', $result->context['nested']['level1']['level2']['count']);
+        $this->assertEquals(MaskConstants::MASK_INT, $result->context['nested']['level1']['level2']['count']);
     }
 
     public function testMixedDataTypes(): void
@@ -193,25 +195,25 @@ class DataTypeMaskingTest extends TestCase
             null,
             100,
             [
-                'integer' => '***INT***',
-                'string' => '***STRING***',
+                'integer' => MaskConstants::MASK_INT,
+                'string' => MaskConstants::MASK_STRING,
                 'boolean' => '***BOOL***',
                 'NULL' => '***NULL***',
             ]
         );
 
         $logRecord = $this->createLogRecord('Test message', [
-                'age' => 30,
-                'name' => 'John Doe',
-                'active' => true,
-                'deleted_at' => null,
-                'score' => 98.5, // This won't be masked (no 'double' rule)
-            ]);
+            'age' => 30,
+            'name' => 'John Doe',
+            'active' => true,
+            'deleted_at' => null,
+            'score' => 98.5, // This won't be masked (no 'double' rule)
+        ]);
 
         $result = $processor($logRecord);
 
-        $this->assertEquals('***INT***', $result->context['age']);
-        $this->assertEquals('***STRING***', $result->context['name']);
+        $this->assertEquals(MaskConstants::MASK_INT, $result->context['age']);
+        $this->assertEquals(MaskConstants::MASK_STRING, $result->context['name']);
         $this->assertEquals('***BOOL***', $result->context['active']);
         $this->assertEquals('***NULL***', $result->context['deleted_at']);
         $this->assertEqualsWithDelta(98.5, $result->context['score'], PHP_FLOAT_EPSILON); // Should remain unchanged
@@ -264,11 +266,11 @@ class DataTypeMaskingTest extends TestCase
         $processor = $this->createProcessor([], [], [], null, 100, []);
 
         $logRecord = $this->createLogRecord('Test message', [
-                'age' => 30,
-                'name' => 'John Doe',
-                'active' => true,
-                'deleted_at' => null,
-            ]);
+            'age' => 30,
+            'name' => 'John Doe',
+            'active' => true,
+            'deleted_at' => null,
+        ]);
 
         $result = $processor($logRecord);
 
@@ -283,22 +285,22 @@ class DataTypeMaskingTest extends TestCase
     {
         // Test that string masking and regex masking work together
         $processor = $this->createProcessor(
-            ['/test@example\.com/' => '***EMAIL***'],
+            ['/test@example\.com/' => MaskConstants::MASK_EMAIL],
             [],
             [],
             null,
             100,
-            ['integer' => '***INT***']
+            ['integer' => MaskConstants::MASK_INT]
         );
 
         $logRecord = $this->createLogRecord('Test message', [
-                'email' => 'test@example.com',
-                'user_id' => 12345,
-            ]);
+            'email' => TestConstants::EMAIL_TEST,
+            'user_id' => 12345,
+        ]);
 
         $result = $processor($logRecord);
 
-        $this->assertEquals('***EMAIL***', $result->context['email']);
-        $this->assertEquals('***INT***', $result->context['user_id']);
+        $this->assertEquals(MaskConstants::MASK_EMAIL, $result->context['email']);
+        $this->assertEquals(MaskConstants::MASK_INT, $result->context['user_id']);
     }
 }

@@ -86,12 +86,12 @@ class FieldMaskConfigValidationTest extends TestCase
     #[Test]
     public function regexMaskAcceptsValidPattern(): void
     {
-        $config = FieldMaskConfig::regexMask('/\d+/', '***NUMBER***');
+        $config = FieldMaskConfig::regexMask('/\d+/', Mask::MASK_NUMBER);
 
         $this->assertSame(FieldMaskConfig::MASK_REGEX, $config->type);
         $this->assertSame('/\d+/::***NUMBER***', $config->replacement);
         $this->assertSame('/\d+/', $config->getRegexPattern());
-        $this->assertSame('***NUMBER***', $config->getReplacement());
+        $this->assertSame(Mask::MASK_NUMBER, $config->getReplacement());
     }
 
     #[Test]
@@ -99,18 +99,18 @@ class FieldMaskConfigValidationTest extends TestCase
     {
         $config = FieldMaskConfig::regexMask('/test/');
 
-        $this->assertSame('***MASKED***', $config->getReplacement());
+        $this->assertSame(Mask::MASK_MASKED, $config->getReplacement());
     }
 
     #[Test]
     public function regexMaskAcceptsComplexRegexPatterns(): void
     {
         $complexPattern = '/(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/';
-        $config = FieldMaskConfig::regexMask($complexPattern, '***IP***');
+        $config = FieldMaskConfig::regexMask($complexPattern, Mask::MASK_IP);
 
         $this->assertSame(FieldMaskConfig::MASK_REGEX, $config->type);
         $this->assertSame($complexPattern, $config->getRegexPattern());
-        $this->assertSame('***IP***', $config->getReplacement());
+        $this->assertSame(Mask::MASK_IP, $config->getReplacement());
     }
 
     #[Test]
@@ -186,13 +186,13 @@ class FieldMaskConfigValidationTest extends TestCase
     {
         $config = FieldMaskConfig::fromArray([
             'type' => FieldMaskConfig::MASK_REGEX,
-            'replacement' => '/\d+/::***DIGITS***'
+            'replacement' => '/\d+/::' . Mask::MASK_NUMBER
         ]);
 
         $this->assertSame(FieldMaskConfig::MASK_REGEX, $config->type);
         $this->assertTrue($config->hasRegexPattern());
         $this->assertSame('/\d+/', $config->getRegexPattern());
-        $this->assertSame('***DIGITS***', $config->getReplacement());
+        $this->assertSame(Mask::MASK_NUMBER, $config->getReplacement());
     }
 
     #[Test]
@@ -253,10 +253,10 @@ class FieldMaskConfigValidationTest extends TestCase
         $this->assertSame(FieldMaskConfig::REPLACE, $replaceConfig->type);
         $this->assertSame('[HIDDEN]', $replaceConfig->getReplacement());
 
-        $regexConfig = FieldMaskConfig::regexMask('/email/', '***EMAIL***');
+        $regexConfig = FieldMaskConfig::regexMask('/email/', Mask::MASK_EMAIL);
         $this->assertTrue($regexConfig->hasRegexPattern());
         $this->assertSame('/email/', $regexConfig->getRegexPattern());
-        $this->assertSame('***EMAIL***', $regexConfig->getReplacement());
+        $this->assertSame(Mask::MASK_EMAIL, $regexConfig->getReplacement());
     }
 
     #[Test]

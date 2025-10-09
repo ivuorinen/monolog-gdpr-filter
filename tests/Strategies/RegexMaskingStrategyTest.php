@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Strategies;
 
+use Tests\TestConstants;
 use Ivuorinen\MonologGdprFilter\Exceptions\InvalidRegexPatternException;
+use Ivuorinen\MonologGdprFilter\MaskConstants;
 use Ivuorinen\MonologGdprFilter\Exceptions\MaskingOperationFailedException;
 use Ivuorinen\MonologGdprFilter\Strategies\RegexMaskingStrategy;
 use Monolog\LogRecord;
@@ -30,8 +32,8 @@ final class RegexMaskingStrategyTest extends TestCase
     public function constructorAcceptsPatternsArray(): void
     {
         $strategy = new RegexMaskingStrategy([
-            '/\d{3}-\d{2}-\d{4}/' => '***-**-****',
-            '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => '***@***.***',
+            '/\d{3}-\d{2}-\d{4}/' => MaskConstants::MASK_SSN_PATTERN,
+            '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => MaskConstants::MASK_EMAIL_PATTERN,
         ]);
 
         $this->assertSame(60, $strategy->getPriority());
@@ -41,7 +43,7 @@ final class RegexMaskingStrategyTest extends TestCase
     public function constructorAcceptsCustomPriority(): void
     {
         $strategy = new RegexMaskingStrategy(
-            ['/test/' => '***'],
+            ['/test/' => MaskConstants::MASK_GENERIC],
             priority: 70
         );
 
@@ -53,7 +55,7 @@ final class RegexMaskingStrategyTest extends TestCase
     {
         $this->expectException(InvalidRegexPatternException::class);
 
-        new RegexMaskingStrategy(['/[invalid/' => '***']);
+        new RegexMaskingStrategy(['/[invalid/' => MaskConstants::MASK_GENERIC]);
     }
 
     #[Test]
@@ -62,7 +64,7 @@ final class RegexMaskingStrategyTest extends TestCase
         $this->expectException(InvalidRegexPatternException::class);
         $this->expectExceptionMessage('catastrophic backtracking');
 
-        new RegexMaskingStrategy(['/^(a+)+$/' => '***']);
+        new RegexMaskingStrategy(['/^(a+)+$/' => MaskConstants::MASK_GENERIC]);
     }
 
     #[Test]
@@ -81,28 +83,28 @@ final class RegexMaskingStrategyTest extends TestCase
     public function maskAppliesSinglePattern(): void
     {
         $strategy = new RegexMaskingStrategy([
-            '/\d{3}-\d{2}-\d{4}/' => '***-**-****',
+            '/\d{3}-\d{2}-\d{4}/' => MaskConstants::MASK_SSN_PATTERN,
         ]);
 
         $result = $strategy->mask('SSN: 123-45-6789', 'field', $this->logRecord);
 
-        $this->assertSame('SSN: ***-**-****', $result);
+        $this->assertSame('SSN: ' . MaskConstants::MASK_SSN_PATTERN, $result);
     }
 
     #[Test]
     public function maskAppliesMultiplePatterns(): void
     {
         $strategy = new RegexMaskingStrategy([
-            '/\d{3}-\d{2}-\d{4}/' => '***-**-****',
-            '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => '***@***.***',
+            '/\d{3}-\d{2}-\d{4}/' => MaskConstants::MASK_SSN_PATTERN,
+            '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => MaskConstants::MASK_EMAIL_PATTERN,
         ]);
 
         $result = $strategy->mask('SSN: 123-45-6789, Email: test@example.com', 'field', $this->logRecord);
 
-        $this->assertStringContainsString('***-**-****', $result);
-        $this->assertStringContainsString('***@***.***', $result);
-        $this->assertStringNotContainsString('123-45-6789', $result);
-        $this->assertStringNotContainsString('test@example.com', $result);
+        $this->assertStringContainsString(MaskConstants::MASK_SSN_PATTERN, $result);
+        $this->assertStringContainsString(MaskConstants::MASK_EMAIL_PATTERN, $result);
+        $this->assertStringNotContainsString(TestConstants::SSN_US, $result);
+        $this->assertStringNotContainsString(TestConstants::EMAIL_TEST, $result);
     }
 
     #[Test]
@@ -125,17 +127,17 @@ final class RegexMaskingStrategyTest extends TestCase
             '/"email":"[^"]+"/' => '"email":"***@***.***"',
         ]);
 
-        $result = $strategy->mask(['email' => 'test@example.com'], 'field', $this->logRecord);
+        $result = $strategy->mask(['email' => TestConstants::EMAIL_TEST], 'field', $this->logRecord);
 
         $this->assertIsArray($result);
-        $this->assertSame('***@***.***', $result['email']);
+        $this->assertSame(MaskConstants::MASK_EMAIL_PATTERN, $result['email']);
     }
 
     #[Test]
     public function maskThrowsForUnconvertibleValue(): void
     {
         $strategy = new RegexMaskingStrategy([
-            '/test/' => '***',
+            '/test/' => MaskConstants::MASK_GENERIC,
         ]);
 
         $resource = fopen('php://memory', 'r');
@@ -153,17 +155,17 @@ final class RegexMaskingStrategyTest extends TestCase
     public function shouldApplyReturnsTrueWhenPatternMatches(): void
     {
         $strategy = new RegexMaskingStrategy([
-            '/\d{3}-\d{2}-\d{4}/' => '***-**-****',
+            '/\d{3}-\d{2}-\d{4}/' => MaskConstants::MASK_SSN_PATTERN,
         ]);
 
-        $this->assertTrue($strategy->shouldApply('123-45-6789', 'field', $this->logRecord));
+        $this->assertTrue($strategy->shouldApply(TestConstants::SSN_US, 'field', $this->logRecord));
     }
 
     #[Test]
     public function shouldApplyReturnsFalseWhenNoPatternMatches(): void
     {
         $strategy = new RegexMaskingStrategy([
-            '/\d{3}-\d{2}-\d{4}/' => '***-**-****',
+            '/\d{3}-\d{2}-\d{4}/' => MaskConstants::MASK_SSN_PATTERN,
         ]);
 
         $this->assertFalse($strategy->shouldApply('no ssn here', 'field', $this->logRecord));
@@ -173,7 +175,7 @@ final class RegexMaskingStrategyTest extends TestCase
     public function shouldApplyReturnsFalseForExcludedPath(): void
     {
         $strategy = new RegexMaskingStrategy(
-            patterns: ['/\d+/' => '***'],
+            patterns: ['/\d+/' => MaskConstants::MASK_GENERIC],
             excludePaths: ['excluded.field']
         );
 
@@ -184,7 +186,7 @@ final class RegexMaskingStrategyTest extends TestCase
     public function shouldApplyReturnsTrueForNonExcludedPath(): void
     {
         $strategy = new RegexMaskingStrategy(
-            patterns: ['/\d+/' => '***'],
+            patterns: ['/\d+/' => MaskConstants::MASK_GENERIC],
             excludePaths: ['excluded.field']
         );
 
@@ -195,7 +197,7 @@ final class RegexMaskingStrategyTest extends TestCase
     public function shouldApplyRespectsIncludePaths(): void
     {
         $strategy = new RegexMaskingStrategy(
-            patterns: ['/\d+/' => '***'],
+            patterns: ['/\d+/' => MaskConstants::MASK_GENERIC],
             includePaths: ['user.ssn', 'user.phone']
         );
 
@@ -208,7 +210,7 @@ final class RegexMaskingStrategyTest extends TestCase
     public function shouldApplySupportsWildcardsInIncludePaths(): void
     {
         $strategy = new RegexMaskingStrategy(
-            patterns: ['/\d+/' => '***'],
+            patterns: ['/\d+/' => MaskConstants::MASK_GENERIC],
             includePaths: ['user.*']
         );
 
@@ -221,7 +223,7 @@ final class RegexMaskingStrategyTest extends TestCase
     public function shouldApplySupportsWildcardsInExcludePaths(): void
     {
         $strategy = new RegexMaskingStrategy(
-            patterns: ['/\d+/' => '***'],
+            patterns: ['/\d+/' => MaskConstants::MASK_GENERIC],
             excludePaths: ['debug.*']
         );
 
@@ -234,7 +236,7 @@ final class RegexMaskingStrategyTest extends TestCase
     public function shouldApplyReturnsFalseForUnconvertibleValue(): void
     {
         $strategy = new RegexMaskingStrategy([
-            '/test/' => '***',
+            '/test/' => MaskConstants::MASK_GENERIC,
         ]);
 
         $resource = fopen('php://memory', 'r');
@@ -251,7 +253,7 @@ final class RegexMaskingStrategyTest extends TestCase
     public function validateReturnsTrueForValidConfiguration(): void
     {
         $strategy = new RegexMaskingStrategy([
-            '/\d{3}-\d{2}-\d{4}/' => '***-**-****',
+            '/\d{3}-\d{2}-\d{4}/' => MaskConstants::MASK_SSN_PATTERN,
             '/[a-z]+/' => 'REDACTED',
         ]);
 
@@ -271,7 +273,7 @@ final class RegexMaskingStrategyTest extends TestCase
     #[Test]
     public function getConfigurationReturnsFullConfiguration(): void
     {
-        $patterns = ['/\d+/' => '***'];
+        $patterns = ['/\d+/' => MaskConstants::MASK_GENERIC];
         $includePaths = ['user.ssn'];
         $excludePaths = ['debug.*'];
 
@@ -292,13 +294,13 @@ final class RegexMaskingStrategyTest extends TestCase
     public function maskHandlesMultipleMatchesInSameString(): void
     {
         $strategy = new RegexMaskingStrategy([
-            '/\d{3}-\d{2}-\d{4}/' => '***-**-****',
+            '/\d{3}-\d{2}-\d{4}/' => MaskConstants::MASK_SSN_PATTERN,
         ]);
 
         $input = 'First: 123-45-6789, Second: 987-65-4321';
         $result = $strategy->mask($input, 'field', $this->logRecord);
 
-        $this->assertSame('First: ***-**-****, Second: ***-**-****', $result);
+        $this->assertSame('First: ***-**-****, Second: ' . MaskConstants::MASK_SSN_PATTERN, $result);
     }
 
     #[Test]
@@ -330,10 +332,10 @@ final class RegexMaskingStrategyTest extends TestCase
     public function maskHandlesCaseInsensitivePatterns(): void
     {
         $strategy = new RegexMaskingStrategy([
-            '/password/i' => '***',
+            '/password/i' => MaskConstants::MASK_GENERIC,
         ]);
 
-        $this->assertSame('*** ***', $strategy->mask('password PASSWORD', 'field', $this->logRecord));
+        $this->assertSame(MaskConstants::MASK_GENERIC . ' ' . MaskConstants::MASK_GENERIC, $strategy->mask('password PASSWORD', 'field', $this->logRecord));
     }
 
     #[Test]

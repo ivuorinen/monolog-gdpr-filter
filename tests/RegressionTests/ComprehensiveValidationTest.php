@@ -13,6 +13,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use Monolog\LogRecord;
 use Monolog\Level;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
+use Ivuorinen\MonologGdprFilter\MaskConstants;
 use Ivuorinen\MonologGdprFilter\RateLimiter;
 use Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
@@ -20,6 +21,7 @@ use RuntimeException;
 use Ivuorinen\MonologGdprFilter\DataTypeMasker;
 use Ivuorinen\MonologGdprFilter\PatternValidator;
 use stdClass;
+use Tests\TestConstants;
 
 /**
  * Comprehensive validation test for all critical bug fixes.
@@ -69,7 +71,7 @@ class ComprehensiveValidationTest extends TestCase
         };
 
         $this->processor = $this->createProcessor(
-            patterns: ['/sensitive/' => '***MASKED***'],
+            patterns: ['/sensitive/' => MaskConstants::MASK_MASKED],
             fieldPaths: [],
             customCallbacks: [],
             auditLogger: $auditLogger,
@@ -505,23 +507,23 @@ class ComprehensiveValidationTest extends TestCase
         // Create comprehensive processor
         $processor = $this->createProcessor(
             patterns: [
-                '/\b\d{3}-\d{2}-\d{4}\b/' => '***SSN***',
-                '/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/' => '***EMAIL***',
-                '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/' => '***CARD***',
+                '/\b\d{3}-\d{2}-\d{4}\b/' => MaskConstants::MASK_USSSN,
+                '/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/' => MaskConstants::MASK_EMAIL,
+                '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/' => MaskConstants::MASK_CC,
             ],
             fieldPaths: [
                 'user.password' => FieldMaskConfig::remove(),
-                'payment.card_number' => FieldMaskConfig::replace('***CARD***'),
+                'payment.card_number' => FieldMaskConfig::replace(MaskConstants::MASK_CC),
                 'personal.ssn' => FieldMaskConfig::regexMask('/\d/', '*'),
             ],
             customCallbacks: [
-                'user.email' => fn(): string => '***EMAIL***',
+                'user.email' => fn(): string => MaskConstants::MASK_EMAIL,
             ],
             auditLogger: $rateLimitedLogger,
             maxDepth: 100,
             dataTypeMasks: [
-                'integer' => '***INT***',
-                'string' => '***STRING***',
+                'integer' => MaskConstants::MASK_INT,
+                'string' => MaskConstants::MASK_STRING,
             ],
             conditionalRules: [
                 'high_level_only' => fn(LogRecord $record): bool => $record->level->value >= Level::Warning->value,
@@ -537,22 +539,22 @@ class ComprehensiveValidationTest extends TestCase
             context: [
                 'user' => [
                     'id' => 12345,
-                    'email' => 'john.doe@example.com',
+                    'email' => TestConstants::EMAIL_JOHN_DOE,
                     'password' => 'secret_password_123',
                 ],
                 'payment' => [
                     'amount' => 99.99,
-                    'card_number' => '4532-1234-5678-9012',
+                    'card_number' => TestConstants::CC_VISA,
                     'cvv' => 123,
                 ],
                 'personal' => [
-                    'ssn' => '123-45-6789',
-                    'phone' => '+1-555-123-4567',
+                    'ssn' => TestConstants::SSN_US,
+                    'phone' => TestConstants::PHONE_US,
                 ],
                 'metadata' => [
                     'timestamp' => time(),
                     'session_id' => 'sess_abc123def456',
-                    'ip_address' => '192.168.1.100',
+                    'ip_address' => TestConstants::IP_ADDRESS,
                 ]
             ]
         );
@@ -564,9 +566,9 @@ class ComprehensiveValidationTest extends TestCase
         $this->assertInstanceOf(LogRecord::class, $result);
 
         // Message should be masked
-        $this->assertStringContainsString('***EMAIL***', $result->message);
-        $this->assertStringContainsString('***CARD***', $result->message);
-        $this->assertStringContainsString('***SSN***', $result->message);
+        $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result->message);
+        $this->assertStringContainsString(MaskConstants::MASK_CC, $result->message);
+        $this->assertStringContainsString(MaskConstants::MASK_USSSN, $result->message);
 
         // Context should be processed according to rules
         $this->assertArrayNotHasKey(
@@ -574,11 +576,11 @@ class ComprehensiveValidationTest extends TestCase
             $result->context['user']
         ); // Should be removed
         $this->assertSame(
-            '***EMAIL***',
+            MaskConstants::MASK_EMAIL,
             $result->context['user']['email']
         ); // Custom callback
         $this->assertSame(
-            '***CARD***',
+            MaskConstants::MASK_CC,
             $result->context['payment']['card_number']
         ); // Field replacement
         $this->assertMatchesRegularExpression(
@@ -587,8 +589,8 @@ class ComprehensiveValidationTest extends TestCase
         ); // Regex mask
 
         // Data type masking should be applied
-        $this->assertSame('***INT***', $result->context['user']['id']);
-        $this->assertSame('***INT***', $result->context['payment']['cvv']);
+        $this->assertSame(MaskConstants::MASK_INT, $result->context['user']['id']);
+        $this->assertSame(MaskConstants::MASK_INT, $result->context['payment']['cvv']);
 
         // Audit logging should have occurred
         $this->assertNotEmpty($this->auditLog);
@@ -606,9 +608,7 @@ class ComprehensiveValidationTest extends TestCase
     /**
      * Helper method to create deeply nested array
      *
-     * @return ((((((((((((array|string)[]|string)[]|string)[]|string)[]|string)[]|string)[]|string)[]|string)[]|string)[]|string)[]|string)[]|string)[]
-     *
-     * @psalm-return array{level?: array{level?: array{level?: array{level?: array{level?: array{level?: array{level?: array{level?: array{level?: array{level?: array{level?: array{level?: array, end?: 'value'}, end?: 'value'}, end?: 'value'}, end?: 'value'}, end?: 'value'}, end?: 'value'}, end?: 'value'}, end?: 'value'}, end?: 'value'}, end?: 'value'}, end?: 'value'}, end?: 'value'}
+     * @return array<string, mixed>
      */
     private function createDeepArray(int $depth): array
     {

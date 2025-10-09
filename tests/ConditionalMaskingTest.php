@@ -8,8 +8,10 @@ use DateTimeImmutable;
 use RuntimeException;
 use PHPUnit\Framework\TestCase;
 use Ivuorinen\MonologGdprFilter\ConditionalRuleFactory;
+use Ivuorinen\MonologGdprFilter\MaskConstants;
 use Monolog\LogRecord;
 use Monolog\Level;
+use Tests\TestConstants;
 
 /**
  * Test conditional masking functionality based on context and log properties.
@@ -24,7 +26,7 @@ class ConditionalMaskingTest extends TestCase
     {
         // Test with no conditional rules - masking should always be applied
         $processor = $this->createProcessor([
-            '/test@example\.com/' => '***EMAIL***'
+            '/test@example\.com/' => MaskConstants::MASK_EMAIL
         ]);
 
         $logRecord = $this->createLogRecord(
@@ -34,14 +36,14 @@ class ConditionalMaskingTest extends TestCase
 
         $result = $processor($logRecord);
 
-        $this->assertSame('Contact ***EMAIL***', $result->message);
+        $this->assertSame('Contact ' . MaskConstants::MASK_EMAIL, $result->message);
     }
 
     public function testLevelBasedConditionalMasking(): void
     {
         // Create a processor that only masks ERROR and CRITICAL level logs
         $processor = $this->createProcessor(
-            ['/test@example\.com/' => '***EMAIL***'],
+            ['/test@example\.com/' => MaskConstants::MASK_EMAIL],
             [],
             [],
             null,
@@ -61,7 +63,7 @@ class ConditionalMaskingTest extends TestCase
         );
 
         $result = $processor($errorRecord);
-        $this->assertSame('Error with ***EMAIL***', $result->message);
+        $this->assertSame('Error with ' . MaskConstants::MASK_EMAIL, $result->message);
 
         // Test INFO level - should NOT be masked
         $infoRecord = $this->createLogRecord('Info with test@example.com');
@@ -78,14 +80,14 @@ class ConditionalMaskingTest extends TestCase
         );
 
         $result = $processor($criticalRecord);
-        $this->assertSame('Critical with ***EMAIL***', $result->message);
+        $this->assertSame('Critical with ' . MaskConstants::MASK_EMAIL, $result->message);
     }
 
     public function testChannelBasedConditionalMasking(): void
     {
         // Create a processor that only masks logs from 'security' and 'audit' channels
         $processor = $this->createProcessor(
-            ['/test@example\.com/' => '***EMAIL***'],
+            ['/test@example\.com/' => MaskConstants::MASK_EMAIL],
             [],
             [],
             null,
@@ -105,7 +107,7 @@ class ConditionalMaskingTest extends TestCase
         );
 
         $result = $processor($securityRecord);
-        $this->assertSame('Security event with ***EMAIL***', $result->message);
+        $this->assertSame('Security event with ' . MaskConstants::MASK_EMAIL, $result->message);
 
         // Test application channel - should NOT be masked
         $appRecord = $this->createLogRecord(
@@ -127,14 +129,14 @@ class ConditionalMaskingTest extends TestCase
         );
 
         $result = $processor($auditRecord);
-        $this->assertSame('Audit event with ***EMAIL***', $result->message);
+        $this->assertSame('Audit event with ' . MaskConstants::MASK_EMAIL, $result->message);
     }
 
     public function testContextFieldPresenceRule(): void
     {
         // Create a processor that only masks when 'sensitive_data' field is present in context
         $processor = $this->createProcessor(
-            ['/test@example\.com/' => '***EMAIL***'],
+            ['/test@example\.com/' => MaskConstants::MASK_EMAIL],
             [],
             [],
             null,
@@ -152,7 +154,7 @@ class ConditionalMaskingTest extends TestCase
         );
 
         $result = $processor($sensitiveRecord);
-        $this->assertSame('Message with ***EMAIL***', $result->message);
+        $this->assertSame('Message with ' . MaskConstants::MASK_EMAIL, $result->message);
 
         // Test without sensitive_data field - should NOT be masked
         $normalRecord = $this->createLogRecord(
@@ -168,7 +170,7 @@ class ConditionalMaskingTest extends TestCase
     {
         // Test with nested field path
         $processor = $this->createProcessor(
-            ['/test@example\.com/' => '***EMAIL***'],
+            ['/test@example\.com/' => MaskConstants::MASK_EMAIL],
             [],
             [],
             null,
@@ -189,7 +191,7 @@ class ConditionalMaskingTest extends TestCase
         );
 
         $result = $processor($consentRecord);
-        $this->assertSame('User action with ***EMAIL***', $result->message);
+        $this->assertSame('User action with ' . MaskConstants::MASK_EMAIL, $result->message);
 
         // Test without nested field - should NOT be masked
         $noConsentRecord = new LogRecord(
@@ -208,7 +210,7 @@ class ConditionalMaskingTest extends TestCase
     {
         // Create a processor that only masks when environment is 'production'
         $processor = $this->createProcessor(
-            ['/test@example\.com/' => '***EMAIL***'],
+            ['/test@example\.com/' => MaskConstants::MASK_EMAIL],
             [],
             [],
             null,
@@ -226,7 +228,7 @@ class ConditionalMaskingTest extends TestCase
         );
 
         $result = $processor($prodRecord);
-        $this->assertSame('Message with ***EMAIL***', $result->message);
+        $this->assertSame('Message with ' . MaskConstants::MASK_EMAIL, $result->message);
 
         // Test with development environment - should NOT be masked
         $devRecord = $this->createLogRecord(
@@ -242,7 +244,7 @@ class ConditionalMaskingTest extends TestCase
     {
         // Create a processor with multiple rules - ALL must be true for masking to occur
         $processor = $this->createProcessor(
-            ['/test@example\.com/' => '***EMAIL***'],
+            ['/test@example\.com/' => MaskConstants::MASK_EMAIL],
             [],
             [],
             null,
@@ -264,7 +266,7 @@ class ConditionalMaskingTest extends TestCase
         );
 
         $result = $processor($allConditionsRecord);
-        $this->assertSame('Security error with ***EMAIL***', $result->message);
+        $this->assertSame('Security error with ' . MaskConstants::MASK_EMAIL, $result->message);
 
         // Test with missing level condition - should NOT be masked
         $wrongLevelRecord = $this->createLogRecord(
@@ -308,7 +310,7 @@ class ConditionalMaskingTest extends TestCase
         );
 
         $processor = $this->createProcessor(
-            ['/test@example\.com/' => '***EMAIL***'],
+            ['/test@example\.com/' => MaskConstants::MASK_EMAIL],
             [],
             [],
             null,
@@ -326,7 +328,7 @@ class ConditionalMaskingTest extends TestCase
         );
 
         $result = $processor($highUserRecord);
-        $this->assertSame('Message with ***EMAIL***', $result->message);
+        $this->assertSame('Message with ' . MaskConstants::MASK_EMAIL, $result->message);
 
         // Test with user_id <= 1000 - should NOT be masked
         $lowUserRecord = $this->createLogRecord(
@@ -352,7 +354,7 @@ class ConditionalMaskingTest extends TestCase
         };
 
         $processor = $this->createProcessor(
-            ['/test@example\.com/' => '***EMAIL***'],
+            ['/test@example\.com/' => MaskConstants::MASK_EMAIL],
             [],
             [],
             $auditLogger,
@@ -392,7 +394,7 @@ class ConditionalMaskingTest extends TestCase
             };
 
         $processor = $this->createProcessor(
-            ['/test@example\.com/' => '***EMAIL***'],
+            ['/test@example\.com/' => MaskConstants::MASK_EMAIL],
             [],
             [],
             $auditLogger,
@@ -409,7 +411,7 @@ class ConditionalMaskingTest extends TestCase
         $result = $processor($testRecord);
 
         // Should be masked because the exception was caught and processing continued
-        $this->assertSame('Message with ***EMAIL***', $result->message);
+        $this->assertSame('Message with ' . MaskConstants::MASK_EMAIL, $result->message);
         $this->assertCount(1, $auditLogs);
         $this->assertSame('conditional_error', $auditLogs[0]['path']);
         $this->assertEquals('faulty_rule', $auditLogs[0]['original']);
@@ -434,7 +436,7 @@ class ConditionalMaskingTest extends TestCase
         // Test with production environment - context should be masked
         $prodRecord = $this->createLogRecord(
             'User login',
-            ['env' => 'production', 'email' => 'user@example.com']
+            ['env' => 'production', 'email' => TestConstants::EMAIL_USER]
         );
 
         $result = $processor($prodRecord);
@@ -443,11 +445,11 @@ class ConditionalMaskingTest extends TestCase
         // Test with development environment - context should NOT be masked
         $devRecord = $this->createLogRecord(
             'User login',
-            ['env' => 'development', 'email' => 'user@example.com']
+            ['env' => 'development', 'email' => TestConstants::EMAIL_USER]
         );
 
         $result = $processor($devRecord);
-        $this->assertEquals('user@example.com', $result->context['email']);
+        $this->assertEquals(TestConstants::EMAIL_USER, $result->context['email']);
     }
 
     public function testConditionalMaskingWithDataTypeMasking(): void
@@ -459,7 +461,7 @@ class ConditionalMaskingTest extends TestCase
             [],
             null,
             100,
-            ['integer' => '***INT***'],
+            ['integer' => MaskConstants::MASK_INT],
             [
                 'error_level' => ConditionalRuleFactory::createLevelBasedRule(['Error'])
             ]
@@ -474,8 +476,8 @@ class ConditionalMaskingTest extends TestCase
         );
 
         $result = $processor($errorRecord);
-        $this->assertEquals('***INT***', $result->context['user_id']);
-        $this->assertEquals('***INT***', $result->context['count']);
+        $this->assertEquals(MaskConstants::MASK_INT, $result->context['user_id']);
+        $this->assertEquals(MaskConstants::MASK_INT, $result->context['count']);
 
         // Test with INFO level - integers should NOT be masked
         $infoRecord = $this->createLogRecord(

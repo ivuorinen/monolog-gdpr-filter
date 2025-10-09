@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Strategies;
 
 use Ivuorinen\MonologGdprFilter\Exceptions\GdprProcessorException;
+use Ivuorinen\MonologGdprFilter\MaskConstants;
 use PHPUnit\Framework\TestCase;
 use Tests\TestHelpers;
 use Monolog\LogRecord;
@@ -30,8 +31,8 @@ class MaskingStrategiesTest extends TestCase
     public function testRegexMaskingStrategy(): void
     {
         $patterns = [
-            '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => '***EMAIL***',
-            '/\b\d{4}-\d{4}-\d{4}-\d{4}\b/' => '***CARD***',
+            '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => MaskConstants::MASK_EMAIL,
+            '/\b\d{4}-\d{4}-\d{4}-\d{4}\b/' => MaskConstants::MASK_CC,
         ];
 
         $strategy = new RegexMaskingStrategy($patterns);
@@ -47,7 +48,7 @@ class MaskingStrategiesTest extends TestCase
 
         // Test masking
         $masked = $strategy->mask('Email: john@example.com, Card: 1234-5678-9012-3456', 'message', $logRecord);
-        $this->assertEquals('Email: ***EMAIL***, Card: ***CARD***', $masked);
+        $this->assertEquals('Email: ***EMAIL***, Card: ' . MaskConstants::MASK_CC, $masked);
 
         // Test validation
         $this->assertTrue($strategy->validate());
@@ -67,7 +68,7 @@ class MaskingStrategiesTest extends TestCase
 
     public function testRegexMaskingStrategyWithIncludeExcludePaths(): void
     {
-        $patterns = ['/test/' => '***MASKED***'];
+        $patterns = ['/test/' => MaskConstants::MASK_MASKED];
         $strategy = new RegexMaskingStrategy($patterns, ['user.*'], ['user.public']);
         $logRecord = $this->createLogRecord();
 
@@ -84,9 +85,9 @@ class MaskingStrategiesTest extends TestCase
     public function testFieldPathMaskingStrategy(): void
     {
         $configs = [
-            'user.email' => '***EMAIL***',
+            'user.email' => MaskConstants::MASK_EMAIL,
             'user.password' => FieldMaskConfig::remove(),
-            'user.name' => FieldMaskConfig::regexMask('/\w+/', '***'),
+            'user.name' => FieldMaskConfig::regexMask('/\w+/', MaskConstants::MASK_GENERIC),
         ];
 
         $strategy = new FieldPathMaskingStrategy($configs);
@@ -102,7 +103,7 @@ class MaskingStrategiesTest extends TestCase
 
         // Test static replacement
         $masked = $strategy->mask('john@example.com', 'user.email', $logRecord);
-        $this->assertEquals('***EMAIL***', $masked);
+        $this->assertEquals(MaskConstants::MASK_EMAIL, $masked);
 
         // Test removal (returns null)
         $masked = $strategy->mask('password123', 'user.password', $logRecord);
@@ -118,7 +119,7 @@ class MaskingStrategiesTest extends TestCase
 
     public function testFieldPathMaskingStrategyWithWildcards(): void
     {
-        $strategy = new FieldPathMaskingStrategy(['user.*' => '***MASKED***']);
+        $strategy = new FieldPathMaskingStrategy(['user.*' => MaskConstants::MASK_MASKED]);
         $logRecord = $this->createLogRecord();
 
         $this->assertTrue($strategy->shouldApply('value', 'user.email', $logRecord));
@@ -128,7 +129,7 @@ class MaskingStrategiesTest extends TestCase
 
     public function testConditionalMaskingStrategy(): void
     {
-        $baseStrategy = new RegexMaskingStrategy(['/test/' => '***MASKED***']);
+        $baseStrategy = new RegexMaskingStrategy(['/test/' => MaskConstants::MASK_MASKED]);
         $conditions = [
             'level' => fn(LogRecord $r): bool => $r->level === Level::Error,
             'channel' => fn(LogRecord $r): bool => $r->channel === 'security',
@@ -158,7 +159,7 @@ class MaskingStrategiesTest extends TestCase
 
     public function testConditionalMaskingStrategyFactoryMethods(): void
     {
-        $baseStrategy = new RegexMaskingStrategy(['/test/' => '***MASKED***']);
+        $baseStrategy = new RegexMaskingStrategy(['/test/' => MaskConstants::MASK_MASKED]);
 
         // Test forLevels
         $levelStrategy = ConditionalMaskingStrategy::forLevels($baseStrategy, ['Error', 'Critical']);
@@ -187,7 +188,7 @@ class MaskingStrategiesTest extends TestCase
     public function testDataTypeMaskingStrategy(): void
     {
         $typeMasks = [
-            'string' => '***STRING***',
+            'string' => MaskConstants::MASK_STRING,
             'integer' => '999',
             'boolean' => 'false',
         ];
@@ -206,7 +207,7 @@ class MaskingStrategiesTest extends TestCase
         $this->assertFalse($strategy->shouldApply([], 'field', $logRecord)); // No mask for arrays
 
         // Test masking
-        $this->assertEquals('***STRING***', $strategy->mask('original string', 'field', $logRecord));
+        $this->assertEquals(MaskConstants::MASK_STRING, $strategy->mask('original string', 'field', $logRecord));
         $this->assertEquals(999, $strategy->mask(123, 'field', $logRecord));
         $this->assertFalse($strategy->mask(true, 'field', $logRecord));
 

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Strategies;
 
+use Tests\TestConstants;
 use Ivuorinen\MonologGdprFilter\Exceptions\InvalidRegexPatternException;
+use Ivuorinen\MonologGdprFilter\MaskConstants;
 use Ivuorinen\MonologGdprFilter\Exceptions\MaskingOperationFailedException;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
 use Ivuorinen\MonologGdprFilter\Strategies\FieldPathMaskingStrategy;
@@ -34,7 +36,7 @@ final class FieldPathMaskingStrategyTest extends TestCase
     public function constructorAcceptsFieldConfigsArray(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            'user.email' => '***@***.***',
+            'user.email' => MaskConstants::MASK_EMAIL_PATTERN,
             'user.password' => FieldMaskConfig::remove(),
         ]);
 
@@ -45,7 +47,7 @@ final class FieldPathMaskingStrategyTest extends TestCase
     public function constructorAcceptsCustomPriority(): void
     {
         $strategy = new FieldPathMaskingStrategy(
-            ['user.email' => '***'],
+            ['user.email' => MaskConstants::MASK_GENERIC],
             priority: 90
         );
 
@@ -56,9 +58,9 @@ final class FieldPathMaskingStrategyTest extends TestCase
     public function getNameReturnsDescriptiveName(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            'field1' => '***',
-            'field2' => '***',
-            'field3' => '***',
+            'field1' => MaskConstants::MASK_GENERIC,
+            'field2' => MaskConstants::MASK_GENERIC,
+            'field3' => MaskConstants::MASK_GENERIC,
         ]);
 
         $this->assertSame('Field Path Masking (3 fields)', $strategy->getName());
@@ -67,15 +69,15 @@ final class FieldPathMaskingStrategyTest extends TestCase
     #[Test]
     public function shouldApplyReturnsTrueForExactPathMatch(): void
     {
-        $strategy = new FieldPathMaskingStrategy(['user.email' => '***']);
+        $strategy = new FieldPathMaskingStrategy(['user.email' => MaskConstants::MASK_GENERIC]);
 
-        $this->assertTrue($strategy->shouldApply('test@example.com', 'user.email', $this->logRecord));
+        $this->assertTrue($strategy->shouldApply(TestConstants::EMAIL_TEST, 'user.email', $this->logRecord));
     }
 
     #[Test]
     public function shouldApplyReturnsFalseForNonMatchingPath(): void
     {
-        $strategy = new FieldPathMaskingStrategy(['user.email' => '***']);
+        $strategy = new FieldPathMaskingStrategy(['user.email' => MaskConstants::MASK_GENERIC]);
 
         $this->assertFalse($strategy->shouldApply('password', 'user.password', $this->logRecord));
     }
@@ -83,20 +85,20 @@ final class FieldPathMaskingStrategyTest extends TestCase
     #[Test]
     public function shouldApplySupportsWildcardPatterns(): void
     {
-        $strategy = new FieldPathMaskingStrategy(['user.*' => '***']);
+        $strategy = new FieldPathMaskingStrategy(['user.*' => MaskConstants::MASK_GENERIC]);
 
-        $this->assertTrue($strategy->shouldApply('test@example.com', 'user.email', $this->logRecord));
+        $this->assertTrue($strategy->shouldApply(TestConstants::EMAIL_TEST, 'user.email', $this->logRecord));
         $this->assertTrue($strategy->shouldApply('password', 'user.password', $this->logRecord));
     }
 
     #[Test]
     public function maskAppliesStringReplacement(): void
     {
-        $strategy = new FieldPathMaskingStrategy(['user.email' => '***@***.***']);
+        $strategy = new FieldPathMaskingStrategy(['user.email' => MaskConstants::MASK_EMAIL_PATTERN]);
 
-        $result = $strategy->mask('test@example.com', 'user.email', $this->logRecord);
+        $result = $strategy->mask(TestConstants::EMAIL_TEST, 'user.email', $this->logRecord);
 
-        $this->assertSame('***@***.***', $result);
+        $this->assertSame(MaskConstants::MASK_EMAIL_PATTERN, $result);
     }
 
     #[Test]
@@ -113,12 +115,12 @@ final class FieldPathMaskingStrategyTest extends TestCase
     public function maskAppliesRegexReplacement(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            'user.ssn' => FieldMaskConfig::regexMask('/\d{3}-\d{2}-\d{4}/', '***-**-****'),
+            'user.ssn' => FieldMaskConfig::regexMask('/\d{3}-\d{2}-\d{4}/', MaskConstants::MASK_SSN_PATTERN),
         ]);
 
-        $result = $strategy->mask('123-45-6789', 'user.ssn', $this->logRecord);
+        $result = $strategy->mask(TestConstants::SSN_US, 'user.ssn', $this->logRecord);
 
-        $this->assertSame('***-**-****', $result);
+        $this->assertSame(MaskConstants::MASK_SSN_PATTERN, $result);
     }
 
     #[Test]
@@ -175,7 +177,7 @@ final class FieldPathMaskingStrategyTest extends TestCase
     #[Test]
     public function maskReturnsOriginalValueWhenNoMatchingPath(): void
     {
-        $strategy = new FieldPathMaskingStrategy(['other.field' => '***']);
+        $strategy = new FieldPathMaskingStrategy(['other.field' => MaskConstants::MASK_GENERIC]);
 
         $result = $strategy->mask('original', 'user.email', $this->logRecord);
 
@@ -206,9 +208,9 @@ final class FieldPathMaskingStrategyTest extends TestCase
     public function validateReturnsTrueForValidConfiguration(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            'user.email' => '***@***.***',
+            'user.email' => MaskConstants::MASK_EMAIL_PATTERN,
             'user.password' => FieldMaskConfig::remove(),
-            'user.ssn' => FieldMaskConfig::regexMask('/\d{3}-\d{2}-\d{4}/', '***-**-****'),
+            'user.ssn' => FieldMaskConfig::regexMask('/\d{3}-\d{2}-\d{4}/', MaskConstants::MASK_SSN_PATTERN),
         ]);
 
         $this->assertTrue($strategy->validate());
@@ -226,7 +228,7 @@ final class FieldPathMaskingStrategyTest extends TestCase
     public function validateReturnsFalseForNonStringPath(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            123 => '***',
+            123 => MaskConstants::MASK_GENERIC,
         ]);
 
         $this->assertFalse($strategy->validate());
@@ -236,7 +238,7 @@ final class FieldPathMaskingStrategyTest extends TestCase
     public function validateReturnsFalseForEmptyStringPath(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            '' => '***',
+            '' => MaskConstants::MASK_GENERIC,
         ]);
 
         $this->assertFalse($strategy->validate());
@@ -258,7 +260,7 @@ final class FieldPathMaskingStrategyTest extends TestCase
         $this->expectException(InvalidRegexPatternException::class);
 
         new FieldPathMaskingStrategy([
-            'user.field' => FieldMaskConfig::regexMask('/[invalid/', '***'),
+            'user.field' => FieldMaskConfig::regexMask('/[invalid/', MaskConstants::MASK_GENERIC),
         ]);
     }
 
@@ -266,7 +268,7 @@ final class FieldPathMaskingStrategyTest extends TestCase
     public function getConfigurationReturnsFieldConfigsArray(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            'user.email' => '***@***.***',
+            'user.email' => MaskConstants::MASK_EMAIL_PATTERN,
         ]);
 
         $config = $strategy->getConfiguration();
@@ -281,14 +283,14 @@ final class FieldPathMaskingStrategyTest extends TestCase
         $strategy = new FieldPathMaskingStrategy([
             'data' => FieldMaskConfig::regexMask(
                 '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/',
-                '***@***.***'
+                MaskConstants::MASK_EMAIL_PATTERN
             ),
         ]);
 
         $input = 'Contact us at support@example.com for help';
         $result = $strategy->mask($input, 'data', $this->logRecord);
 
-        $this->assertStringContainsString('***@***.***', $result);
+        $this->assertStringContainsString(MaskConstants::MASK_EMAIL_PATTERN, $result);
         $this->assertStringNotContainsString('support@example.com', $result);
     }
 
@@ -296,12 +298,12 @@ final class FieldPathMaskingStrategyTest extends TestCase
     public function maskHandlesMultipleReplacementsInSameValue(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            'message' => FieldMaskConfig::regexMask('/\d{3}-\d{2}-\d{4}/', '***-**-****'),
+            'message' => FieldMaskConfig::regexMask('/\d{3}-\d{2}-\d{4}/', MaskConstants::MASK_SSN_PATTERN),
         ]);
 
         $input = 'SSNs: 123-45-6789 and 987-65-4321';
         $result = $strategy->mask($input, 'message', $this->logRecord);
 
-        $this->assertSame('SSNs: ***-**-**** and ***-**-****', $result);
+        $this->assertSame('SSNs: ***-**-**** and ' . MaskConstants::MASK_SSN_PATTERN, $result);
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Ivuorinen\MonologGdprFilter\MaskConstants;
 use Ivuorinen\MonologGdprFilter\SecuritySanitizer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -94,7 +95,7 @@ class SecuritySanitizerTest extends TestCase
         $sanitized = SecuritySanitizer::sanitizeErrorMessage($input);
 
         $this->assertStringNotContainsString($shouldNotContain, $sanitized);
-        $this->assertStringContainsString('***', $sanitized);
+        $this->assertStringContainsString(MaskConstants::MASK_GENERIC, $sanitized);
     }
 
     /**

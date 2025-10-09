@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\InputValidation;
 
 use Ivuorinen\MonologGdprFilter\Exceptions\InvalidConfigurationException;
+use Ivuorinen\MonologGdprFilter\MaskConstants;
 use Ivuorinen\MonologGdprFilter\Exceptions\InvalidRegexPatternException;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
@@ -80,8 +81,8 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorAcceptsValidPatterns(): void
     {
         $processor = new GdprProcessor([
-            '/\d+/' => '***NUMBER***',
-            '/test/' => '***TEST***'
+            '/\d+/' => MaskConstants::MASK_NUMBER,
+            '/test/' => MaskConstants::MASK_MASKED
         ]);
 
         $this->assertInstanceOf(GdprProcessor::class, $processor);
@@ -260,7 +261,7 @@ class GdprProcessorValidationTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage('Data type mask key must be of type string, got integer');
 
-        new GdprProcessor([], [], [], null, 100, [123 => '***MASK***']);
+        new GdprProcessor([], [], [], null, 100, [123 => MaskConstants::MASK_MASKED]);
     }
 
     #[Test]
@@ -269,7 +270,7 @@ class GdprProcessorValidationTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage("Must be one of: integer, double, string, boolean, NULL, array, object, resource");
 
-        new GdprProcessor([], [], [], null, 100, ['invalid_type' => '***MASK***']);
+        new GdprProcessor([], [], [], null, 100, ['invalid_type' => MaskConstants::MASK_MASKED]);
     }
 
     #[Test]
@@ -303,14 +304,14 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorAcceptsValidDataTypeMasks(): void
     {
         $processor = new GdprProcessor([], [], [], null, 100, [
-            'string' => '***STRING***',
-            'integer' => '***INT***',
-            'double' => '***FLOAT***',
-            'boolean' => '***BOOL***',
-            'NULL' => '***NULL***',
-            'array' => '***ARRAY***',
-            'object' => '***OBJECT***',
-            'resource' => '***RESOURCE***'
+            'string' => MaskConstants::MASK_STRING,
+            'integer' => MaskConstants::MASK_INT,
+            'double' => MaskConstants::MASK_FLOAT,
+            'boolean' => MaskConstants::MASK_BOOL,
+            'NULL' => MaskConstants::MASK_NULL,
+            'array' => MaskConstants::MASK_ARRAY,
+            'object' => MaskConstants::MASK_OBJECT,
+            'resource' => MaskConstants::MASK_RESOURCE
         ]);
 
         $this->assertInstanceOf(GdprProcessor::class, $processor);
@@ -374,12 +375,12 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorAcceptsAllParametersWithValidValues(): void
     {
         $processor = new GdprProcessor(
-            patterns: ['/\d+/' => '***NUMBER***'],
+            patterns: ['/\d+/' => MaskConstants::MASK_NUMBER],
             fieldPaths: ['user.email' => FieldMaskConfig::remove()],
             customCallbacks: ['user.id' => fn($value): string => hash('sha256', (string) $value)],
             auditLogger: fn($path, $original, $masked): null => null,
             maxDepth: 50,
-            dataTypeMasks: ['string' => '***STRING***'],
+            dataTypeMasks: ['string' => MaskConstants::MASK_STRING],
             conditionalRules: ['level_rule' => fn(LogRecord $record): true => true]
         );
 
@@ -404,9 +405,9 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorHandlesComplexValidRegexPatterns(): void
     {
         $complexPatterns = [
-            '/(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/' => '***IP***',
-            '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => '***EMAIL***',
-            '/\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b/' => '***CARD***'
+            '/(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/' => MaskConstants::MASK_IP,
+            '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => MaskConstants::MASK_EMAIL,
+            '/\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b/' => MaskConstants::MASK_CARD
         ];
 
         $processor = new GdprProcessor($complexPatterns);

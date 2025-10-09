@@ -9,6 +9,7 @@ use Tests\TestHelpers;
 use Monolog\LogRecord;
 use Monolog\Level;
 use Ivuorinen\MonologGdprFilter\Strategies\ConditionalMaskingStrategy;
+use Ivuorinen\MonologGdprFilter\MaskConstants;
 use Ivuorinen\MonologGdprFilter\Strategies\RegexMaskingStrategy;
 
 /**
@@ -20,7 +21,7 @@ final class ConditionalMaskingStrategyEnhancedTest extends TestCase
 
     public function testOrLogicWithMultipleConditions(): void
     {
-        $wrappedStrategy = new RegexMaskingStrategy(['/secret/' => '***MASKED***']);
+        $wrappedStrategy = new RegexMaskingStrategy(['/secret/' => MaskConstants::MASK_MASKED]);
 
         $conditions = [
             'is_error' => fn(LogRecord $record): bool => $record->level === Level::Error,
@@ -44,7 +45,7 @@ final class ConditionalMaskingStrategyEnhancedTest extends TestCase
 
     public function testEmptyConditionsArray(): void
     {
-        $wrappedStrategy = new RegexMaskingStrategy(['/secret/' => '***MASKED***']);
+        $wrappedStrategy = new RegexMaskingStrategy(['/secret/' => MaskConstants::MASK_MASKED]);
 
         // Empty conditions should always apply masking
         $strategy = new ConditionalMaskingStrategy($wrappedStrategy, []);
@@ -56,7 +57,7 @@ final class ConditionalMaskingStrategyEnhancedTest extends TestCase
 
     public function testConditionThrowingExceptionInAndLogic(): void
     {
-        $wrappedStrategy = new RegexMaskingStrategy(['/secret/' => '***MASKED***']);
+        $wrappedStrategy = new RegexMaskingStrategy(['/secret/' => MaskConstants::MASK_MASKED]);
 
         $conditions = [
             'always_true' =>
@@ -84,7 +85,7 @@ final class ConditionalMaskingStrategyEnhancedTest extends TestCase
 
     public function testConditionThrowingExceptionInOrLogic(): void
     {
-        $wrappedStrategy = new RegexMaskingStrategy(['/secret/' => '***MASKED***']);
+        $wrappedStrategy = new RegexMaskingStrategy(['/secret/' => MaskConstants::MASK_MASKED]);
 
         $conditions = [
             'throws_exception' =>
@@ -112,7 +113,7 @@ final class ConditionalMaskingStrategyEnhancedTest extends TestCase
 
     public function testGetWrappedStrategy(): void
     {
-        $wrappedStrategy = new RegexMaskingStrategy(['/secret/' => '***MASKED***']);
+        $wrappedStrategy = new RegexMaskingStrategy(['/secret/' => MaskConstants::MASK_MASKED]);
         $strategy = new ConditionalMaskingStrategy($wrappedStrategy, []);
 
         $this->assertSame($wrappedStrategy, $strategy->getWrappedStrategy());
@@ -120,7 +121,7 @@ final class ConditionalMaskingStrategyEnhancedTest extends TestCase
 
     public function testGetConditionNames(): void
     {
-        $wrappedStrategy = new RegexMaskingStrategy(['/secret/' => '***MASKED***']);
+        $wrappedStrategy = new RegexMaskingStrategy(['/secret/' => MaskConstants::MASK_MASKED]);
 
         $conditions = [
             'is_error' => fn(LogRecord $record): bool => $record->level === Level::Error,
@@ -135,7 +136,7 @@ final class ConditionalMaskingStrategyEnhancedTest extends TestCase
 
     public function testFactoryForLevelWithMultipleLevels(): void
     {
-        $wrappedStrategy = new RegexMaskingStrategy(['/secret/' => '***MASKED***']);
+        $wrappedStrategy = new RegexMaskingStrategy(['/secret/' => MaskConstants::MASK_MASKED]);
 
         // forLevels expects level names as strings
         $strategy = ConditionalMaskingStrategy::forLevels(
@@ -156,7 +157,7 @@ final class ConditionalMaskingStrategyEnhancedTest extends TestCase
 
     public function testFactoryForChannelWithMultipleChannels(): void
     {
-        $wrappedStrategy = new RegexMaskingStrategy(['/secret/' => '***MASKED***']);
+        $wrappedStrategy = new RegexMaskingStrategy(['/secret/' => MaskConstants::MASK_MASKED]);
 
         $strategy = ConditionalMaskingStrategy::forChannels(
             $wrappedStrategy,
@@ -174,7 +175,7 @@ final class ConditionalMaskingStrategyEnhancedTest extends TestCase
 
     public function testFactoryForContextKeyValue(): void
     {
-        $wrappedStrategy = new RegexMaskingStrategy(['/secret/' => '***MASKED***']);
+        $wrappedStrategy = new RegexMaskingStrategy(['/secret/' => MaskConstants::MASK_MASKED]);
 
         $strategy = ConditionalMaskingStrategy::forContext(
             $wrappedStrategy,

@@ -11,6 +11,7 @@ namespace Tests;
 
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 use Ivuorinen\MonologGdprFilter\DefaultPatterns;
+use Ivuorinen\MonologGdprFilter\MaskConstants;
 use Ivuorinen\MonologGdprFilter\RateLimiter;
 use Ivuorinen\MonologGdprFilter\PatternValidator;
 use DateTimeImmutable;
@@ -24,20 +25,16 @@ use Stringable;
 trait TestHelpers
 {
     private const GDPR_REPLACEMENT = '[GDPR]';
-
     private const TEST_HETU = '131052-308T';
-
     private const TEST_CC = '1234567812345678';
 
     public const TEST_EMAIL = 'john.doe@example.com';
-
-    public const MASKED_EMAIL = '***EMAIL***';
-
-    public const MASKED_SECRET = '***MASKED***';
-
+    public const MASKED_EMAIL = MaskConstants::MASK_EMAIL;
+    public const MASKED_SECRET = MaskConstants::MASK_MASKED;
     public const USER_REGISTERED = 'User registered';
 
     private const INVALID_REGEX = '/[invalid/';
+    // ]'/' this should fix the issue with the regex breaking highlighting in the test
 
     // Additional test data constants
     public const TEST_US_SSN = '123-45-6789';
@@ -53,7 +50,6 @@ trait TestHelpers
     public const TEST_PASSPORT = 'A123456';
     public const TEST_DOB = '1990-12-31';
 
-    // ]'/' this should fix the issue with the regex breaking highlighting in the test
     /**
      * @source \Monolog\LogRecord::__construct
      * @param array<mixed> $context

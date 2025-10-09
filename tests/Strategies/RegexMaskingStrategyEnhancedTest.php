@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Strategies;
 
 use Ivuorinen\MonologGdprFilter\Exceptions\InvalidRegexPatternException;
+use Ivuorinen\MonologGdprFilter\MaskConstants;
 use PHPUnit\Framework\TestCase;
 use Tests\TestHelpers;
 use Ivuorinen\MonologGdprFilter\Strategies\RegexMaskingStrategy;
@@ -112,7 +113,7 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
 
     public function testMaskingValueThatDoesNotMatch(): void
     {
-        $patterns = ['/secret/' => '***MASKED***'];
+        $patterns = ['/secret/' => MaskConstants::MASK_MASKED];
         $strategy = new RegexMaskingStrategy($patterns);
         $logRecord = $this->createLogRecord();
 
@@ -123,7 +124,7 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
 
     public function testShouldApplyWithIncludePathsOnly(): void
     {
-        $patterns = ['/test/' => '***MASKED***'];
+        $patterns = ['/test/' => MaskConstants::MASK_MASKED];
         $strategy = new RegexMaskingStrategy($patterns, ['user.*', 'admin.log']);
         $logRecord = $this->createLogRecord();
 
@@ -137,7 +138,7 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
 
     public function testShouldApplyWithExcludePathsPrecedence(): void
     {
-        $patterns = ['/test/' => '***MASKED***'];
+        $patterns = ['/test/' => MaskConstants::MASK_MASKED];
         $strategy = new RegexMaskingStrategy($patterns, ['user.*'], ['user.id', 'user.created_at']);
         $logRecord = $this->createLogRecord();
 
@@ -151,7 +152,7 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
 
     public function testShouldNotApplyWhenContentDoesNotMatch(): void
     {
-        $patterns = ['/secret/' => '***MASKED***'];
+        $patterns = ['/secret/' => MaskConstants::MASK_MASKED];
         $strategy = new RegexMaskingStrategy($patterns);
         $logRecord = $this->createLogRecord();
 
@@ -162,7 +163,7 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
 
     public function testShouldApplyForNonStringValuesWhenPatternMatches(): void
     {
-        $patterns = ['/123/' => '***MASKED***'];
+        $patterns = ['/123/' => MaskConstants::MASK_MASKED];
         $strategy = new RegexMaskingStrategy($patterns);
         $logRecord = $this->createLogRecord();
 
@@ -170,7 +171,7 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
         $this->assertTrue($strategy->shouldApply(123, 'number', $logRecord));
 
         // Arrays/objects that don't match pattern
-        $patterns2 = ['/email/' => '***MASKED***'];
+        $patterns2 = ['/email/' => MaskConstants::MASK_MASKED];
         $strategy2 = new RegexMaskingStrategy($patterns2);
         $this->assertFalse($strategy2->shouldApply(['array'], 'data', $logRecord));
         $this->assertFalse($strategy2->shouldApply(true, 'boolean', $logRecord));
@@ -192,7 +193,7 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
 
     public function testGetNameWithSinglePattern(): void
     {
-        $patterns = ['/test/' => '***MASKED***'];
+        $patterns = ['/test/' => MaskConstants::MASK_MASKED];
         $strategy = new RegexMaskingStrategy($patterns);
 
         $name = $strategy->getName();
@@ -201,7 +202,7 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
 
     public function testGetPriorityDefaultValue(): void
     {
-        $patterns = ['/test/' => '***MASKED***'];
+        $patterns = ['/test/' => MaskConstants::MASK_MASKED];
         $strategy = new RegexMaskingStrategy($patterns);
 
         $this->assertEquals(60, $strategy->getPriority());
@@ -209,7 +210,7 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
 
     public function testGetPriorityCustomValue(): void
     {
-        $patterns = ['/test/' => '***MASKED***'];
+        $patterns = ['/test/' => MaskConstants::MASK_MASKED];
         $strategy = new RegexMaskingStrategy($patterns, [], [], 75);
 
         $this->assertEquals(75, $strategy->getPriority());
@@ -217,7 +218,7 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
 
     public function testGetConfiguration(): void
     {
-        $patterns = ['/test/' => '***MASKED***'];
+        $patterns = ['/test/' => MaskConstants::MASK_MASKED];
         $includePaths = ['user.*'];
         $excludePaths = ['user.id'];
 
@@ -234,7 +235,7 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
 
     public function testValidateReturnsTrue(): void
     {
-        $patterns = ['/test/' => '***MASKED***'];
+        $patterns = ['/test/' => MaskConstants::MASK_MASKED];
         $strategy = new RegexMaskingStrategy($patterns);
 
         $this->assertTrue($strategy->validate());
@@ -247,7 +248,7 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
         $logRecord = $this->createLogRecord();
 
         $result = $strategy->mask('This is secret data', 'message', $logRecord);
-        $this->assertStringContainsString('***MASKED***', $result);
+        $this->assertStringContainsString(MaskConstants::MASK_MASKED, $result);
     }
 
     public function testMaskingWithCaptureGroupsInPattern(): void
@@ -262,17 +263,17 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
 
     public function testMaskingWithUtf8Characters(): void
     {
-        $patterns = ['/café/' => '***MASKED***'];
+        $patterns = ['/café/' => MaskConstants::MASK_MASKED];
         $strategy = new RegexMaskingStrategy($patterns);
         $logRecord = $this->createLogRecord();
 
         $result = $strategy->mask('I went to the café yesterday', 'message', $logRecord);
-        $this->assertStringContainsString('***MASKED***', $result);
+        $this->assertStringContainsString(MaskConstants::MASK_MASKED, $result);
     }
 
     public function testMaskingWithCaseInsensitiveFlag(): void
     {
-        $patterns = ['/secret/i' => '***MASKED***'];
+        $patterns = ['/secret/i' => MaskConstants::MASK_MASKED];
         $strategy = new RegexMaskingStrategy($patterns);
         $logRecord = $this->createLogRecord();
 
@@ -280,8 +281,8 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
         $result2 = $strategy->mask('This is secret data', 'message', $logRecord);
         $result3 = $strategy->mask('This is SeCrEt data', 'message', $logRecord);
 
-        $this->assertStringContainsString('***MASKED***', $result1);
-        $this->assertStringContainsString('***MASKED***', $result2);
-        $this->assertStringContainsString('***MASKED***', $result3);
+        $this->assertStringContainsString(MaskConstants::MASK_MASKED, $result1);
+        $this->assertStringContainsString(MaskConstants::MASK_MASKED, $result2);
+        $this->assertStringContainsString(MaskConstants::MASK_MASKED, $result3);
     }
 }

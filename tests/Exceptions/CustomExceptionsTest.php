@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Exceptions;
 
+use Tests\TestConstants;
 use Exception;
 use PHPUnit\Framework\TestCase;
 use Ivuorinen\MonologGdprFilter\Exceptions\GdprProcessorException;
@@ -29,7 +30,7 @@ class CustomExceptionsTest extends TestCase
 
     public function testGdprProcessorExceptionWithContext(): void
     {
-        $context = ['field' => 'email', 'value' => 'test@example.com'];
+        $context = ['field' => 'email', 'value' => TestConstants::EMAIL_TEST];
         $exception = GdprProcessorException::withContext('Base message', $context);
 
         $this->assertStringContainsString('Base message', $exception->getMessage());
@@ -110,7 +111,7 @@ class CustomExceptionsTest extends TestCase
     {
         $exception = MaskingOperationFailedException::fieldPathMaskingFailed(
             'user.email',
-            'test@example.com',
+            TestConstants::EMAIL_TEST,
             'Invalid configuration'
         );
 

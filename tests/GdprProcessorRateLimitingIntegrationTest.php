@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Ivuorinen\MonologGdprFilter\MaskConstants;
 use DateTimeImmutable;
 use Ivuorinen\MonologGdprFilter\ConditionalRuleFactory;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
@@ -82,7 +83,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
         $strictAuditLogger = GdprProcessor::createRateLimitedAuditLogger($baseLogger, 'strict');
 
         $processor = $this->createProcessor(
-            ['/test@example\.com/' => '***EMAIL***'],
+            ['/test@example\.com/' => MaskConstants::MASK_EMAIL],
             [],
             [],
             $strictAuditLogger
@@ -100,7 +101,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
             );
 
             $result = $processor($logRecord);
-            if (str_contains($result->message, '***EMAIL***')) {
+            if (str_contains($result->message, MaskConstants::MASK_EMAIL)) {
                 $processedCount++;
             }
         }
@@ -130,7 +131,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
             'test',
             Level::Info,
             'Message with test@example.com',
-            ['user' => ['email' => 'user@example.com']]
+            ['user' => ['email' => TestConstants::EMAIL_USER]]
         );
 
         // Process the same record multiple times
@@ -156,7 +157,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
         $rateLimitedLogger = new RateLimitedAuditLogger($baseLogger, 5, 60);
 
         $processor = $this->createProcessor(
-            ['/test@example\.com/' => '***EMAIL***'],
+            ['/test@example\.com/' => MaskConstants::MASK_EMAIL],
             [],
             [],
             $rateLimitedLogger,
@@ -178,7 +179,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
             );
 
             $result = $processor($errorRecord);
-            $this->assertStringContainsString('***EMAIL***', $result->message);
+            $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result->message);
         }
 
         // Test with INFO level (should not mask, but generates conditional skip audit logs)
@@ -192,7 +193,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
             );
 
             $result = $processor($infoRecord);
-            $this->assertStringContainsString('test@example.com', $result->message);
+            $this->assertStringContainsString(TestConstants::EMAIL_TEST, $result->message);
         }
 
         // Should have audit logs for both masking and conditional skips
@@ -209,7 +210,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
         $rateLimitedLogger = new RateLimitedAuditLogger($baseLogger, 10, 60);
 
         $processor = $this->createProcessor(
-            ['/test@example\.com/' => '***EMAIL***'], // Add a regex pattern to ensure masking happens
+            ['/test@example\.com/' => MaskConstants::MASK_EMAIL], // Add a regex pattern to ensure masking happens
             [
                 'text' => FieldMaskConfig::useProcessorPatterns(),
                 'number' => '999'
@@ -217,7 +218,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
             [],
             $rateLimitedLogger,
             100,
-            ['string' => '***STRING***', 'integer' => '***INT***'] // Won't be used due to field paths
+            ['string' => MaskConstants::MASK_STRING, 'integer' => MaskConstants::MASK_INT] // Won't be used due to field paths
         );
 
         // Process records with different data types
@@ -238,9 +239,9 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
             );
 
             $result = $processor($logRecord);
-            $this->assertStringContainsString('***EMAIL***', $result->message);
+            $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result->message);
             $this->assertStringContainsString(
-                '***EMAIL***',
+                MaskConstants::MASK_EMAIL,
                 (string) $result->context['text']
             ); // Field path regex masking
             $this->assertEquals('999', $result->context['number']); // Field path static replacement
@@ -266,7 +267,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
         $rateLimitedLogger = new RateLimitedAuditLogger($failingAuditLogger, 2, 60);
 
         $processor = $this->createProcessor(
-            ['/test@example\.com/' => '***EMAIL***'],
+            ['/test@example\.com/' => MaskConstants::MASK_EMAIL],
             [],
             [],
             $rateLimitedLogger
@@ -277,7 +278,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
 
         // Processing should succeed regardless of audit logger issues
         $result = $processor($logRecord);
-        $this->assertStringContainsString('***EMAIL***', $result->message);
+        $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result->message);
     }
 
     public function testRateLimitStatsAccessibility(): void
@@ -286,7 +287,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
         $rateLimitedLogger = RateLimitedAuditLogger::create($baseLogger, 'default');
 
         $processor = $this->createProcessor(
-            ['/test@example\.com/' => '***EMAIL***'],
+            ['/test@example\.com/' => MaskConstants::MASK_EMAIL],
             ['user.email' => 'user@masked.com'], // Add field path masking to generate more audit logs
             [],
             $rateLimitedLogger
