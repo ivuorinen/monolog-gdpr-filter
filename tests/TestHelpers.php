@@ -204,9 +204,7 @@ trait TestHelpers
     /**
      * Get common test pattern for email masking.
      *
-     * @return string[]
-     *
-     * @psalm-return array{'/\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b/': '***EMAIL***'}
+     * @return array<string, string>
      */
     protected function getEmailPattern(): array
     {
@@ -216,9 +214,7 @@ trait TestHelpers
     /**
      * Get common test pattern for SSN masking.
      *
-     * @return string[]
-     *
-     * @psalm-return array{'/\\b\\d{3}-\\d{2}-\\d{4}\\b/': '***SSN***'}
+     * @return array<string, string>
      */
     protected function getSsnPattern(): array
     {
@@ -228,9 +224,7 @@ trait TestHelpers
     /**
      * Get common test pattern for credit card masking.
      *
-     * @return string[]
-     *
-     * @psalm-return array{'/\\b\\d{4}[-\\s]?\\d{4}[-\\s]?\\d{4}[-\\s]?\\d{4}\\b/': '***CARD***'}
+     * @return array<string, string>
      */
     protected function getCreditCardPattern(): array
     {

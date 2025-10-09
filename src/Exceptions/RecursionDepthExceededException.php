@@ -26,7 +26,6 @@ class RecursionDepthExceededException extends GdprProcessorException
      * @param int $maxDepth The maximum allowed recursion depth
      * @param string $path The field path where the depth was exceeded
      * @param Throwable|null $previous Previous exception for chaining
-     * @psalm-suppress MoreSpecificReturnType
      */
     public static function depthExceeded(
         int $currentDepth,
@@ -41,7 +40,6 @@ class RecursionDepthExceededException extends GdprProcessorException
             $path
         );
 
-        /** @psalm-suppress LessSpecificReturnStatement */
         return self::withContext($message, [
             'error_type' => 'depth_exceeded',
             'current_depth' => $currentDepth,
@@ -58,7 +56,6 @@ class RecursionDepthExceededException extends GdprProcessorException
      * @param int $currentDepth The current recursion depth
      * @param int $maxDepth The maximum allowed recursion depth
      * @param Throwable|null $previous Previous exception for chaining
-     * @psalm-suppress MoreSpecificReturnType
      */
     public static function circularReferenceDetected(
         string $path,
@@ -73,7 +70,6 @@ class RecursionDepthExceededException extends GdprProcessorException
             $maxDepth
         );
 
-        /** @psalm-suppress LessSpecificReturnStatement */
         return self::withContext($message, [
             'error_type' => 'circular_reference',
             'field_path' => $path,
@@ -91,7 +87,6 @@ class RecursionDepthExceededException extends GdprProcessorException
      * @param int $maxDepth The maximum allowed recursion depth
      * @param string $path The field path with deep nesting
      * @param Throwable|null $previous Previous exception for chaining
-     * @psalm-suppress MoreSpecificReturnType
      */
     public static function extremeNesting(
         string $dataType,
@@ -108,7 +103,6 @@ class RecursionDepthExceededException extends GdprProcessorException
             $maxDepth
         );
 
-        /** @psalm-suppress LessSpecificReturnStatement */
         return self::withContext($message, [
             'error_type' => 'extreme_nesting',
             'data_type' => $dataType,
@@ -125,7 +119,6 @@ class RecursionDepthExceededException extends GdprProcessorException
      * @param int $invalidDepth The invalid depth value provided
      * @param string $reason The reason why the depth is invalid
      * @param Throwable|null $previous Previous exception for chaining
-     * @psalm-suppress MoreSpecificReturnType
      */
     public static function invalidDepthConfiguration(
         int $invalidDepth,
@@ -134,7 +127,6 @@ class RecursionDepthExceededException extends GdprProcessorException
     ): static {
         $message = sprintf('Invalid recursion depth configuration: %d (%s)', $invalidDepth, $reason);
 
-        /** @psalm-suppress LessSpecificReturnStatement */
         return self::withContext($message, [
             'error_type' => 'invalid_configuration',
             'invalid_depth' => $invalidDepth,
@@ -151,7 +143,6 @@ class RecursionDepthExceededException extends GdprProcessorException
      * @param string $path The field path where the issue occurred
      * @param array<string> $recommendations List of recommendations
      * @param Throwable|null $previous Previous exception for chaining
-     * @psalm-suppress MoreSpecificReturnType
      */
     public static function withRecommendations(
         int $currentDepth,
@@ -167,7 +158,6 @@ class RecursionDepthExceededException extends GdprProcessorException
             $maxDepth
         );
 
-        /** @psalm-suppress LessSpecificReturnStatement */
         return self::withContext($message, [
             'error_type' => 'depth_with_recommendations',
             'current_depth' => $currentDepth,
