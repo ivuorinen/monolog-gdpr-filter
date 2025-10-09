@@ -402,7 +402,7 @@ class CriticalBugRegressionTest extends TestCase
                 /**
                  * @return never
                  */
-                function (LogRecord $record) {
+                function (LogRecord $record): void {
                     throw new RuntimeException('Database connection failed: host=sensitive.db.com user=secret_user password=secret123');
                 }
             ]

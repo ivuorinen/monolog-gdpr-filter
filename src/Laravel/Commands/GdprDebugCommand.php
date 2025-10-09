@@ -58,7 +58,7 @@ class GdprDebugCommand extends Command
 
         // Test with sample data if provided
         $testData = (string)$this->option('test-data');
-        if ($testData) {
+        if ($testData !== '' && $testData !== '0') {
             $this->testWithSampleData($testData);
         }
 
