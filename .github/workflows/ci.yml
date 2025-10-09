@@ -52,7 +52,7 @@ jobs:
         run: ./vendor/bin/psalm --show-info=true
 
       - name: Run PHPStan static analysis
-        run: ./vendor/bin/phpstan analyse --no-progress
+        run: ./vendor/bin/phpstan analyse --memory-limit=1G --no-progress
 
       - name: Run PHP_CodeSniffer
         run: ./vendor/bin/phpcs src/ tests/ rector.php --warning-severity=0

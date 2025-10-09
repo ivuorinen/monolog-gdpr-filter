@@ -90,6 +90,7 @@ parameters:
     excludePaths:
         - vendor/*
         - .phpunit.cache/*
+        - src/Laravel/*
 
     # Custom rules (none for now)
     customRulesetUsed: false
