@@ -7,9 +7,10 @@ namespace Tests;
 use DateTimeImmutable;
 use stdClass;
 use PHPUnit\Framework\TestCase;
-use Ivuorinen\MonologGdprFilter\GdprProcessor;
+use Tests\TestHelpers;
 use Monolog\LogRecord;
 use Monolog\Level;
+use Ivuorinen\MonologGdprFilter\DataTypeMasker;
 
 /**
  * Test data type-based masking functionality.
@@ -18,9 +19,11 @@ use Monolog\Level;
  */
 class DataTypeMaskingTest extends TestCase
 {
+    use TestHelpers;
+
     public function testDefaultDataTypeMasks(): void
     {
-        $masks = GdprProcessor::getDefaultDataTypeMasks();
+        $masks = DataTypeMasker::getDefaultMasks();
 
         $this->assertIsArray($masks);
         $this->assertArrayHasKey('integer', $masks);
@@ -34,7 +37,7 @@ class DataTypeMaskingTest extends TestCase
 
     public function testIntegerMasking(): void
     {
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             [],
             [],
             [],
@@ -43,13 +46,7 @@ class DataTypeMaskingTest extends TestCase
             ['integer' => '***INT***']
         );
 
-        $logRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Info,
-            'Test message',
-            ['age' => 25, 'count' => 100]
-        );
+        $logRecord = $this->createLogRecord('Test message', ['age' => 25, 'count' => 100]);
 
         $result = $processor($logRecord);
 
@@ -59,7 +56,7 @@ class DataTypeMaskingTest extends TestCase
 
     public function testFloatMasking(): void
     {
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             [],
             [],
             [],
@@ -68,13 +65,7 @@ class DataTypeMaskingTest extends TestCase
             ['double' => '***FLOAT***']
         );
 
-        $logRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Info,
-            'Test message',
-            ['price' => 99.99, 'rating' => 4.5]
-        );
+        $logRecord = $this->createLogRecord('Test message', ['price' => 99.99, 'rating' => 4.5]);
 
         $result = $processor($logRecord);
 
@@ -84,7 +75,7 @@ class DataTypeMaskingTest extends TestCase
 
     public function testBooleanMasking(): void
     {
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             [],
             [],
             [],
@@ -93,13 +84,7 @@ class DataTypeMaskingTest extends TestCase
             ['boolean' => '***BOOL***']
         );
 
-        $logRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Info,
-            'Test message',
-            ['active' => true, 'deleted' => false]
-        );
+        $logRecord = $this->createLogRecord('Test message', ['active' => true, 'deleted' => false]);
 
         $result = $processor($logRecord);
 
@@ -109,7 +94,7 @@ class DataTypeMaskingTest extends TestCase
 
     public function testNullMasking(): void
     {
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             [],
             [],
             [],
@@ -118,13 +103,7 @@ class DataTypeMaskingTest extends TestCase
             ['NULL' => '***NULL***']
         );
 
-        $logRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Info,
-            'Test message',
-            ['optional_field' => null, 'another_null' => null]
-        );
+        $logRecord = $this->createLogRecord('Test message', ['optional_field' => null, 'another_null' => null]);
 
         $result = $processor($logRecord);
 
@@ -134,7 +113,7 @@ class DataTypeMaskingTest extends TestCase
 
     public function testObjectMasking(): void
     {
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             [],
             [],
             [],
@@ -146,13 +125,7 @@ class DataTypeMaskingTest extends TestCase
         $testObject = new stdClass();
         $testObject->name = 'test';
 
-        $logRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Info,
-            'Test message',
-            ['user' => $testObject]
-        );
+        $logRecord = $this->createLogRecord('Test message', ['user' => $testObject]);
 
         $result = $processor($logRecord);
 
@@ -163,7 +136,7 @@ class DataTypeMaskingTest extends TestCase
 
     public function testArrayMasking(): void
     {
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             [],
             [],
             [],
@@ -188,7 +161,7 @@ class DataTypeMaskingTest extends TestCase
 
     public function testRecursiveArrayMasking(): void
     {
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             [],
             [],
             [],
@@ -213,7 +186,7 @@ class DataTypeMaskingTest extends TestCase
 
     public function testMixedDataTypes(): void
     {
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             [],
             [],
             [],
@@ -227,19 +200,13 @@ class DataTypeMaskingTest extends TestCase
             ]
         );
 
-        $logRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Info,
-            'Test message',
-            [
+        $logRecord = $this->createLogRecord('Test message', [
                 'age' => 30,
                 'name' => 'John Doe',
                 'active' => true,
                 'deleted_at' => null,
                 'score' => 98.5, // This won't be masked (no 'double' rule)
-            ]
-        );
+            ]);
 
         $result = $processor($logRecord);
 
@@ -252,7 +219,7 @@ class DataTypeMaskingTest extends TestCase
 
     public function testNumericMaskValues(): void
     {
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             [],
             [],
             [],
@@ -264,13 +231,7 @@ class DataTypeMaskingTest extends TestCase
             ]
         );
 
-        $logRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Info,
-            'Test message',
-            ['age' => 25, 'salary' => 50000.50]
-        );
+        $logRecord = $this->createLogRecord('Test message', ['age' => 25, 'salary' => 50000.50]);
 
         $result = $processor($logRecord);
 
@@ -280,7 +241,7 @@ class DataTypeMaskingTest extends TestCase
 
     public function testPreserveBooleanValues(): void
     {
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             [],
             [],
             [],
@@ -289,13 +250,7 @@ class DataTypeMaskingTest extends TestCase
             ['boolean' => 'preserve']
         );
 
-        $logRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Info,
-            'Test message',
-            ['active' => true, 'deleted' => false]
-        );
+        $logRecord = $this->createLogRecord('Test message', ['active' => true, 'deleted' => false]);
 
         $result = $processor($logRecord);
 
@@ -306,20 +261,14 @@ class DataTypeMaskingTest extends TestCase
     public function testNoDataTypeMasking(): void
     {
         // Test with empty data type masks
-        $processor = new GdprProcessor([], [], [], null, 100, []);
+        $processor = $this->createProcessor([], [], [], null, 100, []);
 
-        $logRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Info,
-            'Test message',
-            [
+        $logRecord = $this->createLogRecord('Test message', [
                 'age' => 30,
                 'name' => 'John Doe',
                 'active' => true,
                 'deleted_at' => null,
-            ]
-        );
+            ]);
 
         $result = $processor($logRecord);
 
@@ -333,7 +282,7 @@ class DataTypeMaskingTest extends TestCase
     public function testDataTypeMaskingWithStringRegex(): void
     {
         // Test that string masking and regex masking work together
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             ['/test@example\.com/' => '***EMAIL***'],
             [],
             [],
@@ -342,16 +291,10 @@ class DataTypeMaskingTest extends TestCase
             ['integer' => '***INT***']
         );
 
-        $logRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Info,
-            'Test message',
-            [
+        $logRecord = $this->createLogRecord('Test message', [
                 'email' => 'test@example.com',
                 'user_id' => 12345,
-            ]
-        );
+            ]);
 
         $result = $processor($logRecord);
 

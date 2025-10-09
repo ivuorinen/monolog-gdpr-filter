@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -34,7 +35,7 @@ class AdvancedRegexMaskProcessorTest extends TestCase
         $fieldPaths = [
             "user.ssn" => "[GDPR]",
             "payment.card" => "[CC]",
-            "contact.email" => GdprProcessor::maskWithRegex(), // use regex-masked
+            "contact.email" => FieldMaskConfig::useProcessorPatterns(), // use regex-masked
             "metadata.session" => "[SESSION]",
         ];
 

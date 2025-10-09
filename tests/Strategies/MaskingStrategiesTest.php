@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Strategies;
 
-use DateTimeImmutable;
 use Ivuorinen\MonologGdprFilter\Exceptions\GdprProcessorException;
 use PHPUnit\Framework\TestCase;
+use Tests\TestHelpers;
 use Monolog\LogRecord;
 use Monolog\Level;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
@@ -25,23 +25,7 @@ use Ivuorinen\MonologGdprFilter\Exceptions\InvalidRegexPatternException;
  */
 class MaskingStrategiesTest extends TestCase
 {
-    /**
-     * @param array<mixed> $context
-     */
-    private function createLogRecord(
-        string $message = 'Test message',
-        array $context = [],
-        string $channel = 'test',
-        Level $level = Level::Info
-    ): LogRecord {
-        return new LogRecord(
-            new DateTimeImmutable(),
-            $channel,
-            $level,
-            $message,
-            $context
-        );
-    }
+    use TestHelpers;
 
     public function testRegexMaskingStrategy(): void
     {
@@ -157,11 +141,11 @@ class MaskingStrategiesTest extends TestCase
         $this->assertSame(70, $strategy->getPriority());
 
         // Test conditions not met
-        $logRecord = $this->createLogRecord('test data', [], 'test', Level::Info);
+        $logRecord = $this->createLogRecord('test data', [], Level::Info, 'test');
         $this->assertFalse($strategy->shouldApply('test data', 'message', $logRecord));
 
         // Test conditions met
-        $logRecord = $this->createLogRecord('test data', [], 'security', Level::Error);
+        $logRecord = $this->createLogRecord('test data', [], Level::Error, 'security');
         $this->assertTrue($strategy->shouldApply('test data', 'message', $logRecord));
 
         // Test masking when conditions are met
@@ -180,15 +164,15 @@ class MaskingStrategiesTest extends TestCase
         $levelStrategy = ConditionalMaskingStrategy::forLevels($baseStrategy, ['Error', 'Critical']);
         $this->assertInstanceOf(ConditionalMaskingStrategy::class, $levelStrategy);
 
-        $errorRecord = $this->createLogRecord('test', [], 'test', Level::Error);
-        $infoRecord = $this->createLogRecord('test', [], 'test', Level::Info);
+        $errorRecord = $this->createLogRecord('test', [], Level::Error, 'test');
+        $infoRecord = $this->createLogRecord('test', [], Level::Info, 'test');
         $this->assertTrue($levelStrategy->shouldApply('test', 'message', $errorRecord));
         $this->assertFalse($levelStrategy->shouldApply('test', 'message', $infoRecord));
 
         // Test forChannels
         $channelStrategy = ConditionalMaskingStrategy::forChannels($baseStrategy, ['security', 'audit']);
-        $securityRecord = $this->createLogRecord('test', [], 'security');
-        $generalRecord = $this->createLogRecord('test', [], 'general');
+        $securityRecord = $this->createLogRecord('test', [], Level::Error, 'security');
+        $generalRecord = $this->createLogRecord('test', [], Level::Error, 'general');
         $this->assertTrue($channelStrategy->shouldApply('test', 'message', $securityRecord));
         $this->assertFalse($channelStrategy->shouldApply('test', 'message', $generalRecord));
 
@@ -310,7 +294,7 @@ class MaskingStrategiesTest extends TestCase
         $this->assertTrue($strategy->testPathMatches('exact.match', 'exact.match'));
 
         // Test recordMatches
-        $logRecord = $this->createLogRecord('Test', ['key' => 'value'], 'test', Level::Error);
+        $logRecord = $this->createLogRecord('Test', ['key' => 'value'], Level::Error, 'test');
         $this->assertTrue($strategy->testRecordMatches($logRecord, ['level' => 'Error']));
         $this->assertTrue($strategy->testRecordMatches($logRecord, ['channel' => 'test']));
         $this->assertTrue($strategy->testRecordMatches($logRecord, ['key' => 'value']));

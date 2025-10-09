@@ -6,9 +6,12 @@ namespace Tests;
 
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
+use Tests\TestHelpers;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 use Monolog\LogRecord;
 use Monolog\Level;
+use Ivuorinen\MonologGdprFilter\DefaultPatterns;
+use Ivuorinen\MonologGdprFilter\PatternValidator;
 
 /**
  * Performance benchmark tests for GDPR processor optimizations.
@@ -19,15 +22,17 @@ use Monolog\Level;
  */
 class PerformanceBenchmarkTest extends TestCase
 {
+    use TestHelpers;
+
     private function getTestProcessor(): GdprProcessor
     {
-        return new GdprProcessor(GdprProcessor::getDefaultPatterns());
+        return $this->createProcessor(DefaultPatterns::get());
     }
 
     /**
-     * @return (((((array|int|string)[]|int|string)[]|int|string)[]|int|string)[]|int|string)[]
+     * @return (((((((((((((array|int|string)[]|int|string)[]|int|string)[]|int|string)[]|int|string)[]|int|string)[]|int|string)[]|int|string)[]|int|string)[]|int|string)[]|int|string)[]|int|string)[]|int|string)[]
      *
-     * @psalm-return array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>
+     * @psalm-return array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>
      */
     private function generateLargeNestedArray(int $depth, int $width): array
     {
@@ -92,8 +97,8 @@ class PerformanceBenchmarkTest extends TestCase
         $depths = [10, 50, 100];
 
         foreach ($depths as $maxDepth) {
-            $processor = new GdprProcessor(
-                GdprProcessor::getDefaultPatterns(),
+            $processor = $this->createProcessor(
+                DefaultPatterns::get(),
                 [],
                 [],
                 null,
@@ -178,7 +183,7 @@ class PerformanceBenchmarkTest extends TestCase
     public function testPatternCachingEffectiveness(): void
     {
         // Clear any existing cache
-        GdprProcessor::clearPatternCache();
+        PatternValidator::clearCache();
 
         $processor = $this->getTestProcessor();
         $testMessage = 'Contact john@example.com, SSN: 123-45-6789, Phone: +1-555-123-4567';
@@ -338,11 +343,11 @@ class PerformanceBenchmarkTest extends TestCase
     public function testBenchmarkComparison(): void
     {
         // Compare optimized vs simple implementation
-        $patterns = GdprProcessor::getDefaultPatterns();
+        $patterns = DefaultPatterns::get();
         $testMessage = 'Email: john@example.com, SSN: 123-45-6789, Phone: +1-555-123-4567, IP: 192.168.1.1';
 
         // Optimized processor (with caching, etc.)
-        $optimizedProcessor = new GdprProcessor($patterns);
+        $optimizedProcessor = $this->createProcessor($patterns);
 
         $iterations = 100; // Reduced for test environment
 
@@ -360,7 +365,7 @@ class PerformanceBenchmarkTest extends TestCase
         for ($i = 0; $i < $iterations; $i++) {
             foreach ($patterns as $pattern => $replacement) {
                 $testMessage = preg_replace(
-                    (string)$pattern,
+                    $pattern,
                     $replacement,
                     $testMessage
                 ) ?? $testMessage;

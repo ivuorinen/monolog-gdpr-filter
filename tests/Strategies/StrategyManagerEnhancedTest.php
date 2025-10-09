@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Strategies;
 
-use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
-use Monolog\LogRecord;
-use Monolog\Level;
+use Tests\TestHelpers;
 use Ivuorinen\MonologGdprFilter\Strategies\StrategyManager;
 use Ivuorinen\MonologGdprFilter\Strategies\RegexMaskingStrategy;
 use Ivuorinen\MonologGdprFilter\Strategies\DataTypeMaskingStrategy;
@@ -19,19 +17,7 @@ use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
  */
 final class StrategyManagerEnhancedTest extends TestCase
 {
-    /**
-     * @param array<mixed> $context
-     */
-    private function createLogRecord(array $context = []): LogRecord
-    {
-        return new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Info,
-            'Test message',
-            $context
-        );
-    }
+    use TestHelpers;
 
     public function testRemoveStrategiesByClassWithMatchingStrategies(): void
     {

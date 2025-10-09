@@ -31,9 +31,9 @@ class GdprProcessorMethodsTest extends TestCase
             '/john.doe/' => 'bar',
         ];
         $fieldPaths = [
-            'user.email' => GdprProcessor::maskWithRegex(),
-            'user.ssn' => GdprProcessor::removeField(),
-            'user.card' => GdprProcessor::replaceWith('MASKED'),
+            'user.email' => FieldMaskConfig::useProcessorPatterns(),
+            'user.ssn' => FieldMaskConfig::remove(),
+            'user.card' => FieldMaskConfig::replace('MASKED'),
         ];
         $context = [
             'user' => [
@@ -57,7 +57,7 @@ class GdprProcessorMethodsTest extends TestCase
     {
         $patterns = [];
         $fieldPaths = [
-            'user.name' => GdprProcessor::maskWithRegex(),
+            'user.name' => FieldMaskConfig::useProcessorPatterns(),
         ];
         $customCallbacks = [
             'user.name' => fn($value): string => strtoupper((string) $value),
@@ -72,7 +72,7 @@ class GdprProcessorMethodsTest extends TestCase
     {
         $patterns = [];
         $fieldPaths = [
-            'user.ssn' => GdprProcessor::removeField(),
+            'user.ssn' => FieldMaskConfig::remove(),
         ];
         $processor = new GdprProcessor($patterns, $fieldPaths);
         $method = $this->getReflection($processor, 'maskValue');
@@ -84,7 +84,7 @@ class GdprProcessorMethodsTest extends TestCase
     {
         $patterns = [];
         $fieldPaths = [
-            'user.card' => GdprProcessor::replaceWith('MASKED'),
+            'user.card' => FieldMaskConfig::replace('MASKED'),
         ];
         $processor = new GdprProcessor($patterns, $fieldPaths);
         $method = $this->getReflection($processor, 'maskValue');
