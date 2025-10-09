@@ -32,13 +32,6 @@
   </plugins>
 
   <issueHandlers>
-    <!-- Configuration-specific issues -->
-    <DuplicateFunction>
-      <errorLevel type="suppress">
-        <directory name="config" />
-      </errorLevel>
-    </DuplicateFunction>
-
     <!-- Laravel function compatibility -->
     <UndefinedFunction>
       <errorLevel type="suppress">
@@ -49,6 +42,14 @@
         <referencedFunction name="env" />
       </errorLevel>
     </UndefinedFunction>
+
+    <!-- Allow conditional function definitions for Laravel compatibility -->
+    <DuplicateFunction>
+      <errorLevel type="suppress">
+        <file name="config/gdpr.php" />
+        <file name="stubs/laravel-helpers.php" />
+      </errorLevel>
+    </DuplicateFunction>
 
     <!-- Complex return type issues in GdprProcessor -->
     <InvalidReturnType>
@@ -94,12 +95,6 @@
         <directory name="tests" />
       </errorLevel>
     </UnusedFunctionCall>
-
-    <UnusedMethodCall>
-      <errorLevel type="suppress">
-        <directory name="tests" />
-      </errorLevel>
-    </UnusedMethodCall>
 
     <!-- Test reflection access -->
     <InvalidStaticInvocation>

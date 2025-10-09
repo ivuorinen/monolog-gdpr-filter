@@ -34,6 +34,7 @@ use stdClass;
 #[CoversClass(RateLimitedAuditLogger::class)]
 class CriticalBugRegressionTest extends TestCase
 {
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -141,7 +142,6 @@ class CriticalBugRegressionTest extends TestCase
         // Use reflection to test the private method directly
         $reflection = new ReflectionClass(GdprProcessor::class);
         $method = $reflection->getMethod('applyDataTypeMasking');
-        $method->setAccessible(true);
 
         $processor = new GdprProcessor(
             patterns: [],
@@ -319,7 +319,7 @@ class CriticalBugRegressionTest extends TestCase
             $fullPattern = sprintf('/%s/', $pattern);
 
             try {
-                GdprProcessor::validatePatterns([$fullPattern => 'masked']);
+                GdprProcessor::validatePatterns();
                 // If validation passes, the pattern might be considered safe by the implementation
                 $this->assertTrue(true, 'Pattern validation completed for: ' . $fullPattern);
             } catch (InvalidArgumentException $e) {
@@ -398,7 +398,11 @@ class CriticalBugRegressionTest extends TestCase
             maxDepth: 100,
             dataTypeMasks: [],
             conditionalRules: [
-                'failing_rule' => function (LogRecord $record) {
+                'failing_rule' =>
+                /**
+                 * @return never
+                 */
+                function (LogRecord $record) {
                     throw new RuntimeException('Database connection failed: host=sensitive.db.com user=secret_user password=secret123');
                 }
             ]
@@ -418,7 +422,7 @@ class CriticalBugRegressionTest extends TestCase
         $this->assertInstanceOf(LogRecord::class, $result);
 
         // Check audit log for error handling
-        $errorLogs = array_filter($auditLog, fn($log) => $log['path'] === 'conditional_error');
+        $errorLogs = array_filter($auditLog, fn(array $log): bool => $log['path'] === 'conditional_error');
         $this->assertNotEmpty($errorLogs, 'Error should be logged in audit');
 
         // Error message should be generic, not expose system details
@@ -538,6 +542,7 @@ class CriticalBugRegressionTest extends TestCase
         $this->assertLessThan(100 * 1024 * 1024, $memoryIncrease, 'Large JSON processing should not use excessive memory');
     }
 
+    #[\Override]
     protected function tearDown(): void
     {
         // Clean up any static state

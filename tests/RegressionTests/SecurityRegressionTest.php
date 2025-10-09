@@ -41,6 +41,7 @@ use RuntimeException;
 #[CoversClass(FieldMaskConfig::class)]
 class SecurityRegressionTest extends TestCase
 {
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -86,7 +87,7 @@ class SecurityRegressionTest extends TestCase
 
         foreach ($redosPatterns as $pattern) {
             try {
-                GdprProcessor::validatePatternsArray([sprintf('%s', $pattern) => 'masked']);
+                GdprProcessor::validatePatternsArray([$pattern => 'masked']);
                 // If validation passes, log for future improvement but don't fail
                 error_log('Warning: ReDoS pattern not caught by validation: ' . $pattern);
                 $this->assertTrue(true, 'Pattern validation completed for: ' . $pattern);
@@ -166,7 +167,11 @@ class SecurityRegressionTest extends TestCase
                 maxDepth: 100,
                 dataTypeMasks: [],
                 conditionalRules: [
-                    'failing_rule' => function (LogRecord $record) use ($sensitiveMessage) {
+                    'failing_rule' =>
+                    /**
+                     * @return never
+                     */
+                    function (LogRecord $record) use ($sensitiveMessage) {
                         throw new RuntimeException($sensitiveMessage);
                     }
                 ]
@@ -186,7 +191,7 @@ class SecurityRegressionTest extends TestCase
             $this->assertInstanceOf(LogRecord::class, $result);
 
             // Find error log entries
-            $errorLogs = array_filter($auditLog, fn($log) => $log['path'] === 'conditional_error');
+            $errorLogs = array_filter($auditLog, fn(array $log): bool => $log['path'] === 'conditional_error');
             $this->assertNotEmpty($errorLogs, 'Error should be logged in audit');
 
             $errorLog = reset($errorLogs);
@@ -204,7 +209,13 @@ class SecurityRegressionTest extends TestCase
 
             foreach ($sensitiveTerms as $term) {
                 if (str_contains((string) $loggedMessage, $term)) {
-                    error_log(sprintf('Warning: Sensitive information not sanitized: %s in message: %s', $term, $loggedMessage));
+                    error_log(
+                        sprintf(
+                            'Warning: Sensitive information not sanitized: %s in message: %s',
+                            $term,
+                            $loggedMessage
+                        )
+                    );
                 }
             }
 
@@ -263,7 +274,11 @@ class SecurityRegressionTest extends TestCase
         // Should complete without excessive resource usage
         $this->assertInstanceOf(LogRecord::class, $result);
         $this->assertLessThan(0.5, $endTime - $startTime, 'Deep nesting should not cause excessive processing time');
-        $this->assertLessThan(50 * 1024 * 1024, $endMemory - $startMemory, 'Deep nesting should not use excessive memory');
+        $this->assertLessThan(
+            50 * 1024 * 1024,
+            $endMemory - $startMemory,
+            'Deep nesting should not use excessive memory'
+        );
     }
 
     /**
@@ -302,7 +317,11 @@ class SecurityRegressionTest extends TestCase
 
         $this->assertInstanceOf(LogRecord::class, $result);
         $this->assertLessThan(2.0, $endTime - $startTime, 'JSON bomb should not cause excessive processing time');
-        $this->assertLessThan(100 * 1024 * 1024, $endMemory - $startMemory, 'JSON bomb should not use excessive memory');
+        $this->assertLessThan(
+            100 * 1024 * 1024,
+            $endMemory - $startMemory,
+            'JSON bomb should not use excessive memory'
+        );
     }
 
     /**
@@ -365,12 +384,24 @@ class SecurityRegressionTest extends TestCase
         $memoryIncrease = $endMemory - $startMemory;
 
         // Memory increase should be reasonable (cleanup should prevent unbounded growth)
-        $this->assertLessThan(50 * 1024 * 1024, $memoryIncrease, 'Rate limiter should not allow unbounded memory growth');
+        $this->assertLessThan(
+            50 * 1024 * 1024,
+            $memoryIncrease,
+            'Rate limiter should not allow unbounded memory growth'
+        );
 
         // Memory stats should show reasonable usage
         $stats = RateLimiter::getMemoryStats();
-        $this->assertLessThanOrEqual(10000, $stats['total_keys'], 'Should not retain significantly more keys than created');
-        $this->assertLessThan(10 * 1024 * 1024, $stats['estimated_memory_bytes'], 'Memory usage should be bounded');
+        $this->assertLessThanOrEqual(
+            10000,
+            $stats['total_keys'],
+            'Should not retain significantly more keys than created'
+        );
+        $this->assertLessThan(
+            10 * 1024 * 1024,
+            $stats['estimated_memory_bytes'],
+            'Memory usage should be bounded'
+        );
     }
 
     /**
@@ -505,7 +536,7 @@ class SecurityRegressionTest extends TestCase
             patterns: [],
             fieldPaths: [],
             customCallbacks: [
-                'safe_field' => fn($value) => 'masked_' . strlen((string)$value),
+                'safe_field' => fn($value): string => 'masked_' . strlen((string)$value),
             ],
             auditLogger: null,
             maxDepth: 100,
@@ -587,6 +618,7 @@ class SecurityRegressionTest extends TestCase
         $this->assertArrayHasKey('boundary_value', $result->context);
     }
 
+    #[\Override]
     protected function tearDown(): void
     {
         // Clean up any static state

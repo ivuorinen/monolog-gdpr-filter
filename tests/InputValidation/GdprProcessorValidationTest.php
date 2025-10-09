@@ -21,6 +21,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(GdprProcessor::class)]
 class GdprProcessorValidationTest extends TestCase
 {
+    #[\Override]
     protected function tearDown(): void
     {
         // Clear pattern cache between tests
@@ -181,7 +182,7 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorAcceptsValidCustomCallbacks(): void
     {
         $processor = new GdprProcessor([], [], [
-            'user.id' => fn($value) => hash('sha256', (string) $value),
+            'user.id' => fn($value): string => hash('sha256', (string) $value),
             'user.name' => fn($value) => strtoupper((string) $value)
         ]);
 
@@ -207,7 +208,7 @@ class GdprProcessorValidationTest extends TestCase
     #[Test]
     public function constructorAcceptsCallableAuditLogger(): void
     {
-        $processor = new GdprProcessor([], [], [], fn($path, $original, $masked) => null);
+        $processor = new GdprProcessor([], [], [], fn($path, $original, $masked): null => null);
         $this->assertInstanceOf(GdprProcessor::class, $processor);
     }
 
@@ -319,7 +320,7 @@ class GdprProcessorValidationTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Conditional rule names must be strings, got: integer');
 
-        new GdprProcessor([], [], [], null, 100, [], [123 => fn() => true]);
+        new GdprProcessor([], [], [], null, 100, [], [123 => fn(): true => true]);
     }
 
     #[Test]
@@ -328,7 +329,7 @@ class GdprProcessorValidationTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Conditional rule name cannot be empty');
 
-        new GdprProcessor([], [], [], null, 100, [], ['' => fn() => true]);
+        new GdprProcessor([], [], [], null, 100, [], ['' => fn(): true => true]);
     }
 
     #[Test]
@@ -337,7 +338,7 @@ class GdprProcessorValidationTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Conditional rule name cannot be empty');
 
-        new GdprProcessor([], [], [], null, 100, [], ['   ' => fn() => true]);
+        new GdprProcessor([], [], [], null, 100, [], ['   ' => fn(): true => true]);
     }
 
     #[Test]
@@ -353,8 +354,8 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorAcceptsValidConditionalRules(): void
     {
         $processor = new GdprProcessor([], [], [], null, 100, [], [
-            'level_rule' => fn(LogRecord $record) => $record->level === Level::Error,
-            'channel_rule' => fn(LogRecord $record) => $record->channel === 'app'
+            'level_rule' => fn(LogRecord $record): bool => $record->level === Level::Error,
+            'channel_rule' => fn(LogRecord $record): bool => $record->channel === 'app'
         ]);
 
         $this->assertInstanceOf(GdprProcessor::class, $processor);
@@ -373,11 +374,11 @@ class GdprProcessorValidationTest extends TestCase
         $processor = new GdprProcessor(
             patterns: ['/\d+/' => '***NUMBER***'],
             fieldPaths: ['user.email' => FieldMaskConfig::remove()],
-            customCallbacks: ['user.id' => fn($value) => hash('sha256', (string) $value)],
-            auditLogger: fn($path, $original, $masked) => null,
+            customCallbacks: ['user.id' => fn($value): string => hash('sha256', (string) $value)],
+            auditLogger: fn($path, $original, $masked): null => null,
             maxDepth: 50,
             dataTypeMasks: ['string' => '***STRING***'],
-            conditionalRules: ['level_rule' => fn(LogRecord $record) => true]
+            conditionalRules: ['level_rule' => fn(LogRecord $record): true => true]
         );
 
         $this->assertInstanceOf(GdprProcessor::class, $processor);

@@ -14,6 +14,7 @@ use Ivuorinen\MonologGdprFilter\RateLimiter;
  */
 class RateLimiterTest extends TestCase
 {
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -21,6 +22,7 @@ class RateLimiterTest extends TestCase
         RateLimiter::clearAll();
     }
 
+    #[\Override]
     protected function tearDown(): void
     {
         // Clean up after each test

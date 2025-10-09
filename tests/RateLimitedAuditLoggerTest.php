@@ -19,6 +19,7 @@ class RateLimitedAuditLoggerTest extends TestCase
     /** @var array<array{path: string, original: mixed, masked: mixed}> */
     private array $logStorage;
 
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -26,6 +27,7 @@ class RateLimitedAuditLoggerTest extends TestCase
         RateLimiter::clearAll();
     }
 
+    #[\Override]
     protected function tearDown(): void
     {
         RateLimiter::clearAll();
@@ -143,7 +145,10 @@ class RateLimitedAuditLoggerTest extends TestCase
         }
 
         // Should have 50 successful logs + some rate limit warnings
-        $successfulLogs = array_filter($this->logStorage, fn($log) => $log['path'] !== 'rate_limit_exceeded');
+        $successfulLogs = array_filter(
+            $this->logStorage,
+            fn(array $log): bool => $log['path'] !== 'rate_limit_exceeded'
+        );
         $this->assertCount(50, $successfulLogs);
     }
 

@@ -28,13 +28,23 @@ class FieldPathMaskingStrategy extends AbstractMaskingStrategy
         int $priority = 80
     ) {
         parent::__construct($priority, [
-            'field_configs' => array_map(fn($config) => $config instanceof FieldMaskConfig ? $config->toArray() : $config, $fieldConfigs),
+            'field_configs' => array_map(
+                /**
+                 * @return (null|string)[]|string
+                 *
+                 * @psalm-return array{type: string, replacement: null|string}|string
+                 */
+                fn(FieldMaskConfig|string $config): array|string => $config instanceof FieldMaskConfig
+                    ? $config->toArray() : $config,
+                $fieldConfigs
+            ),
         ]);
     }
 
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function mask(mixed $value, string $path, LogRecord $logRecord): mixed
     {
         $config = $this->getConfigForPath($path);
@@ -58,6 +68,7 @@ class FieldPathMaskingStrategy extends AbstractMaskingStrategy
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
     {
         return $this->getConfigForPath($path) !== null;
@@ -66,6 +77,7 @@ class FieldPathMaskingStrategy extends AbstractMaskingStrategy
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getName(): string
     {
         $configCount = count($this->fieldConfigs);
@@ -75,6 +87,7 @@ class FieldPathMaskingStrategy extends AbstractMaskingStrategy
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function validate(): bool
     {
         if ($this->fieldConfigs === []) {
@@ -83,10 +96,12 @@ class FieldPathMaskingStrategy extends AbstractMaskingStrategy
 
         // Validate each configuration
         foreach ($this->fieldConfigs as $path => $config) {
+            /** @psalm-suppress DocblockTypeContradiction - Runtime validation for defensive programming */
             if (!is_string($path) || ($path === '' || $path === '0')) {
                 return false;
             }
 
+            /** @psalm-suppress DocblockTypeContradiction - Runtime validation for defensive programming */
             if (!($config instanceof FieldMaskConfig) && !is_string($config)) {
                 return false;
             }
@@ -99,6 +114,7 @@ class FieldPathMaskingStrategy extends AbstractMaskingStrategy
                         return false;
                     }
 
+                    /** @psalm-suppress ArgumentTypeCoercion - Pattern checked for null above */
                     $testResult = @preg_match($pattern, '');
                     if ($testResult === false) {
                         return false;
@@ -189,6 +205,7 @@ class FieldPathMaskingStrategy extends AbstractMaskingStrategy
 
                 $replacement = $config->getReplacement() ?? '***MASKED***';
 
+                /** @psalm-suppress ArgumentTypeCoercion - Pattern validated during construction */
                 $result = preg_replace($pattern, $replacement, $stringValue);
                 if ($result === null) {
                     throw MaskingOperationFailedException::fieldPathMaskingFailed(

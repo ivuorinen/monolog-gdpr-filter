@@ -27,7 +27,7 @@ class GdprServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__ . '/../../config/gdpr.php', 'gdpr');
 
-        $this->app->singleton('gdpr.processor', function (Application $app) {
+        $this->app->singleton('gdpr.processor', function (Application $app): GdprProcessor {
             $config = $app->make('config')->get('gdpr', []);
 
             $patterns = $config['patterns'] ?? GdprProcessor::getDefaultPatterns();

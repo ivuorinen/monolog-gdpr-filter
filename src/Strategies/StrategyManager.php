@@ -91,10 +91,11 @@ class StrategyManager
      */
     public function removeStrategiesByClass(string $className): int
     {
+        /** @var int<0, max> $removed */
         $removed = 0;
         $this->strategies = array_filter(
             $this->strategies,
-            function ($strategy) use ($className, &$removed) {
+            function (MaskingStrategyInterface $strategy) use ($className, &$removed): bool {
                 if ($strategy instanceof $className) {
                     $removed++;
                     return false;
@@ -228,7 +229,7 @@ class StrategyManager
     {
         if ($this->needsSorting || $this->sortedStrategies === []) {
             $this->sortedStrategies = $this->strategies;
-            usort($this->sortedStrategies, fn($a, $b) => $b->getPriority() <=> $a->getPriority());
+            usort($this->sortedStrategies, fn($a, $b): int => $b->getPriority() <=> $a->getPriority());
             $this->needsSorting = false;
         }
 

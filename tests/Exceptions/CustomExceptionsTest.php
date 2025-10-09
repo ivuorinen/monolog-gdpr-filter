@@ -68,7 +68,10 @@ class CustomExceptionsTest extends TestCase
         $exception = InvalidRegexPatternException::redosVulnerable('/(a+)+$/', 'Catastrophic backtracking');
 
         $this->assertStringContainsString("Invalid regex pattern '/(a+)+$/'", $exception->getMessage());
-        $this->assertStringContainsString('Potential ReDoS vulnerability: Catastrophic backtracking', $exception->getMessage());
+        $this->assertStringContainsString(
+            'Potential ReDoS vulnerability: Catastrophic backtracking',
+            $exception->getMessage()
+        );
     }
 
     public function testInvalidRegexPatternExceptionPcreErrorMessages(): void
@@ -105,7 +108,11 @@ class CustomExceptionsTest extends TestCase
 
     public function testMaskingOperationFailedExceptionFieldPathMasking(): void
     {
-        $exception = MaskingOperationFailedException::fieldPathMaskingFailed('user.email', 'test@example.com', 'Invalid configuration');
+        $exception = MaskingOperationFailedException::fieldPathMaskingFailed(
+            'user.email',
+            'test@example.com',
+            'Invalid configuration'
+        );
 
         $this->assertStringContainsString("Field path masking failed for path 'user.email'", $exception->getMessage());
         $this->assertStringContainsString('Invalid configuration', $exception->getMessage());
@@ -115,9 +122,16 @@ class CustomExceptionsTest extends TestCase
 
     public function testMaskingOperationFailedExceptionCustomCallback(): void
     {
-        $exception = MaskingOperationFailedException::customCallbackFailed('user.name', ['John', 'Doe'], 'Callback threw exception');
+        $exception = MaskingOperationFailedException::customCallbackFailed(
+            'user.name',
+            ['John', 'Doe'],
+            'Callback threw exception'
+        );
 
-        $this->assertStringContainsString("Custom callback masking failed for path 'user.name'", $exception->getMessage());
+        $this->assertStringContainsString(
+            "Custom callback masking failed for path 'user.name'",
+            $exception->getMessage()
+        );
         $this->assertStringContainsString('Callback threw exception', $exception->getMessage());
         $this->assertStringContainsString('operation_type: "custom_callback"', $exception->getMessage());
         $this->assertStringContainsString('value_type: "array"', $exception->getMessage());
@@ -125,7 +139,11 @@ class CustomExceptionsTest extends TestCase
 
     public function testMaskingOperationFailedExceptionDataTypeMasking(): void
     {
-        $exception = MaskingOperationFailedException::dataTypeMaskingFailed('integer', 'not an integer', 'Type mismatch');
+        $exception = MaskingOperationFailedException::dataTypeMaskingFailed(
+            'integer',
+            'not an integer',
+            'Type mismatch'
+        );
 
         $this->assertStringContainsString("Data type masking failed for type 'integer'", $exception->getMessage());
         $this->assertStringContainsString('Type mismatch', $exception->getMessage());
@@ -135,7 +153,11 @@ class CustomExceptionsTest extends TestCase
 
     public function testMaskingOperationFailedExceptionJsonMasking(): void
     {
-        $exception = MaskingOperationFailedException::jsonMaskingFailed('{"invalid": json}', 'Malformed JSON', JSON_ERROR_SYNTAX);
+        $exception = MaskingOperationFailedException::jsonMaskingFailed(
+            '{"invalid": json}',
+            'Malformed JSON',
+            JSON_ERROR_SYNTAX
+        );
 
         $this->assertStringContainsString('JSON masking failed: Malformed JSON', $exception->getMessage());
         $this->assertStringContainsString('operation_type: "json_masking"', $exception->getMessage());
@@ -157,9 +179,17 @@ class CustomExceptionsTest extends TestCase
 
     public function testAuditLoggingExceptionCallbackFailed(): void
     {
-        $exception = AuditLoggingException::callbackFailed('user.email', 'original@example.com', 'masked@example.com', 'Logger unavailable');
+        $exception = AuditLoggingException::callbackFailed(
+            'user.email',
+            'original@example.com',
+            'masked@example.com',
+            'Logger unavailable'
+        );
 
-        $this->assertStringContainsString("Audit logging callback failed for path 'user.email'", $exception->getMessage());
+        $this->assertStringContainsString(
+            "Audit logging callback failed for path 'user.email'",
+            $exception->getMessage()
+        );
         $this->assertStringContainsString('Logger unavailable', $exception->getMessage());
         $this->assertStringContainsString('audit_type: "callback_failure"', $exception->getMessage());
         $this->assertStringContainsString('original_type: "string"', $exception->getMessage());
@@ -168,9 +198,16 @@ class CustomExceptionsTest extends TestCase
 
     public function testAuditLoggingExceptionSerializationFailed(): void
     {
-        $exception = AuditLoggingException::serializationFailed('user.data', ['circular' => 'reference'], 'Circular reference detected');
+        $exception = AuditLoggingException::serializationFailed(
+            'user.data',
+            ['circular' => 'reference'],
+            'Circular reference detected'
+        );
 
-        $this->assertStringContainsString("Audit data serialization failed for path 'user.data'", $exception->getMessage());
+        $this->assertStringContainsString(
+            "Audit data serialization failed for path 'user.data'",
+            $exception->getMessage()
+        );
         $this->assertStringContainsString('Circular reference detected', $exception->getMessage());
         $this->assertStringContainsString('audit_type: "serialization_failure"', $exception->getMessage());
     }
@@ -179,7 +216,10 @@ class CustomExceptionsTest extends TestCase
     {
         $exception = AuditLoggingException::rateLimitingFailed('general_operations', 55, 50, 'Rate limit exceeded');
 
-        $this->assertStringContainsString("Rate-limited audit logging failed for operation 'general_operations'", $exception->getMessage());
+        $this->assertStringContainsString(
+            "Rate-limited audit logging failed for operation 'general_operations'",
+            $exception->getMessage()
+        );
         $this->assertStringContainsString('Rate limit exceeded', $exception->getMessage());
         $this->assertStringContainsString('current_requests: 55', $exception->getMessage());
         $this->assertStringContainsString('max_requests: 50', $exception->getMessage());
@@ -190,8 +230,14 @@ class CustomExceptionsTest extends TestCase
         $config = ['invalid_key' => 'invalid_value'];
         $exception = AuditLoggingException::invalidConfiguration('Missing required key', $config);
 
-        $this->assertStringContainsString('Invalid audit logger configuration: Missing required key', $exception->getMessage());
-        $this->assertStringContainsString('audit_type: "configuration_error"', $exception->getMessage());
+        $this->assertStringContainsString(
+            'Invalid audit logger configuration: Missing required key',
+            $exception->getMessage()
+        );
+        $this->assertStringContainsString(
+            'audit_type: "configuration_error"',
+            $exception->getMessage()
+        );
         $this->assertStringContainsString('config:', $exception->getMessage());
     }
 
@@ -199,7 +245,10 @@ class CustomExceptionsTest extends TestCase
     {
         $exception = AuditLoggingException::loggerCreationFailed('file_logger', 'Directory not writable');
 
-        $this->assertStringContainsString("Audit logger creation failed for type 'file_logger'", $exception->getMessage());
+        $this->assertStringContainsString(
+            "Audit logger creation failed for type 'file_logger'",
+            $exception->getMessage()
+        );
         $this->assertStringContainsString('Directory not writable', $exception->getMessage());
         $this->assertStringContainsString('audit_type: "logger_creation_failure"', $exception->getMessage());
     }
@@ -208,7 +257,10 @@ class CustomExceptionsTest extends TestCase
     {
         $exception = RecursionDepthExceededException::depthExceeded(105, 100, 'user.deep.nested.field');
 
-        $this->assertStringContainsString('Maximum recursion depth of 100 exceeded (current: 105)', $exception->getMessage());
+        $this->assertStringContainsString(
+            'Maximum recursion depth of 100 exceeded (current: 105)',
+            $exception->getMessage()
+        );
         $this->assertStringContainsString("at path 'user.deep.nested.field'", $exception->getMessage());
         $this->assertStringContainsString('error_type: "depth_exceeded"', $exception->getMessage());
         $this->assertStringContainsString('current_depth: 105', $exception->getMessage());
@@ -219,7 +271,10 @@ class CustomExceptionsTest extends TestCase
     {
         $exception = RecursionDepthExceededException::circularReferenceDetected('user.self_reference', 50, 100);
 
-        $this->assertStringContainsString("Potential circular reference detected at path 'user.self_reference'", $exception->getMessage());
+        $this->assertStringContainsString(
+            "Potential circular reference detected at path 'user.self_reference'",
+            $exception->getMessage()
+        );
         $this->assertStringContainsString('depth: 50/100', $exception->getMessage());
         $this->assertStringContainsString('error_type: "circular_reference"', $exception->getMessage());
     }
@@ -228,7 +283,10 @@ class CustomExceptionsTest extends TestCase
     {
         $exception = RecursionDepthExceededException::extremeNesting('array', 95, 100, 'data.nested.array');
 
-        $this->assertStringContainsString("Extremely deep nesting detected in array at path 'data.nested.array'", $exception->getMessage());
+        $this->assertStringContainsString(
+            "Extremely deep nesting detected in array at path 'data.nested.array'",
+            $exception->getMessage()
+        );
         $this->assertStringContainsString('depth: 95/100', $exception->getMessage());
         $this->assertStringContainsString('error_type: "extreme_nesting"', $exception->getMessage());
         $this->assertStringContainsString('data_type: "array"', $exception->getMessage());
@@ -238,7 +296,10 @@ class CustomExceptionsTest extends TestCase
     {
         $exception = RecursionDepthExceededException::invalidDepthConfiguration(-5, 'Depth cannot be negative');
 
-        $this->assertStringContainsString('Invalid recursion depth configuration: -5 (Depth cannot be negative)', $exception->getMessage());
+        $this->assertStringContainsString(
+            'Invalid recursion depth configuration: -5 (Depth cannot be negative)',
+            $exception->getMessage()
+        );
         $this->assertStringContainsString('error_type: "invalid_configuration"', $exception->getMessage());
         $this->assertStringContainsString('invalid_depth: -5', $exception->getMessage());
     }
@@ -287,6 +348,6 @@ class CustomExceptionsTest extends TestCase
         $gdprException = InvalidRegexPatternException::forPattern('/test/', 'Invalid pattern', 0, $originalException);
 
         $this->assertSame($originalException, $gdprException->getPrevious());
-        $this->assertSame('Original error', $gdprException->getPrevious()?->getMessage());
+        $this->assertSame('Original error', $gdprException->getPrevious()->getMessage());
     }
 }

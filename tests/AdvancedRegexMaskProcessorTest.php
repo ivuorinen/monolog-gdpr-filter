@@ -20,6 +20,7 @@ class AdvancedRegexMaskProcessorTest extends TestCase
 
     private GdprProcessor $processor;
 
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();

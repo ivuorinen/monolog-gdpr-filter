@@ -44,6 +44,7 @@ class RegexMaskingStrategy extends AbstractMaskingStrategy
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function mask(mixed $value, string $path, LogRecord $logRecord): mixed
     {
         try {
@@ -63,6 +64,7 @@ class RegexMaskingStrategy extends AbstractMaskingStrategy
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
     {
         // Check exclude paths first
@@ -99,6 +101,7 @@ class RegexMaskingStrategy extends AbstractMaskingStrategy
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getName(): string
     {
         $patternCount = count($this->patterns);
@@ -108,6 +111,7 @@ class RegexMaskingStrategy extends AbstractMaskingStrategy
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function validate(): bool
     {
         if ($this->patterns === []) {
@@ -135,6 +139,7 @@ class RegexMaskingStrategy extends AbstractMaskingStrategy
 
         foreach ($this->patterns as $pattern => $replacement) {
             try {
+                /** @psalm-suppress ArgumentTypeCoercion - Pattern validated during construction */
                 $processedResult = preg_replace($pattern, $replacement, $result);
 
                 if ($processedResult === null) {
@@ -169,6 +174,7 @@ class RegexMaskingStrategy extends AbstractMaskingStrategy
     {
         foreach (array_keys($this->patterns) as $pattern) {
             try {
+                /** @psalm-suppress ArgumentTypeCoercion - Pattern validated during construction */
                 if (preg_match($pattern, $value) === 1) {
                     return true;
                 }
@@ -203,6 +209,7 @@ class RegexMaskingStrategy extends AbstractMaskingStrategy
     private function validateSinglePattern(string $pattern): void
     {
         // Test pattern compilation by attempting a match
+        /** @psalm-suppress ArgumentTypeCoercion - Pattern validated during construction */
         $testResult = @preg_match($pattern, '');
 
         if ($testResult === false) {
@@ -229,10 +236,14 @@ class RegexMaskingStrategy extends AbstractMaskingStrategy
     {
         // Look for common ReDoS patterns
         $riskyPatterns = [
-            '/\([^)]*\+[^)]*\)[*+]/',           // (x+)+
-            '/\([^)]*\*[^)]*\)[*+]/',           // (x*)+
+            '/\([^)]*\+[^)]*\)[*+]/',           // (x+)+ or (x+)*
+            '/\([^)]*\*[^)]*\)[*+]/',           // (x*)+ or (x*)*
             '/\([^)]*\+[^)]*\)\{[0-9,]+\}/',    // (x+){n,m}
             '/\([^)]*\*[^)]*\)\{[0-9,]+\}/',    // (x*){n,m}
+            '/\(\.\*\s*\|\s*\.\*\)/',           // (.*|.*) - identical alternations
+            '/\(\.\+\s*\|\s*\.\+\)/',           // (.+|.+) - identical alternations
+            '/\([a-zA-Z0-9]+(\s*\|\s*[a-zA-Z0-9]+){2,}\)\*/', // Multiple overlapping alternations with *
+            '/\([a-zA-Z0-9]+(\s*\|\s*[a-zA-Z0-9]+){2,}\)\+/', // Multiple overlapping alternations with +
         ];
 
         foreach ($riskyPatterns as $riskyPattern) {

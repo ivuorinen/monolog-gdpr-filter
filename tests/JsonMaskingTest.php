@@ -63,7 +63,8 @@ class JsonMaskingTest extends TestCase
             '/\b\d{3}-\d{2}-\d{4}\b/' => '***SSN***'
         ]);
 
-        $message = 'Complex data: {"user": {"contact": {"email": "nested@example.com", "ssn": "123-45-6789"}, "id": 42}}';
+        $message = 'Complex data: {"user": {"contact": '
+            . '{"email": "nested@example.com", "ssn": "123-45-6789"}, "id": 42}}';
         $result = $processor->regExpMessage($message);
 
         $this->assertStringContainsString('***EMAIL***', $result);
@@ -187,7 +188,7 @@ class JsonMaskingTest extends TestCase
         $this->assertStringContainsString('***EMAIL***', $result);
 
         // Should have logged the JSON masking operation
-        $jsonMaskingLogs = array_filter($auditLogs, fn($log) => $log['path'] === 'json_masked');
+        $jsonMaskingLogs = array_filter($auditLogs, fn(array $log): bool => $log['path'] === 'json_masked');
         $this->assertNotEmpty($jsonMaskingLogs);
 
         $jsonLog = reset($jsonMaskingLogs);
@@ -333,7 +334,7 @@ class JsonMaskingTest extends TestCase
         $this->assertStringContainsString('{"valid":true}', $result);
 
         // No error logs should be generated for valid JSON
-        $errorLogs = array_filter($auditLogs, fn($log) => str_contains($log['path'], 'error'));
+        $errorLogs = array_filter($auditLogs, fn(array $log): bool => str_contains($log['path'], 'error'));
         $this->assertEmpty($errorLogs);
     }
 

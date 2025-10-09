@@ -22,8 +22,7 @@ final readonly class FieldMaskConfig
     public function __construct(
         public string $type,
         public ?string $replacement = null
-    ) {
-    }
+    ) {}
 
     /**
      * Create a configuration for field removal.
@@ -178,6 +177,7 @@ final readonly class FieldMaskConfig
 
         try {
             // Test the pattern by attempting to use it
+            /** @psalm-suppress ArgumentTypeCoercion - Pattern validated by caller */
             $result = @preg_match($pattern, '');
 
             // Check if preg_match succeeded (returns 0 or 1) or failed (returns false)

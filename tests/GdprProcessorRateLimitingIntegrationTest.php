@@ -23,6 +23,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
     /** @var array<array{path: string, original: mixed, masked: mixed, timestamp?: int}> */
     private array $auditLogs;
 
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -30,6 +31,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
         RateLimiter::clearAll();
     }
 
+    #[\Override]
     protected function tearDown(): void
     {
         RateLimiter::clearAll();
@@ -136,7 +138,10 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
         $this->assertLessThan(20, count($this->auditLogs)); // Would be 20 without rate limiting (2 per record * 10)
 
         // Should contain rate limit warnings
-        $rateLimitWarnings = array_filter($this->auditLogs, fn($log) => $log['path'] === 'rate_limit_exceeded');
+        $rateLimitWarnings = array_filter(
+            $this->auditLogs,
+            fn(array $log): bool => $log['path'] === 'rate_limit_exceeded'
+        );
         $this->assertGreaterThan(0, count($rateLimitWarnings));
     }
 
@@ -189,7 +194,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
         $this->assertGreaterThan(0, count($this->auditLogs));
 
         // Check for conditional skip logs
-        $conditionalSkips = array_filter($this->auditLogs, fn($log) => $log['path'] === 'conditional_skip');
+        $conditionalSkips = array_filter($this->auditLogs, fn(array $log): bool => $log['path'] === 'conditional_skip');
         $this->assertGreaterThan(0, count($conditionalSkips));
     }
 
@@ -200,7 +205,10 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
 
         $processor = new GdprProcessor(
             ['/test@example\.com/' => '***EMAIL***'], // Add a regex pattern to ensure masking happens
-            ['text' => GdprProcessor::maskWithRegex(), 'number' => '999'], // Use field path masking to generate audit logs
+            [
+                'text' => GdprProcessor::maskWithRegex(),
+                'number' => '999'
+            ], // Use field path masking to generate audit logs
             [],
             $rateLimitedLogger,
             100,
@@ -215,7 +223,10 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
                 Level::Info,
                 "Data type test with test@example.com", // Include regex pattern to trigger audit logs
                 [
-                    'text' => sprintf('String value %d with test@example.com', $i), // This will be masked by field path regex
+                    'text' => sprintf(
+                        'String value %d with test@example.com',
+                        $i
+                    ), // This will be masked by field path regex
                     'number' => $i * 10,
                     'flag' => true
                 ]
@@ -223,7 +234,10 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
 
             $result = $processor($logRecord);
             $this->assertStringContainsString('***EMAIL***', $result->message);
-            $this->assertStringContainsString('***EMAIL***', (string) $result->context['text']); // Field path regex masking
+            $this->assertStringContainsString(
+                '***EMAIL***',
+                (string) $result->context['text']
+            ); // Field path regex masking
             $this->assertEquals('999', $result->context['number']); // Field path static replacement
             $this->assertTrue($result->context['flag']); // Boolean not masked (no field path for it)
         }
