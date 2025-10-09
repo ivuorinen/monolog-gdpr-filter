@@ -43,14 +43,6 @@
       </errorLevel>
     </UndefinedFunction>
 
-    <!-- Allow conditional function definitions for Laravel compatibility -->
-    <DuplicateFunction>
-      <errorLevel type="suppress">
-        <file name="config/gdpr.php" />
-        <file name="stubs/laravel-helpers.php" />
-      </errorLevel>
-    </DuplicateFunction>
-
     <!-- Complex return type issues in GdprProcessor -->
     <InvalidReturnType>
       <errorLevel type="suppress">

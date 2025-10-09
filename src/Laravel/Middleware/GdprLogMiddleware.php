@@ -15,28 +15,6 @@ use Illuminate\Support\Facades\Log;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 
 /**
- * Import Laravel helper functions
- */
-
-if (!function_exists('config')) {
-    /**
-     * Get / set the specified configuration value.
-     *
-     * @param string $key
-     * @param mixed $default
-     * @return mixed
-     */
-    function config(string $key, mixed $default = null): mixed
-    {
-        if (\app()->bound('config')) {
-            return \app('config')->get($key, $default);
-        }
-
-        return $default;
-    }
-}
-
-/**
  * Middleware for GDPR-compliant request/response logging.
  *
  * This middleware automatically logs HTTP requests and responses
