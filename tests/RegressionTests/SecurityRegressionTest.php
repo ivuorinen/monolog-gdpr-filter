@@ -171,7 +171,7 @@ class SecurityRegressionTest extends TestCase
                     /**
                      * @return never
                      */
-                    function (LogRecord $record) use ($sensitiveMessage) {
+                    function (LogRecord $record) use ($sensitiveMessage): void {
                         throw new RuntimeException($sensitiveMessage);
                     }
                 ]
@@ -195,6 +195,10 @@ class SecurityRegressionTest extends TestCase
             $this->assertNotEmpty($errorLogs, 'Error should be logged in audit');
 
             $errorLog = reset($errorLogs);
+            if ($errorLog === false) {
+                $this->fail('Error log entry not found');
+            }
+
             $loggedMessage = $errorLog['masked'];
 
             // Test that error message sanitization works (implementation-dependent)

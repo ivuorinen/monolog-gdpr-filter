@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
-use Rector\Set\ValueObject\LevelSetList;
 use Rector\Set\ValueObject\SetList;
 use Rector\Php82\Rector\Class_\ReadOnlyClassRector;
 use Rector\TypeDeclaration\Rector\Property\TypedPropertyFromStrictConstructorRector;
+use Rector\CodeQuality\Rector\FuncCall\SimplifyRegexPatternRector;
 
 return RectorConfig::configure()
     ->withPaths([
@@ -16,11 +16,10 @@ return RectorConfig::configure()
         __DIR__ . '/config',
     ])
     ->withPhpSets(
-        php82: false, // Disable PHP 8.2 specific changes that might break compatibility
+        php82: true,
     )
     ->withSets([
         // Only use very conservative, safe rule sets
-        LevelSetList::UP_TO_PHP_81, // Conservative PHP version upgrade
         SetList::CODE_QUALITY,      // Safe code quality improvements
         SetList::TYPE_DECLARATION,  // Type declarations (generally safe)
     ])
@@ -32,6 +31,9 @@ return RectorConfig::configure()
 
         // Skip automatic property typing - can break existing flexibility
         TypedPropertyFromStrictConstructorRector::class,
+
+        // Skip regex pattern simplification - can break regex behavior ([0-9] vs \d with unicode)
+        SimplifyRegexPatternRector::class,
 
         // Skip entire directories for certain transformations
         '*/tests/*' => [

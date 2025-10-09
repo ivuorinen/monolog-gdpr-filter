@@ -258,7 +258,7 @@ class ComprehensiveValidationTest extends TestCase
                     /**
                      * @return never
                      */
-                    function (LogRecord $record) use ($sensitiveMessage) {
+                    function (LogRecord $record) use ($sensitiveMessage): void {
                         throw new RuntimeException($sensitiveMessage);
                     }
                 ]
