@@ -251,11 +251,15 @@ class RateLimiter
         }
 
         if ($seconds < 60) {
-            throw new InvalidArgumentException('Cleanup interval must be at least 60 seconds for practical reasons, got: ' . $seconds);
+            throw new InvalidArgumentException(
+                'Cleanup interval must be at least 60 seconds for practical reasons, got: ' . $seconds
+            );
         }
 
         if ($seconds > 604800) { // 1 week max
-            throw new InvalidArgumentException('Cleanup interval cannot exceed 604,800 seconds (1 week) for practical reasons, got: ' . $seconds);
+            throw new InvalidArgumentException(
+                'Cleanup interval cannot exceed 604,800 seconds (1 week) for practical reasons, got: ' . $seconds
+            );
         }
 
         self::$cleanupInterval = $seconds;
@@ -285,7 +289,10 @@ class RateLimiter
         }
 
         if (strlen($key) > 250) {
-            throw new InvalidArgumentException('Rate limiting key cannot exceed 250 characters for memory safety, got length: ' . strlen($key));
+            throw new InvalidArgumentException(
+                'Rate limiting key cannot exceed 250 characters for memory safety, got length: '
+                    . strlen($key)
+            );
         }
 
         // Check for potential problematic characters that could cause issues

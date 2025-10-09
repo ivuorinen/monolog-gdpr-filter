@@ -163,7 +163,10 @@ class GdprProcessor implements ProcessorInterface
     /**
      * Create a simple audit logger that logs to an array (useful for testing).
      *
-     * @param array<array{path: string, original: mixed, masked: mixed}> $logStorage Reference to array for storing logs
+     * @param array<array-key, mixed> $logStorage Reference to array for storing logs
+     * @psalm-param array<array{path: string, original: mixed, masked: mixed}> $logStorage
+     * @psalm-param-out array<array{path: string, original: mixed, masked: mixed, timestamp: int<1, max>}> $logStorage
+     * @phpstan-param-out array<array-key, mixed> $logStorage
      * @param bool $rateLimited Whether to apply rate limiting (default: false for testing)
      *
      *
@@ -377,6 +380,7 @@ class GdprProcessor implements ProcessorInterface
     {
         foreach ($this->patterns as $pattern => $replacement) {
             // Validate pattern key
+            /** @psalm-suppress DocblockTypeContradiction - Runtime validation for defensive programming */
             if (!is_string($pattern)) {
                 throw new InvalidArgumentException(
                     'Pattern keys must be strings, got: ' . gettype($pattern)
@@ -388,6 +392,7 @@ class GdprProcessor implements ProcessorInterface
             }
 
             // Validate replacement value
+            /** @psalm-suppress DocblockTypeContradiction - Runtime validation for defensive programming */
             if (!is_string($replacement)) {
                 throw new InvalidArgumentException(
                     'Pattern replacements must be strings, got: ' . gettype($replacement)
@@ -410,6 +415,7 @@ class GdprProcessor implements ProcessorInterface
     {
         foreach ($this->fieldPaths as $path => $config) {
             // Validate path key
+            /** @psalm-suppress DocblockTypeContradiction - Runtime validation for defensive programming */
             if (!is_string($path)) {
                 throw new InvalidArgumentException(
                     'Field path keys must be strings, got: ' . gettype($path)
@@ -421,6 +427,7 @@ class GdprProcessor implements ProcessorInterface
             }
 
             // Validate config value
+            /** @psalm-suppress DocblockTypeContradiction - Runtime validation for defensive programming */
             if (!($config instanceof FieldMaskConfig) && !is_string($config)) {
                 throw new InvalidArgumentException(
                     'Field path values must be FieldMaskConfig instances or strings, got: ' . gettype($config)
@@ -445,6 +452,7 @@ class GdprProcessor implements ProcessorInterface
     {
         foreach ($this->customCallbacks as $path => $callback) {
             // Validate path key
+            /** @psalm-suppress DocblockTypeContradiction - Runtime validation for defensive programming */
             if (!is_string($path)) {
                 throw new InvalidArgumentException(
                     'Custom callback path keys must be strings, got: ' . gettype($path)
@@ -511,6 +519,7 @@ class GdprProcessor implements ProcessorInterface
 
         foreach ($this->dataTypeMasks as $type => $mask) {
             // Validate type key
+            /** @psalm-suppress DocblockTypeContradiction - Runtime validation for defensive programming */
             if (!is_string($type)) {
                 $typeGot = gettype($type);
                 throw new InvalidArgumentException(
@@ -526,6 +535,7 @@ class GdprProcessor implements ProcessorInterface
             }
 
             // Validate mask value
+            /** @psalm-suppress DocblockTypeContradiction - Runtime validation for defensive programming */
             if (!is_string($mask)) {
                 throw new InvalidArgumentException('Data type mask values must be strings, got: ' . gettype($mask));
             }
@@ -545,6 +555,7 @@ class GdprProcessor implements ProcessorInterface
     {
         foreach ($this->conditionalRules as $ruleName => $callback) {
             // Validate rule name key
+            /** @psalm-suppress DocblockTypeContradiction - Runtime validation for defensive programming */
             if (!is_string($ruleName)) {
                 throw new InvalidArgumentException(
                     'Conditional rule names must be strings, got: ' . gettype($ruleName)
@@ -583,6 +594,7 @@ class GdprProcessor implements ProcessorInterface
      * @param LogRecord $record The log record to process
      * @return LogRecord The processed log record with masked message and context
      */
+    #[\Override]
     public function __invoke(LogRecord $record): LogRecord
     {
         // Check conditional rules first - if any rule returns false, skip masking
@@ -644,7 +656,8 @@ class GdprProcessor implements ProcessorInterface
             } catch (Throwable $e) {
                 // If a rule throws an exception, log it and default to applying masking
                 if ($this->auditLogger !== null) {
-                    $errorMsg = 'Rule error: ' . $this->sanitizeErrorMessage($e->getMessage());
+                    $sanitized = $this->sanitizeErrorMessage($e->getMessage());
+                    $errorMsg = 'Rule error: ' . $sanitized;
                     ($this->auditLogger)('conditional_error', $ruleName, $errorMsg);
                 }
 
@@ -804,10 +817,8 @@ class GdprProcessor implements ProcessorInterface
 
     /**
      * Process a potential JSON candidate string.
-     *
-     * @return null|string
      */
-    private function processJsonCandidate(string $potentialJson): string|null
+    private function processJsonCandidate(string $potentialJson): string
     {
         try {
             // Try to parse as JSON
@@ -840,12 +851,12 @@ class GdprProcessor implements ProcessorInterface
      * @param array<mixed>|string $data The data to encode.
      * @param string $originalJson The original JSON string.
      *
-     * @return false|null|string The encoded JSON string or false on failure.
+     * @return false|string The encoded JSON string or false on failure.
      */
-    private function encodeJsonPreservingEmptyObjects(array|string $data, string $originalJson): string|false|null
+    private function encodeJsonPreservingEmptyObjects(array|string $data, string $originalJson): string|false
     {
         // Handle simple empty cases first
-        if ($data === '' || $data === '0' || $data === []) {
+        if (in_array($data, ['', '0', []], true)) {
             if ($originalJson === '{}') {
                 return '{}';
             }
@@ -869,7 +880,7 @@ class GdprProcessor implements ProcessorInterface
     /**
      * Fix empty arrays that should be empty objects in the encoded JSON.
      */
-    private function fixEmptyObjectsInEncodedJson(string $encoded, string $original): string|null
+    private function fixEmptyObjectsInEncodedJson(string $encoded, string $original): string
     {
         // Count empty objects in original and empty arrays in encoded
         $originalEmptyObjects = substr_count($original, '{}');
@@ -879,7 +890,7 @@ class GdprProcessor implements ProcessorInterface
         if ($originalEmptyObjects > 0 && $encodedEmptyArrays >= $originalEmptyObjects) {
             // Replace empty arrays with empty objects, up to the number we had originally
             for ($i = 0; $i < $originalEmptyObjects; $i++) {
-                $encoded = preg_replace('/\[\]/', '{}', $encoded, 1);
+                $encoded = preg_replace('/\[\]/', '{}', $encoded, 1) ?? $encoded;
             }
         }
 
@@ -952,7 +963,8 @@ class GdprProcessor implements ProcessorInterface
                 $processedFields[] = $path;
             } catch (Throwable $e) {
                 // Log callback error but continue processing
-                $errorMsg = 'Callback failed: ' . $this->sanitizeErrorMessage($e->getMessage());
+                $sanitized = $this->sanitizeErrorMessage($e->getMessage());
+                $errorMsg = 'Callback failed: ' . $sanitized;
                 $this->logAudit($path . '_callback_error', $value, $errorMsg);
                 $processedFields[] = $path;
             }
@@ -1276,6 +1288,15 @@ class GdprProcessor implements ProcessorInterface
             // Legacy dangerous patterns (keeping for backward compatibility)
             '/\(\?.*\*.*\+/',           // (?:...*...)+
             '/\(.*\*.*\).*\*/',         // (...*...).*
+
+            // Overlapping alternation patterns - catastrophic backtracking
+            '/\(\.\*\s*\|\s*\.\*\)/',   // (.*|.*) pattern - identical alternations
+            '/\(\.\+\s*\|\s*\.\+\)/',   // (.+|.+) pattern - identical alternations
+
+            // Multiple alternations with overlapping/expanding strings causing exponential backtracking
+            // Matches patterns like (a|ab|abc|abcd)* where alternatives overlap/extend each other
+            '/\([a-zA-Z0-9]+(\s*\|\s*[a-zA-Z0-9]+){2,}\)\*/',
+            '/\([a-zA-Z0-9]+(\s*\|\s*[a-zA-Z0-9]+){2,}\)\+/',
         ];
 
         foreach ($dangerousPatterns as $dangerousPattern) {
@@ -1328,9 +1349,9 @@ class GdprProcessor implements ProcessorInterface
      *
      * @param string $message The original error message
      *
-     * @return null|string The sanitized error message
+     * @return string The sanitized error message
      */
-    private function sanitizeErrorMessage(string $message): string|null
+    private function sanitizeErrorMessage(string $message): string
     {
         // List of sensitive patterns to remove or mask
         $sensitivePatterns = [
@@ -1366,9 +1387,14 @@ class GdprProcessor implements ProcessorInterface
             '/postgresql:\/\/[^@]*@[\w\.-]+:\d+/i' =>
             'postgresql://***:***@***:***',
 
-            // JWT secrets and other secrets
+            // JWT secrets and other secrets (enhanced to catch more patterns)
             '/secret[_-]?key[=:\s]+\S+/i' => 'secret_key=***',
             '/jwt[_-]?secret[=:\s]+\S+/i' => 'jwt_secret=***',
+            '/\bsuper_secret_\w+/i' => '***SECRET***',
+
+            // Generic secret-like patterns (alphanumeric keys that look sensitive)
+            '/\b[a-z_]*secret[a-z_]*[=:\s]+[\w\d_-]{10,}/i' => 'secret=***',
+            '/\b[a-z_]*key[a-z_]*[=:\s]+[\w\d_-]{10,}/i' => 'key=***',
 
             // IP addresses in internal ranges
             '/\b(?:10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3})\b/' => '***.***.***',
@@ -1377,12 +1403,12 @@ class GdprProcessor implements ProcessorInterface
         $sanitized = $message;
 
         foreach ($sensitivePatterns as $pattern => $replacement) {
-            $sanitized = preg_replace($pattern, $replacement, $sanitized);
+            $sanitized = preg_replace($pattern, $replacement, $sanitized) ?? $sanitized;
         }
 
         // Truncate very long messages to prevent log flooding
-        if (strlen((string) $sanitized) > 500) {
-            return substr((string) $sanitized, 0, 500) . '... (truncated for security)';
+        if (strlen($sanitized) > 500) {
+            return substr($sanitized, 0, 500) . '... (truncated for security)';
         }
 
         return $sanitized;

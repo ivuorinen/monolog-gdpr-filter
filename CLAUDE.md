@@ -100,9 +100,11 @@ The library can be integrated with Laravel in two ways:
 1. **Fix the underlying issue** (preferred approach)
 2. **Refactor code** to avoid the issue pattern
 3. **Use safe automated fixes** via `composer lint:fix` or `./scripts/safe-analyze.sh`
-4. **Ask before suppressing** - Suppression should be used only as an absolute last resort and requires explicit discussion
+4. **Ask before suppressing** - Suppression should be used only as an absolute last resort and requires
+   explicit discussion
 
-**Use the safe analysis script** (`./scripts/safe-analyze.sh`) for comprehensive analysis workflows with backup/restore capabilities.
+**Use the safe analysis script** (`./scripts/safe-analyze.sh`) for comprehensive analysis workflows
+with backup/restore capabilities.
 
 ## Important Notes
 

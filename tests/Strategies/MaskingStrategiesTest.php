@@ -244,17 +244,20 @@ class MaskingStrategiesTest extends TestCase
 
         $logRecord = $this->createLogRecord();
         $this->assertTrue($sensitiveStrategy->shouldApply('string', 'field', $logRecord));
-        $this->assertFalse($sensitiveStrategy->shouldApply(123, 'field', $logRecord)); // Integers not considered sensitive
+        // Integers not considered sensitive
+        $this->assertFalse($sensitiveStrategy->shouldApply(123, 'field', $logRecord));
     }
 
     public function testAbstractMaskingStrategyUtilities(): void
     {
         $strategy = new class extends AbstractMaskingStrategy {
+            #[\Override]
             public function mask(mixed $value, string $path, LogRecord $logRecord): mixed
             {
                 return $this->valueToString($value);
             }
 
+            #[\Override]
             public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
             {
                 return $this->pathMatches($path, 'user.*');
@@ -263,6 +266,7 @@ class MaskingStrategiesTest extends TestCase
             /**
              * @psalm-return 'Test Strategy'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'Test Strategy';
@@ -386,6 +390,7 @@ class MaskingStrategiesTest extends TestCase
 
         // Test validation with invalid strategy (empty patterns)
         $invalidStrategy = new class extends AbstractMaskingStrategy {
+            #[\Override]
             public function mask(mixed $value, string $path, LogRecord $logRecord): mixed
             {
                 return $value;
@@ -394,6 +399,7 @@ class MaskingStrategiesTest extends TestCase
             /**
              * @return false
              */
+            #[\Override]
             public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
             {
                 return false;
@@ -402,6 +408,7 @@ class MaskingStrategiesTest extends TestCase
             /**
              * @psalm-return 'Invalid'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'Invalid';
@@ -410,6 +417,7 @@ class MaskingStrategiesTest extends TestCase
             /**
              * @return false
              */
+            #[\Override]
             public function validate(): bool
             {
                 // Always invalid

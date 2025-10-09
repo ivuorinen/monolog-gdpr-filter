@@ -9,6 +9,7 @@
     "lint": [
       "@lint:tool:ec",
       "@lint:tool:psalm",
+      "@lint:tool:phpstan",
       "@lint:tool:phpcs"
     ],
     "lint:fix": [
@@ -24,6 +25,7 @@
     "lint:tool:ec:fix": "./vendor/bin/ec *.md *.json *.yml *.yaml *.xml *.php --fix",
     "lint:tool:phpcs": "./vendor/bin/phpcs src/ tests/ examples/ config/ rector.php",
     "lint:tool:phpcbf": "./vendor/bin/phpcbf src/ tests/ examples/ config/ rector.php",
+    "lint:tool:phpstan": "./vendor/bin/phpstan analyse --memory-limit=1G",
     "lint:tool:psalm": "./vendor/bin/psalm --show-info=true",
     "lint:tool:psalm:fix": "./vendor/bin/psalm --alter --issues=all",
     "lint:tool:rector": "./vendor/bin/rector"
@@ -47,7 +49,10 @@
   "autoload": {
     "psr-4": {
       "Ivuorinen\\MonologGdprFilter\\": "src/"
-    }
+    },
+    "files": [
+      "stubs/laravel-helpers.php"
+    ]
   },
   "autoload-dev": {
     "psr-4": {

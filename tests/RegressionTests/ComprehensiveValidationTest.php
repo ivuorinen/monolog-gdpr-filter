@@ -43,6 +43,7 @@ class ComprehensiveValidationTest extends TestCase
 
     private array $auditLog;
 
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -122,7 +123,7 @@ class ComprehensiveValidationTest extends TestCase
             error_log('✅ Successfully processed PHP type: ' . $typeName);
         }
 
-        $this->assertCount(count($allPhpTypes), array_filter($allPhpTypes, fn($v) => true));
+        $this->assertCount(count($allPhpTypes), array_filter($allPhpTypes, fn($v): true => true));
     }
 
     /**
@@ -253,7 +254,11 @@ class ComprehensiveValidationTest extends TestCase
                 maxDepth: 100,
                 dataTypeMasks: [],
                 conditionalRules: [
-                    'test_rule' => function (LogRecord $record) use ($sensitiveMessage) {
+                    'test_rule' =>
+                    /**
+                     * @return never
+                     */
+                    function (LogRecord $record) use ($sensitiveMessage) {
                         throw new RuntimeException($sensitiveMessage);
                     }
                 ]
@@ -272,7 +277,7 @@ class ComprehensiveValidationTest extends TestCase
             $this->assertInstanceOf(LogRecord::class, $result);
 
             // Find the error log entry
-            $errorLogs = array_filter($this->auditLog, fn($log) => $log['path'] === 'conditional_error');
+            $errorLogs = array_filter($this->auditLog, fn(array $log): bool => $log['path'] === 'conditional_error');
             $this->assertNotEmpty($errorLogs, 'Error should be logged for scenario: ' . $scenario);
 
             $errorLog = reset($errorLogs);
@@ -438,7 +443,7 @@ class ComprehensiveValidationTest extends TestCase
                 'personal.ssn' => FieldMaskConfig::regexMask('/\d/', '*'),
             ],
             customCallbacks: [
-                'user.email' => fn($email) => '***EMAIL***',
+                'user.email' => fn($email): string => '***EMAIL***',
             ],
             auditLogger: $rateLimitedLogger,
             maxDepth: 100,
@@ -447,7 +452,7 @@ class ComprehensiveValidationTest extends TestCase
                 'string' => '***STRING***',
             ],
             conditionalRules: [
-                'high_level_only' => fn(LogRecord $record) => $record->level->value >= Level::Warning->value,
+                'high_level_only' => fn(LogRecord $record): bool => $record->level->value >= Level::Warning->value,
             ]
         );
 
@@ -514,9 +519,9 @@ class ComprehensiveValidationTest extends TestCase
     /**
      * Helper method to create deeply nested array
      *
-     * @return (((array|string)[]|string)[]|string)[]
+     * @return ((((array|string)[]|string)[]|string)[]|string)[]
      *
-     * @psalm-return array{level?: array{level?: array{level?: array, end?: 'value'}, end?: 'value'}, end?: 'value'}
+     * @psalm-return array{level?: array{level?: array{level?: array{level?: array, end?: 'value'}, end?: 'value'}, end?: 'value'}, end?: 'value'}
      */
     private function createDeepArray(int $depth): array
     {
@@ -527,6 +532,7 @@ class ComprehensiveValidationTest extends TestCase
         return ['level' => $this->createDeepArray($depth - 1)];
     }
 
+    #[\Override]
     protected function tearDown(): void
     {
         // Clean up any static state

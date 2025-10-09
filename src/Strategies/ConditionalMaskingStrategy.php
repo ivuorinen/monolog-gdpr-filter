@@ -41,6 +41,7 @@ class ConditionalMaskingStrategy extends AbstractMaskingStrategy
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function mask(mixed $value, string $path, LogRecord $logRecord): mixed
     {
         // This should only be called if shouldApply returned true
@@ -59,6 +60,7 @@ class ConditionalMaskingStrategy extends AbstractMaskingStrategy
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
     {
         // First check if conditions are met
@@ -73,6 +75,7 @@ class ConditionalMaskingStrategy extends AbstractMaskingStrategy
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getName(): string
     {
         $conditionCount = count($this->conditions);
@@ -83,6 +86,7 @@ class ConditionalMaskingStrategy extends AbstractMaskingStrategy
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function validate(): bool
     {
         if ($this->conditions === []) {

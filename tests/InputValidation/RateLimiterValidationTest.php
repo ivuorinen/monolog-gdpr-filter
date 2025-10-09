@@ -18,6 +18,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(RateLimiter::class)]
 class RateLimiterValidationTest extends TestCase
 {
+    #[\Override]
     protected function tearDown(): void
     {
         // Clean up static state between tests

@@ -25,9 +25,9 @@ class PerformanceBenchmarkTest extends TestCase
     }
 
     /**
-     * @return ((((array|int|string)[]|int|string)[]|int|string)[]|int|string)[]
+     * @return (((((array|int|string)[]|int|string)[]|int|string)[]|int|string)[]|int|string)[]
      *
-     * @psalm-return array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>
+     * @psalm-return array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>|int<1000, 9999>>
      */
     private function generateLargeNestedArray(int $depth, int $width): array
     {
@@ -82,7 +82,8 @@ class PerformanceBenchmarkTest extends TestCase
         $this->assertLessThan(1000, $memoryUsed, 'Memory usage should be under 1MB for 100 operations');
 
         // Performance metrics captured in assertions above
-        // Benchmark results: {$iterations} iterations, {$duration}ms total, {$avgTimePerOperation}ms avg, {$memoryUsed}KB memory
+        // Benchmark results: {$iterations} iterations, {$duration}ms total,
+        //  {$avgTimePerOperation}ms avg, {$memoryUsed}KB memory
     }
 
     public function testRecursiveMaskPerformanceWithDepthLimit(): void
@@ -116,7 +117,11 @@ class PerformanceBenchmarkTest extends TestCase
             $duration = ($endTime - $startTime) * 1000;
 
             // Should complete quickly even with deep nesting due to depth limiting
-            $this->assertLessThan(100, $duration, 'Processing should complete in under 100ms with depth limit ' . $maxDepth);
+            $this->assertLessThan(
+                100,
+                $duration,
+                'Processing should complete in under 100ms with depth limit ' . $maxDepth
+            );
             $this->assertInstanceOf(LogRecord::class, $result);
 
             // Performance: Depth limit {$maxDepth}: {$duration}ms
@@ -210,7 +215,11 @@ class PerformanceBenchmarkTest extends TestCase
 
         // Performance should be consistent after caching
         $variationPercent = abs(($thirdRunTime - $secondRunTime) / $secondRunTime) * 100;
-        $this->assertLessThan(20, $variationPercent, 'Cached performance should be consistent (less than 20% variation)');
+        $this->assertLessThan(
+            20,
+            $variationPercent,
+            'Cached performance should be consistent (less than 20% variation)'
+        );
     }
 
     public function testMemoryUsageWithGarbageCollection(): void
@@ -350,7 +359,11 @@ class PerformanceBenchmarkTest extends TestCase
         microtime(true);
         for ($i = 0; $i < $iterations; $i++) {
             foreach ($patterns as $pattern => $replacement) {
-                $testMessage = preg_replace($pattern, $replacement, $testMessage) ?? $testMessage;
+                $testMessage = preg_replace(
+                    (string)$pattern,
+                    $replacement,
+                    $testMessage
+                ) ?? $testMessage;
             }
         }
 

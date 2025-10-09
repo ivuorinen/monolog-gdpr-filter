@@ -41,6 +41,7 @@ class DataTypeMaskingStrategy extends AbstractMaskingStrategy
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function mask(mixed $value, string $path, LogRecord $logRecord): mixed
     {
         $type = $this->getValueType($value);
@@ -65,6 +66,7 @@ class DataTypeMaskingStrategy extends AbstractMaskingStrategy
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
     {
         // Check exclude paths first
@@ -97,6 +99,7 @@ class DataTypeMaskingStrategy extends AbstractMaskingStrategy
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getName(): string
     {
         $typeCount = count($this->typeMasks);
@@ -107,6 +110,7 @@ class DataTypeMaskingStrategy extends AbstractMaskingStrategy
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function validate(): bool
     {
         if ($this->typeMasks === []) {
@@ -120,6 +124,7 @@ class DataTypeMaskingStrategy extends AbstractMaskingStrategy
                 return false;
             }
 
+            /** @psalm-suppress DocblockTypeContradiction - Runtime validation for defensive programming */
             if (!is_string($mask)) {
                 return false;
             }

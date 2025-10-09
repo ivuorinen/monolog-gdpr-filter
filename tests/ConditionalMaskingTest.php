@@ -431,7 +431,7 @@ class ConditionalMaskingTest extends TestCase
             /**
              * @return never
              */
-            function (LogRecord $record) {
+            function (LogRecord $record): void {
                 throw new RuntimeException('Rule error');
             };
 

@@ -1,7 +1,5 @@
 <?php
 
-use Monolog\LogRecord;
-
 /**
  * Rate Limiting for Audit Logging Examples
  *
@@ -9,11 +7,14 @@ use Monolog\LogRecord;
  * audit log flooding while maintaining system performance.
  */
 
+declare(strict_types=1);
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 use Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger;
 use Monolog\Logger;
+use Monolog\LogRecord;
 use Monolog\Handler\StreamHandler;
 use Monolog\Level;
 
@@ -67,9 +68,12 @@ $strictLogger = RateLimitedAuditLogger::create($baseLogger2, 'strict');    // 50
 $relaxedLogger = RateLimitedAuditLogger::create($baseLogger2, 'relaxed');  // 200/min
 $testingLogger = RateLimitedAuditLogger::create($baseLogger2, 'testing');  // 1000/min
 
-echo "Strict profile: " . ($strictLogger->isOperationAllowed('general_operations') ? 'Available' : 'Rate limited') . "\n";
-echo "Relaxed profile: " . ($relaxedLogger->isOperationAllowed('general_operations') ? 'Available' : 'Rate limited') . "\n";
-echo "Testing profile: " . ($testingLogger->isOperationAllowed('general_operations') ? 'Available' : 'Rate limited') . "\n\n";
+echo "Strict profile: " . ($strictLogger->isOperationAllowed('general_operations')
+    ? 'Available' : 'Rate limited') . "\n";
+echo "Relaxed profile: " . ($relaxedLogger->isOperationAllowed('general_operations')
+    ? 'Available' : 'Rate limited') . "\n";
+echo "Testing profile: " . ($testingLogger->isOperationAllowed('general_operations')
+    ? 'Available' : 'Rate limited') . "\n\n";
 
 // Example 3: Using GdprProcessor Helper Methods
 echo "=== Example 3: GdprProcessor Helper Methods ===\n";

@@ -68,11 +68,6 @@ trait TestHelpers
         } else {
             $method = new ReflectionMethod($object, $methodName);
         }
-
-        /**
-         * @noinspection PhpExpressionResultUnusedInspection
-         */
-        $method->setAccessible(true);
         return $method;
     }
 

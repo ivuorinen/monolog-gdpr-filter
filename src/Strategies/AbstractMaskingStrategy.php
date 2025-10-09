@@ -32,6 +32,7 @@ abstract class AbstractMaskingStrategy implements MaskingStrategyInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getPriority(): int
     {
         return $this->priority;
@@ -40,6 +41,7 @@ abstract class AbstractMaskingStrategy implements MaskingStrategyInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getConfiguration(): array
     {
         return $this->configuration;
@@ -48,6 +50,7 @@ abstract class AbstractMaskingStrategy implements MaskingStrategyInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function validate(): bool
     {
         // Base validation - can be overridden by concrete implementations

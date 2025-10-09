@@ -43,6 +43,7 @@ class RateLimitedAuditLogger
 
         if ($this->rateLimiter->isAllowed($key)) {
             // Rate limit allows this log entry
+            /** @psalm-suppress RedundantConditionGivenDocblockType - Runtime validation for defensive programming */
             if (is_callable($this->auditLogger)) {
                 ($this->auditLogger)($path, $original, $masked);
             }
@@ -142,14 +143,16 @@ class RateLimitedAuditLogger
         $warningKey = 'warning:' . $key;
 
         // Only log rate limit warnings once per minute per operation type to prevent warning spam
-        if ($warningRateLimiter->isAllowed($warningKey) && is_callable($this->auditLogger)) {
+        /** @psalm-suppress RedundantConditionGivenDocblockType - Runtime validation for defensive programming */
+        if ($warningRateLimiter->isAllowed($warningKey) === true && is_callable($this->auditLogger)) {
+            $statsJson = json_encode($this->rateLimiter->getStats($key));
             ($this->auditLogger)(
                 'rate_limit_exceeded',
                 $path,
                 sprintf(
                     'Audit logging rate limit exceeded for operation type: %s. Stats: %s',
                     $key,
-                    json_encode($this->rateLimiter->getStats($key)) ?: 'N/A'
+                    $statsJson !== false ? $statsJson : 'N/A'
                 )
             );
         }

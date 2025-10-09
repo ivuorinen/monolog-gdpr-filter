@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * Laravel Middleware for GDPR-compliant logging using MonologGdprFilter.
+ * This middleware logs HTTP requests and responses while filtering out sensitive data
+ * according to GDPR guidelines.
+ */
+
 namespace Ivuorinen\MonologGdprFilter\Laravel\Middleware;
 
 use JsonException;
@@ -11,9 +17,23 @@ use Ivuorinen\MonologGdprFilter\GdprProcessor;
 /**
  * Import Laravel helper functions
  */
-function config(string $key, mixed $default = null): mixed
-{
-    return \config($key, $default);
+
+if (!function_exists('config')) {
+    /**
+     * Get / set the specified configuration value.
+     *
+     * @param string $key
+     * @param mixed $default
+     * @return mixed
+     */
+    function config(string $key, mixed $default = null): mixed
+    {
+        if (\app()->bound('config')) {
+            return \app('config')->get($key, $default);
+        }
+
+        return $default;
+    }
 }
 
 /**
