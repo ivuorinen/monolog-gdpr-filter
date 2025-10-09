@@ -6,19 +6,21 @@ namespace Tests\RegressionTests;
 
 use DateTimeImmutable;
 use Generator;
-use InvalidArgumentException;
-use Throwable;
-use RuntimeException;
-use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\Test;
+use Ivuorinen\MonologGdprFilter\DataTypeMasker;
+use Ivuorinen\MonologGdprFilter\Exceptions\InvalidRegexPatternException;
+use Ivuorinen\MonologGdprFilter\GdprProcessor;
+use Ivuorinen\MonologGdprFilter\PatternValidator;
+use Monolog\Level;
+use Monolog\LogRecord;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
-use Monolog\LogRecord;
-use Monolog\Level;
-use Ivuorinen\MonologGdprFilter\GdprProcessor;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use Tests\TestHelpers;
+use RuntimeException;
+use Throwable;
 use Ivuorinen\MonologGdprFilter\RateLimiter;
 use Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger;
-use ReflectionClass;
 use stdClass;
 
 /**
@@ -34,13 +36,15 @@ use stdClass;
 #[CoversClass(RateLimitedAuditLogger::class)]
 class CriticalBugRegressionTest extends TestCase
 {
+    use TestHelpers;
+
     #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
 
         // Clear any static state
-        GdprProcessor::clearPatternCache();
+        PatternValidator::clearCache();
         RateLimiter::clearAll();
     }
 
@@ -55,7 +59,7 @@ class CriticalBugRegressionTest extends TestCase
     #[Test]
     public function dataTypeMaskingAcceptsAllPhpTypes(): void
     {
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             patterns: [],
             fieldPaths: [],
             customCallbacks: [],
@@ -106,7 +110,11 @@ class CriticalBugRegressionTest extends TestCase
             // For types with configured masks, should be masked
             $type = gettype($value);
             if (in_array($type, ['integer', 'double', 'string', 'boolean', 'NULL', 'array', 'object'], true)) {
-                $this->assertNotSame($value, $processedValue, sprintf('Value of type %s should be masked', $type));
+                $this->assertNotSame(
+                    $value,
+                    $processedValue,
+                    sprintf('Value of type %s should be masked', $type)
+                );
             }
         }
     }
@@ -139,21 +147,13 @@ class CriticalBugRegressionTest extends TestCase
     {
         $this->assertSame($expectedType, gettype($value));
 
-        // Use reflection to test the private method directly
-        $reflection = new ReflectionClass(GdprProcessor::class);
-        $method = $reflection->getMethod('applyDataTypeMasking');
-
-        $processor = new GdprProcessor(
-            patterns: [],
-            fieldPaths: [],
-            customCallbacks: [],
-            auditLogger: null,
-            maxDepth: 100,
-            dataTypeMasks: GdprProcessor::getDefaultDataTypeMasks()
+        // Use DataTypeMasker directly to test type masking
+        $masker = new DataTypeMasker(
+            DataTypeMasker::getDefaultMasks()
         );
 
         // This should not throw any exceptions
-        $result = $method->invoke($processor, $value);
+        $result = $masker->applyMasking($value);
 
         // Result should exist (not throw error)
         $this->assertIsNotBool($result); // Just ensure we got some result
@@ -224,10 +224,18 @@ class CriticalBugRegressionTest extends TestCase
         $statsAfter = RateLimiter::getMemoryStats();
 
         // Memory usage should not grow completely unbounded (allow some accumulation before cleanup)
-        $this->assertLessThan(55, $statsAfter['total_keys'], 'Keys should be cleaned up, not accumulate indefinitely');
+        $this->assertLessThan(
+            55,
+            $statsAfter['total_keys'],
+            'Keys should be cleaned up, not accumulate indefinitely'
+        );
 
         // Memory should be reasonable
-        $this->assertLessThan(10000, $statsAfter['estimated_memory_bytes'], 'Memory usage should be bounded');
+        $this->assertLessThan(
+            10000,
+            $statsAfter['estimated_memory_bytes'],
+            'Memory usage should be bounded'
+        );
     }
 
     /**
@@ -240,7 +248,7 @@ class CriticalBugRegressionTest extends TestCase
     public function patternCacheHandlesConcurrentAccess(): void
     {
         // Clear cache first
-        GdprProcessor::clearPatternCache();
+        PatternValidator::clearCache();
 
         // Create multiple processors with same patterns concurrently
         $patterns = [
@@ -251,7 +259,7 @@ class CriticalBugRegressionTest extends TestCase
 
         $processors = [];
         for ($i = 0; $i < 10; $i++) {
-            $processors[] = new GdprProcessor(
+            $processors[] = $this->createProcessor(
                 patterns: $patterns,
                 fieldPaths: [],
                 customCallbacks: [],
@@ -282,7 +290,11 @@ class CriticalBugRegressionTest extends TestCase
         // All results should be identical
         $expectedMessage = $results[0];
         foreach ($results as $result) {
-            $this->assertSame($expectedMessage, $result, 'All processors should produce identical results');
+            $this->assertSame(
+                $expectedMessage,
+                $result,
+                'All processors should produce identical results'
+            );
         }
 
         // Message should be properly masked
@@ -319,12 +331,15 @@ class CriticalBugRegressionTest extends TestCase
             $fullPattern = sprintf('/%s/', $pattern);
 
             try {
-                GdprProcessor::validatePatterns();
+                PatternValidator::validateAll([$fullPattern => 'masked']);
                 // If validation passes, the pattern might be considered safe by the implementation
                 $this->assertTrue(true, 'Pattern validation completed for: ' . $fullPattern);
-            } catch (InvalidArgumentException $e) {
+            } catch (InvalidRegexPatternException $e) {
                 // Expected for definitely dangerous patterns
-                $this->assertStringContainsString('Invalid or unsafe regex pattern', $e->getMessage());
+                $this->assertStringContainsString(
+                    'Pattern failed validation or is potentially unsafe',
+                    $e->getMessage()
+                );
             } catch (Throwable $e) {
                 // Other exceptions are also acceptable for malformed patterns
                 $this->assertInstanceOf(Throwable::class, $e);
@@ -336,12 +351,15 @@ class CriticalBugRegressionTest extends TestCase
             $fullPattern = sprintf('/%s/', $pattern);
 
             try {
-                GdprProcessor::validatePatternsArray([$pattern => 'masked']);
+                PatternValidator::validateAll([$pattern => 'masked']);
                 // These patterns might be allowed by current implementation
                 $this->assertTrue(true, 'Pattern validation completed for: ' . $fullPattern);
-            } catch (InvalidArgumentException $e) {
+            } catch (InvalidRegexPatternException $e) {
                 // Also acceptable if caught
-                $this->assertStringContainsString('Invalid regex pattern', $e->getMessage());
+                $this->assertStringContainsString(
+                    'Pattern failed validation or is potentially unsafe',
+                    $e->getMessage()
+                );
             }
         }
     }
@@ -360,10 +378,10 @@ class CriticalBugRegressionTest extends TestCase
         ];
 
         // Should not throw exceptions for safe patterns
-        GdprProcessor::validatePatternsArray($safePatterns);
+        PatternValidator::validateAll($safePatterns);
 
         // Should be able to create processor with safe patterns
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             patterns: $safePatterns,
             fieldPaths: [],
             customCallbacks: [],
@@ -390,7 +408,7 @@ class CriticalBugRegressionTest extends TestCase
         };
 
         // Create processor with conditional rule that throws exception
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             patterns: [],
             fieldPaths: [],
             customCallbacks: [],
@@ -402,8 +420,10 @@ class CriticalBugRegressionTest extends TestCase
                 /**
                  * @return never
                  */
-                function (LogRecord $record): void {
-                    throw new RuntimeException('Database connection failed: host=sensitive.db.com user=secret_user password=secret123');
+                function (): void {
+                    throw new RuntimeException(
+                        'Database connection failed: host=sensitive.db.com user=secret_user password=secret123'
+                    );
                 }
             ]
         );
@@ -427,6 +447,10 @@ class CriticalBugRegressionTest extends TestCase
 
         // Error message should be generic, not expose system details
         $errorLog = reset($errorLogs);
+        if ($errorLog === false) {
+            $this->fail('Error log entry not found');
+        }
+
         $errorMessage = $errorLog['masked'];
 
         // Should contain generic error info but not sensitive details
@@ -448,7 +472,9 @@ class CriticalBugRegressionTest extends TestCase
 
         // If sensitive info is still present, log a warning for future improvement
         if ($containsSensitiveInfo) {
-            error_log("Warning: Error message sanitization may need improvement: " . $errorMessage);
+            error_log(
+                "Warning: Error message sanitization may need improvement: " . $errorMessage
+            );
         }
 
         // For now, just ensure the error was logged properly
@@ -464,9 +490,10 @@ class CriticalBugRegressionTest extends TestCase
     public function jsonProcessingHasReasonableResourceLimits(): void
     {
         // Create a deeply nested JSON structure
-        $deepJson = '{"level1":{"level2":{"level3":{"level4":{"level5":{"level6":{"level7":{"level8":{"level9":{"level10":"deep_value"}}}}}}}}}}';
+        $deepJson = '{"level1":{"level2":{"level3":{"level4":{"level5":'
+            . '{"level6":{"level7":{"level8":{"level9":{"level10":"deep_value"}}}}}}}}}}';
 
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             patterns: ['/deep_value/' => '***MASKED***'],
             fieldPaths: [],
             customCallbacks: [],
@@ -499,8 +526,16 @@ class CriticalBugRegressionTest extends TestCase
         $processingTime = $endTime - $startTime;
         $memoryIncrease = $endMemory - $startMemory;
 
-        $this->assertLessThan(1.0, $processingTime, 'JSON processing should not take excessive time');
-        $this->assertLessThan(50 * 1024 * 1024, $memoryIncrease, 'JSON processing should not use excessive memory');
+        $this->assertLessThan(
+            1.0,
+            $processingTime,
+            'JSON processing should not take excessive time'
+        );
+        $this->assertLessThan(
+            50 * 1024 * 1024,
+            $memoryIncrease,
+            'JSON processing should not use excessive memory'
+        );
     }
 
     /**
@@ -513,7 +548,11 @@ class CriticalBugRegressionTest extends TestCase
         $largeArray = array_fill(0, 1000, 'test_data_item');
         $largeJson = json_encode($largeArray);
 
-        $processor = new GdprProcessor(
+        if ($largeJson === false) {
+            $this->fail('Failed to create large JSON string for testing');
+        }
+
+        $processor = $this->createProcessor(
             patterns: ['/test_data_item/' => '***ITEM***'],
             fieldPaths: [],
             customCallbacks: [],
@@ -539,14 +578,18 @@ class CriticalBugRegressionTest extends TestCase
         $memoryIncrease = $endMemory - $startMemory;
 
         $this->assertInstanceOf(LogRecord::class, $result);
-        $this->assertLessThan(100 * 1024 * 1024, $memoryIncrease, 'Large JSON processing should not use excessive memory');
+        $this->assertLessThan(
+            100 * 1024 * 1024,
+            $memoryIncrease,
+            'Large JSON processing should not use excessive memory'
+        );
     }
 
     #[\Override]
     protected function tearDown(): void
     {
         // Clean up any static state
-        GdprProcessor::clearPatternCache();
+        PatternValidator::clearCache();
         RateLimiter::clearAll();
 
         parent::tearDown();

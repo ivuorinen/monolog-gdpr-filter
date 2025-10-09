@@ -8,6 +8,7 @@ use Throwable;
 use Monolog\LogRecord;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
 use Ivuorinen\MonologGdprFilter\Exceptions\MaskingOperationFailedException;
+use Ivuorinen\MonologGdprFilter\MaskConstants as Mask;
 
 /**
  * Field path-based masking strategy.
@@ -203,7 +204,7 @@ class FieldPathMaskingStrategy extends AbstractMaskingStrategy
                     );
                 }
 
-                $replacement = $config->getReplacement() ?? '***MASKED***';
+                $replacement = $config->getReplacement() ?? Mask::MASK_MASKED;
 
                 /** @psalm-suppress ArgumentTypeCoercion - Pattern validated during construction */
                 $result = preg_replace($pattern, $replacement, $stringValue);

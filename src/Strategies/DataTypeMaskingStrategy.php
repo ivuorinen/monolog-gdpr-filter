@@ -7,6 +7,7 @@ namespace Ivuorinen\MonologGdprFilter\Strategies;
 use Throwable;
 use Monolog\LogRecord;
 use Ivuorinen\MonologGdprFilter\Exceptions\MaskingOperationFailedException;
+use Ivuorinen\MonologGdprFilter\MaskConstants as Mask;
 
 /**
  * Data type-based masking strategy.
@@ -142,7 +143,7 @@ class DataTypeMaskingStrategy extends AbstractMaskingStrategy
     public static function createDefault(array $customMasks = [], int $priority = 40): self
     {
         $defaultMasks = [
-            'string' => '***STRING***',
+            'string' => Mask::MASK_STRING,
             'integer' => '999',
             'double' => '99.99',
             'boolean' => 'false',
@@ -165,9 +166,9 @@ class DataTypeMaskingStrategy extends AbstractMaskingStrategy
     public static function createSensitiveOnly(array $customMasks = [], int $priority = 40): self
     {
         $sensitiveMasks = [
-            'string' => '***MASKED***',  // Strings often contain sensitive data
-            'array' => '[]',             // Arrays might contain sensitive structured data
-            'object' => '{}',            // Objects might contain sensitive data
+            'string' => Mask::MASK_MASKED,  // Strings often contain sensitive data
+            'array' => '[]',                // Arrays might contain sensitive structured data
+            'object' => '{}',               // Objects might contain sensitive data
         ];
 
         $masks = array_merge($sensitiveMasks, $customMasks);

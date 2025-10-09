@@ -88,6 +88,8 @@ class StrategyManager
      * @param string $className The class name to remove
      *
      * @return int The number of strategies removed
+     *
+     * @psalm-return int<0, max>
      */
     public function removeStrategiesByClass(string $className): int
     {

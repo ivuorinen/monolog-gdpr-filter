@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Strategies;
 
-use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
+use Tests\TestHelpers;
 use Monolog\LogRecord;
 use Monolog\Level;
 use Ivuorinen\MonologGdprFilter\Strategies\ConditionalMaskingStrategy;
@@ -16,23 +16,7 @@ use Ivuorinen\MonologGdprFilter\Strategies\RegexMaskingStrategy;
  */
 final class ConditionalMaskingStrategyEnhancedTest extends TestCase
 {
-    /**
-     * @param array<mixed> $context
-     */
-    private function createLogRecord(
-        string $message = 'Test',
-        Level $level = Level::Info,
-        string $channel = 'test',
-        array $context = []
-    ): LogRecord {
-        return new LogRecord(
-            new DateTimeImmutable(),
-            $channel,
-            $level,
-            $message,
-            $context
-        );
-    }
+    use TestHelpers;
 
     public function testOrLogicWithMultipleConditions(): void
     {
@@ -46,9 +30,9 @@ final class ConditionalMaskingStrategyEnhancedTest extends TestCase
         // OR logic - at least one condition must be true
         $strategy = new ConditionalMaskingStrategy($wrappedStrategy, $conditions, false);
 
-        $errorRecord = $this->createLogRecord(level: Level::Error);
-        $debugRecord = $this->createLogRecord(level: Level::Debug);
-        $infoRecord = $this->createLogRecord(level: Level::Info);
+        $errorRecord = $this->createLogRecord('Test', [], Level::Error);
+        $debugRecord = $this->createLogRecord('Test', [], Level::Debug);
+        $infoRecord = $this->createLogRecord('Test', [], Level::Info);
 
         // Should apply when at least one condition is met
         $this->assertTrue($strategy->shouldApply('secret', 'message', $errorRecord));
@@ -75,8 +59,16 @@ final class ConditionalMaskingStrategyEnhancedTest extends TestCase
         $wrappedStrategy = new RegexMaskingStrategy(['/secret/' => '***MASKED***']);
 
         $conditions = [
-            'always_true' => fn(LogRecord $record): bool => true,
-            'throws_exception' => function (LogRecord $record): bool {
+            'always_true' =>
+            /**
+             * @return true
+             */
+            fn(LogRecord $record): bool => true,
+            'throws_exception' =>
+            /**
+             * @return never
+             */
+            function (LogRecord $record): never {
                 throw new \RuntimeException('Condition failed');
             },
         ];
@@ -95,10 +87,18 @@ final class ConditionalMaskingStrategyEnhancedTest extends TestCase
         $wrappedStrategy = new RegexMaskingStrategy(['/secret/' => '***MASKED***']);
 
         $conditions = [
-            'throws_exception' => function (LogRecord $record): bool {
+            'throws_exception' =>
+            /**
+             * @return never
+             */
+            function (LogRecord $record): never {
                 throw new \RuntimeException('Condition failed');
             },
-            'always_true' => fn(LogRecord $record): bool => true,
+            'always_true' =>
+            /**
+             * @return true
+             */
+            fn(LogRecord $record): bool => true,
         ];
 
         // OR logic - exception ignored, other condition can still pass
@@ -143,10 +143,10 @@ final class ConditionalMaskingStrategyEnhancedTest extends TestCase
             ['Error', 'Warning', 'Critical']
         );
 
-        $errorRecord = $this->createLogRecord(level: Level::Error);
-        $warningRecord = $this->createLogRecord(level: Level::Warning);
-        $criticalRecord = $this->createLogRecord(level: Level::Critical);
-        $infoRecord = $this->createLogRecord(level: Level::Info);
+        $errorRecord = $this->createLogRecord('Test message', [], Level::Error);
+        $warningRecord = $this->createLogRecord('Test message', [], Level::Warning);
+        $criticalRecord = $this->createLogRecord('Test message', [], Level::Critical);
+        $infoRecord = $this->createLogRecord('Test message', [], Level::Info);
 
         $this->assertTrue($strategy->shouldApply('secret', 'message', $errorRecord));
         $this->assertTrue($strategy->shouldApply('secret', 'message', $warningRecord));
@@ -163,9 +163,9 @@ final class ConditionalMaskingStrategyEnhancedTest extends TestCase
             ['security', 'audit', 'admin']
         );
 
-        $securityRecord = $this->createLogRecord(channel: 'security');
-        $auditRecord = $this->createLogRecord(channel: 'audit');
-        $testRecord = $this->createLogRecord(channel: 'test');
+        $securityRecord = $this->createLogRecord('Test message', [], Level::Info, 'security');
+        $auditRecord = $this->createLogRecord('Test message', [], Level::Info, 'audit');
+        $testRecord = $this->createLogRecord('Test message', [], Level::Info, 'test');
 
         $this->assertTrue($strategy->shouldApply('secret', 'message', $securityRecord));
         $this->assertTrue($strategy->shouldApply('secret', 'message', $auditRecord));
@@ -181,9 +181,9 @@ final class ConditionalMaskingStrategyEnhancedTest extends TestCase
             ['env' => 'production', 'sensitive' => true]
         );
 
-        $prodRecord = $this->createLogRecord(context: ['env' => 'production', 'sensitive' => true]);
-        $devRecord = $this->createLogRecord(context: ['env' => 'development', 'sensitive' => true]);
-        $noContextRecord = $this->createLogRecord();
+        $prodRecord = $this->createLogRecord('Test message', ['env' => 'production', 'sensitive' => true]);
+        $devRecord = $this->createLogRecord('Test message', ['env' => 'development', 'sensitive' => true]);
+        $noContextRecord = $this->createLogRecord('Test message');
 
         $this->assertTrue($strategy->shouldApply('secret', 'message', $prodRecord));
         $this->assertFalse($strategy->shouldApply('secret', 'message', $devRecord));

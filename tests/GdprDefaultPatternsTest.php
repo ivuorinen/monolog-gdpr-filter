@@ -7,6 +7,7 @@ use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\TestCase;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
+use Ivuorinen\MonologGdprFilter\DefaultPatterns;
 
 /**
  * GDPR Default Patterns Test
@@ -14,12 +15,12 @@ use Ivuorinen\MonologGdprFilter\GdprProcessor;
  * @api
  */
 #[CoversClass(FieldMaskConfig::class)]
-#[CoversMethod(GdprProcessor::class, 'getDefaultPatterns')]
+#[CoversMethod(DefaultPatterns::class, 'get')]
 class GdprDefaultPatternsTest extends TestCase
 {
     public function testPatternIban(): void
     {
-        $patterns = GdprProcessor::getDefaultPatterns();
+        $patterns = DefaultPatterns::get();
         $processor = new GdprProcessor($patterns);
         // Finnish IBAN with spaces
         $iban = 'FI21 1234 5600 0007 85';
@@ -37,7 +38,7 @@ class GdprDefaultPatternsTest extends TestCase
 
     public function testPatternPhone(): void
     {
-        $patterns = GdprProcessor::getDefaultPatterns();
+        $patterns = DefaultPatterns::get();
         $processor = new GdprProcessor($patterns);
         $phone = '+358 40 1234567';
         $masked = $processor->maskMessage($phone);
@@ -49,7 +50,7 @@ class GdprDefaultPatternsTest extends TestCase
 
     public function testPatternUsSsn(): void
     {
-        $patterns = GdprProcessor::getDefaultPatterns();
+        $patterns = DefaultPatterns::get();
         $processor = new GdprProcessor($patterns);
         $ssn = '123-45-6789';
         $masked = $processor->maskMessage($ssn);
@@ -61,7 +62,7 @@ class GdprDefaultPatternsTest extends TestCase
 
     public function testPatternDob(): void
     {
-        $patterns = GdprProcessor::getDefaultPatterns();
+        $patterns = DefaultPatterns::get();
         $processor = new GdprProcessor($patterns);
         $dob1 = '1990-12-31';
         $dob2 = '31/12/1990';
@@ -76,7 +77,7 @@ class GdprDefaultPatternsTest extends TestCase
 
     public function testPatternPassport(): void
     {
-        $patterns = GdprProcessor::getDefaultPatterns();
+        $patterns = DefaultPatterns::get();
         $processor = new GdprProcessor($patterns);
         $passport = 'A123456';
         $masked = $processor->maskMessage($passport);
@@ -89,7 +90,7 @@ class GdprDefaultPatternsTest extends TestCase
 
     public function testPatternCreditCard(): void
     {
-        $patterns = GdprProcessor::getDefaultPatterns();
+        $patterns = DefaultPatterns::get();
         $processor = new GdprProcessor($patterns);
         $cc1 = '4111 1111 1111 1111'; // Visa
         $cc2 = '5500-0000-0000-0004'; // MasterCard
@@ -110,7 +111,7 @@ class GdprDefaultPatternsTest extends TestCase
 
     public function testPatternBearerToken(): void
     {
-        $patterns = GdprProcessor::getDefaultPatterns();
+        $patterns = DefaultPatterns::get();
         $processor = new GdprProcessor($patterns);
         $token = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
         $masked = $processor->maskMessage($token);
@@ -122,7 +123,7 @@ class GdprDefaultPatternsTest extends TestCase
 
     public function testPatternApiKey(): void
     {
-        $patterns = GdprProcessor::getDefaultPatterns();
+        $patterns = DefaultPatterns::get();
         $processor = new GdprProcessor($patterns);
         $apiKey = 'sk_test_4eC39HqLyjWDarj';
         $masked = $processor->maskMessage($apiKey);
@@ -134,7 +135,7 @@ class GdprDefaultPatternsTest extends TestCase
 
     public function testPatternMac(): void
     {
-        $patterns = GdprProcessor::getDefaultPatterns();
+        $patterns = DefaultPatterns::get();
         $processor = new GdprProcessor($patterns);
         $mac = '00:1A:2B:3C:4D:5E';
         $masked = $processor->maskMessage($mac);

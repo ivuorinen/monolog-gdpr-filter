@@ -7,6 +7,7 @@ namespace Tests\RegressionTests;
 use DateTimeImmutable;
 use Throwable;
 use PHPUnit\Framework\TestCase;
+use Tests\TestHelpers;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Monolog\LogRecord;
@@ -16,6 +17,8 @@ use Ivuorinen\MonologGdprFilter\RateLimiter;
 use Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
 use RuntimeException;
+use Ivuorinen\MonologGdprFilter\DataTypeMasker;
+use Ivuorinen\MonologGdprFilter\PatternValidator;
 use stdClass;
 
 /**
@@ -39,6 +42,8 @@ use stdClass;
 #[CoversClass(RateLimitedAuditLogger::class)]
 class ComprehensiveValidationTest extends TestCase
 {
+    use TestHelpers;
+
     private GdprProcessor $processor;
 
     private array $auditLog;
@@ -49,7 +54,7 @@ class ComprehensiveValidationTest extends TestCase
         parent::setUp();
 
         // Clear any static state before each test
-        GdprProcessor::clearPatternCache();
+        PatternValidator::clearCache();
         RateLimiter::clearAll();
         $this->auditLog = [];
 
@@ -63,13 +68,13 @@ class ComprehensiveValidationTest extends TestCase
             ];
         };
 
-        $this->processor = new GdprProcessor(
+        $this->processor = $this->createProcessor(
             patterns: ['/sensitive/' => '***MASKED***'],
             fieldPaths: [],
             customCallbacks: [],
             auditLogger: $auditLogger,
             maxDepth: 100,
-            dataTypeMasks: GdprProcessor::getDefaultDataTypeMasks()
+            dataTypeMasks: DataTypeMasker::getDefaultMasks()
         );
     }
 
@@ -123,7 +128,10 @@ class ComprehensiveValidationTest extends TestCase
             error_log('✅ Successfully processed PHP type: ' . $typeName);
         }
 
-        $this->assertCount(count($allPhpTypes), array_filter($allPhpTypes, fn($v): true => true));
+        $this->assertCount(
+            count($allPhpTypes),
+            array_filter($allPhpTypes, fn($v): true => true)
+        );
     }
 
     /**
@@ -160,17 +168,37 @@ class ComprehensiveValidationTest extends TestCase
         $cleanupStats = RateLimiter::getMemoryStats();
 
         // Validations
-        $this->assertGreaterThan(0, $initialStats['total_keys'], 'Should have accumulated keys initially');
-        $this->assertGreaterThan(0, $cleanupStats['last_cleanup'], 'Cleanup should have occurred');
+        $this->assertGreaterThan(
+            0,
+            $initialStats['total_keys'],
+            'Should have accumulated keys initially'
+        );
+        $this->assertGreaterThan(
+            0,
+            $cleanupStats['last_cleanup'],
+            'Cleanup should have occurred'
+        );
 
         // Memory should be bounded
         $memoryIncrease = $afterCleanupMemory - $initialMemory;
-        $this->assertLessThan(10 * 1024 * 1024, $memoryIncrease, 'Memory increase should be bounded');
+        $this->assertLessThan(
+            10 * 1024 * 1024,
+            $memoryIncrease,
+            'Memory increase should be bounded'
+        );
 
         // Keys should be cleaned up to some degree
-        $this->assertLessThan(150, $cleanupStats['total_keys'], 'Keys should not accumulate indefinitely');
+        $this->assertLessThan(
+            150,
+            $cleanupStats['total_keys'],
+            'Keys should not accumulate indefinitely'
+        );
 
-        error_log(sprintf('✅ Memory management working: Keys before=%d, after=%d', $initialStats['total_keys'], $cleanupStats['total_keys']));
+        error_log(sprintf(
+            '✅ Memory management working: Keys before=%d, after=%d',
+            $initialStats['total_keys'],
+            $cleanupStats['total_keys']
+        ));
     }
 
     /**
@@ -200,22 +228,38 @@ class ComprehensiveValidationTest extends TestCase
         // Test definitely dangerous patterns
         foreach ($definitelyDangerousPatterns as $pattern => $description) {
             try {
-                GdprProcessor::validatePatternsArray([sprintf('/%s/', $pattern) => 'masked']);
-                error_log(sprintf('⚠️  Pattern not caught: %s (%s)', $pattern, $description));
+                PatternValidator::validateAll([sprintf('/%s/', $pattern) => 'masked']);
+                error_log(sprintf(
+                    '⚠️  Pattern not caught: %s (%s)',
+                    $pattern,
+                    $description
+                ));
             } catch (Throwable) {
                 $caughtCount++;
-                error_log(sprintf('✅ Caught dangerous pattern: %s (%s)', $pattern, $description));
+                error_log(sprintf(
+                    '✅ Caught dangerous pattern: %s (%s)',
+                    $pattern,
+                    $description
+                ));
             }
         }
 
         // Test possibly dangerous patterns (implementation may vary)
         foreach ($possiblyDangerousPatterns as $pattern => $description) {
             try {
-                GdprProcessor::validatePatternsArray([sprintf('/%s/', $pattern) => 'masked']);
-                error_log(sprintf('ℹ️  Pattern allowed: %s (%s)', $pattern, $description));
+                PatternValidator::validateAll([sprintf('/%s/', $pattern) => 'masked']);
+                error_log(sprintf(
+                    'ℹ️  Pattern allowed: %s (%s)',
+                    $pattern,
+                    $description
+                ));
             } catch (Throwable) {
                 $caughtCount++;
-                error_log(sprintf('✅ Caught potentially dangerous pattern: %s (%s)', $pattern, $description));
+                error_log(sprintf(
+                    '✅ Caught potentially dangerous pattern: %s (%s)',
+                    $pattern,
+                    $description
+                ));
             }
         }
 
@@ -244,7 +288,7 @@ class ComprehensiveValidationTest extends TestCase
 
         foreach ($sensitiveScenarios as $scenario => $sensitiveMessage) {
             // Create processor with failing conditional rule
-            $processor = new GdprProcessor(
+            $processor = $this->createProcessor(
                 patterns: [],
                 fieldPaths: [],
                 customCallbacks: [],
@@ -306,7 +350,10 @@ class ComprehensiveValidationTest extends TestCase
             }
 
             if ($sensitiveTermsFound !== []) {
-                error_log(sprintf("⚠️  Scenario '%s': Sensitive terms still present: ", $scenario) . implode(', ', $sensitiveTermsFound));
+                error_log(sprintf(
+                    "⚠️  Scenario '%s': Sensitive terms still present: ",
+                    $scenario
+                ) . implode(', ', $sensitiveTermsFound));
                 error_log('    Full message: ' . $loggedMessage);
             } else {
                 error_log(sprintf("✅ Scenario '%s': No sensitive terms found in sanitized message", $scenario));
@@ -351,7 +398,12 @@ class ComprehensiveValidationTest extends TestCase
         $this->assertIsInt($stats['last_cleanup']);
         $this->assertGreaterThan(0, $stats['cleanup_interval']);
 
-        error_log("✅ Rate limiter statistics: " . json_encode($stats));
+        $json = json_encode($stats);
+        if ($json == false) {
+            $this->fail('RateLimiter::getMemoryStats() returned false');
+        }
+
+        error_log("✅ Rate limiter statistics: " . $json);
     }
 
     /**
@@ -400,13 +452,29 @@ class ComprehensiveValidationTest extends TestCase
                 $processingTime = $endTime - $startTime;
                 $memoryIncrease = $endMemory - $startMemory;
 
-                $this->assertLessThan(5.0, $processingTime, 'Processing time should be reasonable for ' . $name);
-                $this->assertLessThan(100 * 1024 * 1024, $memoryIncrease, 'Memory usage should be reasonable for ' . $name);
+                $this->assertLessThan(
+                    5.0,
+                    $processingTime,
+                    'Processing time should be reasonable for ' . $name
+                );
+                $this->assertLessThan(
+                    100 * 1024 * 1024,
+                    $memoryIncrease,
+                    'Memory usage should be reasonable for ' . $name
+                );
 
-                error_log(sprintf("✅ Safely processed extreme value '%s' in %ss using %d bytes", $name, $processingTime, $memoryIncrease));
+                error_log(sprintf(
+                    "✅ Safely processed extreme value '%s' in %ss using %d bytes",
+                    $name,
+                    $processingTime,
+                    $memoryIncrease
+                ));
             } catch (Throwable $e) {
                 // Some extreme values might cause controlled exceptions
-                error_log(sprintf("ℹ️  Extreme value '%s' caused controlled exception: ", $name) . $e->getMessage());
+                error_log(sprintf(
+                    "ℹ️  Extreme value '%s' caused controlled exception: ",
+                    $name
+                ) . $e->getMessage());
                 $this->assertInstanceOf(Throwable::class, $e);
             }
         }
@@ -424,14 +492,18 @@ class ComprehensiveValidationTest extends TestCase
         // Create rate limited audit logger
         $rateLimitedLogger = new RateLimitedAuditLogger(
             auditLogger: function (string $path, mixed $original, mixed $masked): void {
-                $this->auditLog[] = ['path' => $path, 'original' => $original, 'masked' => $masked];
+                $this->auditLog[] = [
+                    'path' => $path,
+                    'original' => $original,
+                    'masked' => $masked
+                ];
             },
             maxRequestsPerMinute: 100,
             windowSeconds: 60
         );
 
         // Create comprehensive processor
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             patterns: [
                 '/\b\d{3}-\d{2}-\d{4}\b/' => '***SSN***',
                 '/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/' => '***EMAIL***',
@@ -443,7 +515,7 @@ class ComprehensiveValidationTest extends TestCase
                 'personal.ssn' => FieldMaskConfig::regexMask('/\d/', '*'),
             ],
             customCallbacks: [
-                'user.email' => fn($email): string => '***EMAIL***',
+                'user.email' => fn(): string => '***EMAIL***',
             ],
             auditLogger: $rateLimitedLogger,
             maxDepth: 100,
@@ -497,10 +569,22 @@ class ComprehensiveValidationTest extends TestCase
         $this->assertStringContainsString('***SSN***', $result->message);
 
         // Context should be processed according to rules
-        $this->assertArrayNotHasKey('password', $result->context['user']); // Should be removed
-        $this->assertSame('***EMAIL***', $result->context['user']['email']); // Custom callback
-        $this->assertSame('***CARD***', $result->context['payment']['card_number']); // Field replacement
-        $this->assertMatchesRegularExpression('/\*+/', $result->context['personal']['ssn']); // Regex mask
+        $this->assertArrayNotHasKey(
+            'password',
+            $result->context['user']
+        ); // Should be removed
+        $this->assertSame(
+            '***EMAIL***',
+            $result->context['user']['email']
+        ); // Custom callback
+        $this->assertSame(
+            '***CARD***',
+            $result->context['payment']['card_number']
+        ); // Field replacement
+        $this->assertMatchesRegularExpression(
+            '/\*+/',
+            $result->context['personal']['ssn']
+        ); // Regex mask
 
         // Data type masking should be applied
         $this->assertSame('***INT***', $result->context['user']['id']);
@@ -513,15 +597,18 @@ class ComprehensiveValidationTest extends TestCase
         $stats = $rateLimitedLogger->getRateLimitStats();
         $this->assertIsArray($stats);
 
-        error_log("✅ Complete integration test passed with " . count($this->auditLog) . " audit log entries");
+        error_log(
+            "✅ Complete integration test passed with "
+                . count($this->auditLog) . " audit log entries"
+        );
     }
 
     /**
      * Helper method to create deeply nested array
      *
-     * @return ((((array|string)[]|string)[]|string)[]|string)[]
+     * @return ((((((((((((array|string)[]|string)[]|string)[]|string)[]|string)[]|string)[]|string)[]|string)[]|string)[]|string)[]|string)[]|string)[]
      *
-     * @psalm-return array{level?: array{level?: array{level?: array{level?: array, end?: 'value'}, end?: 'value'}, end?: 'value'}, end?: 'value'}
+     * @psalm-return array{level?: array{level?: array{level?: array{level?: array{level?: array{level?: array{level?: array{level?: array{level?: array{level?: array{level?: array{level?: array, end?: 'value'}, end?: 'value'}, end?: 'value'}, end?: 'value'}, end?: 'value'}, end?: 'value'}, end?: 'value'}, end?: 'value'}, end?: 'value'}, end?: 'value'}, end?: 'value'}, end?: 'value'}
      */
     private function createDeepArray(int $depth): array
     {
@@ -536,7 +623,7 @@ class ComprehensiveValidationTest extends TestCase
     protected function tearDown(): void
     {
         // Clean up any static state
-        GdprProcessor::clearPatternCache();
+        PatternValidator::clearCache();
         RateLimiter::clearAll();
 
         // Log final validation summary

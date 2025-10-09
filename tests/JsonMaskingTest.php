@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Tests;
 
 use DateTimeImmutable;
-use PHPUnit\Framework\TestCase;
-use Ivuorinen\MonologGdprFilter\GdprProcessor;
-use Monolog\LogRecord;
+use Ivuorinen\MonologGdprFilter\ConditionalRuleFactory;
 use Monolog\Level;
+use Monolog\LogRecord;
+use PHPUnit\Framework\TestCase;
+use Tests\TestHelpers;
 
 /**
  * Test JSON string masking functionality within log messages.
@@ -17,9 +18,11 @@ use Monolog\Level;
  */
 class JsonMaskingTest extends TestCase
 {
+    use TestHelpers;
+
     public function testSimpleJsonObjectMasking(): void
     {
-        $processor = new GdprProcessor([
+        $processor = $this->createProcessor([
             '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => '***EMAIL***'
         ]);
 
@@ -38,7 +41,7 @@ class JsonMaskingTest extends TestCase
 
     public function testJsonArrayMasking(): void
     {
-        $processor = new GdprProcessor([
+        $processor = $this->createProcessor([
             '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => '***EMAIL***'
         ]);
 
@@ -58,7 +61,7 @@ class JsonMaskingTest extends TestCase
 
     public function testNestedJsonMasking(): void
     {
-        $processor = new GdprProcessor([
+        $processor = $this->createProcessor([
             '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => '***EMAIL***',
             '/\b\d{3}-\d{2}-\d{4}\b/' => '***SSN***'
         ]);
@@ -82,7 +85,7 @@ class JsonMaskingTest extends TestCase
 
     public function testMultipleJsonStringsInMessage(): void
     {
-        $processor = new GdprProcessor([
+        $processor = $this->createProcessor([
             '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => '***EMAIL***'
         ]);
 
@@ -108,7 +111,7 @@ class JsonMaskingTest extends TestCase
 
     public function testInvalidJsonStillGetsMasked(): void
     {
-        $processor = new GdprProcessor([
+        $processor = $this->createProcessor([
             '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => '***EMAIL***'
         ]);
 
@@ -126,7 +129,7 @@ class JsonMaskingTest extends TestCase
 
     public function testJsonWithSpecialCharacters(): void
     {
-        $processor = new GdprProcessor([
+        $processor = $this->createProcessor([
             '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => '***EMAIL***'
         ]);
 
@@ -145,7 +148,7 @@ class JsonMaskingTest extends TestCase
 
     public function testJsonMaskingWithDataTypeMasks(): void
     {
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             ['/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => '***EMAIL***'],
             [],
             [],
@@ -175,7 +178,7 @@ class JsonMaskingTest extends TestCase
             $auditLogs[] = ['path' => $path, 'original' => $original, 'masked' => $masked];
         };
 
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             ['/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => '***EMAIL***'],
             [],
             [],
@@ -198,7 +201,7 @@ class JsonMaskingTest extends TestCase
 
     public function testJsonMaskingInLogRecord(): void
     {
-        $processor = new GdprProcessor([
+        $processor = $this->createProcessor([
             '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => '***EMAIL***'
         ]);
 
@@ -224,7 +227,7 @@ class JsonMaskingTest extends TestCase
 
     public function testJsonMaskingWithConditionalRules(): void
     {
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             ['/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => '***EMAIL***'],
             [],
             [],
@@ -232,7 +235,7 @@ class JsonMaskingTest extends TestCase
             100,
             [],
             [
-                'error_level' => GdprProcessor::createLevelBasedRule(['Error'])
+                'error_level' => ConditionalRuleFactory::createLevelBasedRule(['Error'])
             ]
         );
 
@@ -265,7 +268,7 @@ class JsonMaskingTest extends TestCase
 
     public function testComplexJsonWithArraysAndObjects(): void
     {
-        $processor = new GdprProcessor([
+        $processor = $this->createProcessor([
             '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => '***EMAIL***',
             '/\+1-\d{3}-\d{3}-\d{4}/' => '***PHONE***'
         ]);
@@ -319,7 +322,7 @@ class JsonMaskingTest extends TestCase
             $auditLogs[] = ['path' => $path, 'original' => $original, 'masked' => $masked];
         };
 
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             ['/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => '***EMAIL***'],
             [],
             [],
@@ -388,7 +391,7 @@ class JsonMaskingTest extends TestCase
 
     public function testEmptyJsonHandling(): void
     {
-        $processor = new GdprProcessor([
+        $processor = $this->createProcessor([
             '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => '***EMAIL***'
         ]);
 
@@ -403,7 +406,7 @@ class JsonMaskingTest extends TestCase
 
     public function testJsonWithNullValues(): void
     {
-        $processor = new GdprProcessor([
+        $processor = $this->createProcessor([
             '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => '***EMAIL***'
         ]);
 

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Ivuorinen\MonologGdprFilter;
 
-use InvalidArgumentException;
+use Ivuorinen\MonologGdprFilter\Exceptions\InvalidConfigurationException;
+use Ivuorinen\MonologGdprFilter\Exceptions\InvalidRegexPatternException;
+use Ivuorinen\MonologGdprFilter\MaskConstants as Mask;
 
 /**
  * FieldMaskConfig: configuration for masking/removal per field path.
@@ -43,28 +45,38 @@ final readonly class FieldMaskConfig
     }
 
     /**
+     * Create a configuration that uses the processor's global regex patterns.
+     * This is a shorthand for indicating "apply regex masking from the processor".
+     */
+    public static function useProcessorPatterns(): self
+    {
+        return new self(self::MASK_REGEX);
+    }
+
+    /**
      * Create a configuration for regex-based masking.
      *
      * @param string $pattern The regex pattern
      * @param string $replacement The replacement string (default: '***MASKED***')
      *
-     * @throws InvalidArgumentException When pattern is empty or invalid, or replacement is empty
+     * @throws InvalidConfigurationException|InvalidRegexPatternException When pattern
+     *                           is empty or invalid, or replacement is empty
      */
-    public static function regexMask(string $pattern, string $replacement = '***MASKED***'): self
+    public static function regexMask(string $pattern, string $replacement = Mask::MASK_MASKED): self
     {
         // Validate pattern is not empty
         if (trim($pattern) === '') {
-            throw new InvalidArgumentException('Regex pattern cannot be empty');
+            throw InvalidConfigurationException::emptyValue('regex pattern');
         }
 
         // Validate replacement is not empty
         if (trim($replacement) === '') {
-            throw new InvalidArgumentException('Replacement string cannot be empty');
+            throw InvalidConfigurationException::emptyValue('replacement string');
         }
 
         // Validate regex pattern syntax
         if (!self::isValidRegexPattern($pattern)) {
-            throw new InvalidArgumentException(sprintf("Invalid regex pattern: '%s'", $pattern));
+            throw InvalidRegexPatternException::forPattern($pattern, 'Invalid regex pattern syntax');
         }
 
         return new self(self::MASK_REGEX, $pattern . '::' . $replacement);
@@ -110,7 +122,7 @@ final readonly class FieldMaskConfig
     {
         if ($this->type === self::MASK_REGEX && $this->replacement !== null) {
             $parts = explode('::', $this->replacement, 2);
-            return $parts[1] ?? '***MASKED***';
+            return $parts[1] ?? Mask::MASK_MASKED;
         }
 
         return $this->replacement;
@@ -136,7 +148,7 @@ final readonly class FieldMaskConfig
      *
      * @param array<string, mixed> $data
      *
-     * @throws InvalidArgumentException When data contains invalid values
+     * @throws InvalidConfigurationException|InvalidRegexPatternException When data contains invalid values
      */
     public static function fromArray(array $data): self
     {
@@ -147,8 +159,10 @@ final readonly class FieldMaskConfig
         $validTypes = [self::MASK_REGEX, self::REMOVE, self::REPLACE];
         if (!in_array($type, $validTypes, true)) {
             $validList = implode(', ', $validTypes);
-            throw new InvalidArgumentException(
-                sprintf("Invalid type '%s'. Must be one of: %s", $type, $validList)
+            throw InvalidConfigurationException::forParameter(
+                'type',
+                $type,
+                sprintf("Must be one of: %s", $validList)
             );
         }
 
@@ -158,7 +172,11 @@ final readonly class FieldMaskConfig
             array_key_exists('replacement', $data) &&
             ($replacement === null || trim($replacement) === '')
         ) {
-            throw new InvalidArgumentException('Replacement value cannot be null or empty for REPLACE type');
+            throw InvalidConfigurationException::forParameter(
+                'replacement',
+                null,
+                'Cannot be null or empty for REPLACE type'
+            );
         }
 
         return new self($type, $replacement);

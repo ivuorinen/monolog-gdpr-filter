@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace Tests;
 
 use DateTimeImmutable;
-use RuntimeException;
-use PHPUnit\Framework\TestCase;
+use Ivuorinen\MonologGdprFilter\ConditionalRuleFactory;
+use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 use Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger;
 use Ivuorinen\MonologGdprFilter\RateLimiter;
-use Monolog\LogRecord;
 use Monolog\Level;
+use Monolog\LogRecord;
+use PHPUnit\Framework\TestCase;
+use Tests\TestHelpers;
+use RuntimeException;
 
 /**
  * Integration tests for GDPR processor with rate-limited audit logging.
@@ -20,6 +23,8 @@ use Monolog\Level;
  */
 class GdprProcessorRateLimitingIntegrationTest extends TestCase
 {
+    use TestHelpers;
+
     /** @var array<array{path: string, original: mixed, masked: mixed, timestamp?: int}> */
     private array $auditLogs;
 
@@ -44,7 +49,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
         $baseLogger = GdprProcessor::createArrayAuditLogger($this->auditLogs, false);
         $rateLimitedLogger = GdprProcessor::createRateLimitedAuditLogger($baseLogger, 'testing');
 
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             ['/test@example\.com/' => '***EMAIL***'],
             ['user.email' => 'masked@example.com'], // Add field path masking to generate audit logs
             [],
@@ -76,7 +81,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
         $baseLogger = GdprProcessor::createArrayAuditLogger($this->auditLogs, false);
         $strictAuditLogger = GdprProcessor::createRateLimitedAuditLogger($baseLogger, 'strict');
 
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             ['/test@example\.com/' => '***EMAIL***'],
             [],
             [],
@@ -112,7 +117,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
         $baseLogger = GdprProcessor::createArrayAuditLogger($this->auditLogs, false);
         $rateLimitedLogger = new RateLimitedAuditLogger($baseLogger, 3, 60); // Very restrictive
 
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             ['/test@example\.com/' => '***EMAIL***'],
             ['user.email' => 'user@masked.com'],
             [],
@@ -150,7 +155,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
         $baseLogger = GdprProcessor::createArrayAuditLogger($this->auditLogs, false);
         $rateLimitedLogger = new RateLimitedAuditLogger($baseLogger, 5, 60);
 
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             ['/test@example\.com/' => '***EMAIL***'],
             [],
             [],
@@ -158,7 +163,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
             100,
             [],
             [
-                'error_level' => GdprProcessor::createLevelBasedRule(['Error'])
+                'error_level' => ConditionalRuleFactory::createLevelBasedRule(['Error'])
             ]
         );
 
@@ -203,10 +208,10 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
         $baseLogger = GdprProcessor::createArrayAuditLogger($this->auditLogs, false);
         $rateLimitedLogger = new RateLimitedAuditLogger($baseLogger, 10, 60);
 
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             ['/test@example\.com/' => '***EMAIL***'], // Add a regex pattern to ensure masking happens
             [
-                'text' => GdprProcessor::maskWithRegex(),
+                'text' => FieldMaskConfig::useProcessorPatterns(),
                 'number' => '999'
             ], // Use field path masking to generate audit logs
             [],
@@ -260,7 +265,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
 
         $rateLimitedLogger = new RateLimitedAuditLogger($failingAuditLogger, 2, 60);
 
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             ['/test@example\.com/' => '***EMAIL***'],
             [],
             [],
@@ -268,13 +273,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
         );
 
         // This should not fail even if audit logging has issues
-        $logRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Info,
-            'Message with test@example.com',
-            []
-        );
+        $logRecord = $this->createLogRecord('Message with test@example.com');
 
         // Processing should succeed regardless of audit logger issues
         $result = $processor($logRecord);
@@ -286,7 +285,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
         $baseLogger = GdprProcessor::createArrayAuditLogger($this->auditLogs, false);
         $rateLimitedLogger = RateLimitedAuditLogger::create($baseLogger, 'default');
 
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             ['/test@example\.com/' => '***EMAIL***'],
             ['user.email' => 'user@masked.com'], // Add field path masking to generate more audit logs
             [],

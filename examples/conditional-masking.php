@@ -2,8 +2,6 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use Monolog\LogRecord;
-
 /**
  * Conditional Masking Examples
  *
@@ -11,10 +9,12 @@ use Monolog\LogRecord;
  * to apply GDPR processing only when certain conditions are met.
  */
 
+use Ivuorinen\MonologGdprFilter\ConditionalRuleFactory;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
-use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 use Monolog\Level;
+use Monolog\Logger;
+use Monolog\LogRecord;
 
 // Example 1: Level-based conditional masking
 // Only mask sensitive data in ERROR and CRITICAL logs
@@ -28,7 +28,7 @@ $levelBasedProcessor = new GdprProcessor(
     100,
     [],
     [
-        'error_levels_only' => GdprProcessor::createLevelBasedRule(['Error', 'Critical'])
+        'error_levels_only' => ConditionalRuleFactory::createLevelBasedRule(['Error', 'Critical'])
     ]
 );
 
@@ -53,7 +53,7 @@ $channelBasedProcessor = new GdprProcessor(
     100,
     [],
     [
-        'security_channels' => GdprProcessor::createChannelBasedRule(['security', 'audit'])
+        'security_channels' => ConditionalRuleFactory::createChannelBasedRule(['security', 'audit'])
     ]
 );
 
@@ -82,7 +82,7 @@ $contextBasedProcessor = new GdprProcessor(
     100,
     [],
     [
-        'gdpr_consent_required' => GdprProcessor::createContextFieldRule('user.gdpr_consent')
+        'gdpr_consent_required' => ConditionalRuleFactory::createContextFieldRule('user.gdpr_consent')
     ]
 );
 
@@ -116,7 +116,7 @@ $envBasedProcessor = new GdprProcessor(
     100,
     [],
     [
-        'production_only' => GdprProcessor::createContextValueRule('env', 'production')
+        'production_only' => ConditionalRuleFactory::createContextValueRule('env', 'production')
     ]
 );
 
@@ -150,9 +150,9 @@ $multiRuleProcessor = new GdprProcessor(
     100,
     [],
     [
-        'error_level' => GdprProcessor::createLevelBasedRule(['Error', 'Critical']),
-        'production_env' => GdprProcessor::createContextValueRule('env', 'production'),
-        'security_channel' => GdprProcessor::createChannelBasedRule(['security'])
+        'error_level' => ConditionalRuleFactory::createLevelBasedRule(['Error', 'Critical']),
+        'production_env' => ConditionalRuleFactory::createContextValueRule('env', 'production'),
+        'security_channel' => ConditionalRuleFactory::createChannelBasedRule(['security'])
     ]
 );
 
@@ -233,7 +233,7 @@ $combinedProcessor = new GdprProcessor(
         'string' => '***STRING***'
     ],
     [
-        'error_level' => GdprProcessor::createLevelBasedRule(['Error'])
+        'error_level' => ConditionalRuleFactory::createLevelBasedRule(['Error'])
     ]
 );
 

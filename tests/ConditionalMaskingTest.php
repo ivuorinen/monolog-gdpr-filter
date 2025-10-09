@@ -7,7 +7,7 @@ namespace Tests;
 use DateTimeImmutable;
 use RuntimeException;
 use PHPUnit\Framework\TestCase;
-use Ivuorinen\MonologGdprFilter\GdprProcessor;
+use Ivuorinen\MonologGdprFilter\ConditionalRuleFactory;
 use Monolog\LogRecord;
 use Monolog\Level;
 
@@ -18,17 +18,16 @@ use Monolog\Level;
  */
 class ConditionalMaskingTest extends TestCase
 {
+    use TestHelpers;
+
     public function testNoConditionalRulesAppliesMasking(): void
     {
         // Test with no conditional rules - masking should always be applied
-        $processor = new GdprProcessor([
+        $processor = $this->createProcessor([
             '/test@example\.com/' => '***EMAIL***'
         ]);
 
-        $logRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Info,
+        $logRecord = $this->createLogRecord(
             'Contact test@example.com',
             ['user_id' => 123]
         );
@@ -41,7 +40,7 @@ class ConditionalMaskingTest extends TestCase
     public function testLevelBasedConditionalMasking(): void
     {
         // Create a processor that only masks ERROR and CRITICAL level logs
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             ['/test@example\.com/' => '***EMAIL***'],
             [],
             [],
@@ -49,41 +48,33 @@ class ConditionalMaskingTest extends TestCase
             100,
             [],
             [
-                'error_levels_only' => GdprProcessor::createLevelBasedRule(['Error', 'Critical'])
+                'error_levels_only' => ConditionalRuleFactory::createLevelBasedRule(['Error', 'Critical'])
             ]
         );
 
         // Test ERROR level - should be masked
-        $errorRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Error,
+        $errorRecord = $this->createLogRecord(
             'Error with test@example.com',
-            []
+            [],
+            Level::Error,
+            'test'
         );
 
         $result = $processor($errorRecord);
         $this->assertSame('Error with ***EMAIL***', $result->message);
 
         // Test INFO level - should NOT be masked
-        $infoRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Info,
-            'Info with test@example.com',
-            []
-        );
+        $infoRecord = $this->createLogRecord('Info with test@example.com');
 
         $result = $processor($infoRecord);
         $this->assertSame('Info with test@example.com', $result->message);
 
         // Test CRITICAL level - should be masked
-        $criticalRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Critical,
+        $criticalRecord = $this->createLogRecord(
             'Critical with test@example.com',
-            []
+            [],
+            Level::Critical,
+            'test'
         );
 
         $result = $processor($criticalRecord);
@@ -93,7 +84,7 @@ class ConditionalMaskingTest extends TestCase
     public function testChannelBasedConditionalMasking(): void
     {
         // Create a processor that only masks logs from 'security' and 'audit' channels
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             ['/test@example\.com/' => '***EMAIL***'],
             [],
             [],
@@ -101,41 +92,38 @@ class ConditionalMaskingTest extends TestCase
             100,
             [],
             [
-                'security_channels_only' => GdprProcessor::createChannelBasedRule(['security', 'audit'])
+                'security_channels_only' => ConditionalRuleFactory::createChannelBasedRule(['security', 'audit'])
             ]
         );
 
         // Test security channel - should be masked
-        $securityRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'security',
-            Level::Info,
+        $securityRecord = $this->createLogRecord(
             'Security event with test@example.com',
-            []
+            [],
+            Level::Info,
+            'security'
         );
 
         $result = $processor($securityRecord);
         $this->assertSame('Security event with ***EMAIL***', $result->message);
 
         // Test application channel - should NOT be masked
-        $appRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'application',
-            Level::Info,
+        $appRecord = $this->createLogRecord(
             'App event with test@example.com',
-            []
+            [],
+            Level::Info,
+            'application'
         );
 
         $result = $processor($appRecord);
         $this->assertSame('App event with test@example.com', $result->message);
 
         // Test audit channel - should be masked
-        $auditRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'audit',
-            Level::Info,
+        $auditRecord = $this->createLogRecord(
             'Audit event with test@example.com',
-            []
+            [],
+            Level::Info,
+            'audit'
         );
 
         $result = $processor($auditRecord);
@@ -145,7 +133,7 @@ class ConditionalMaskingTest extends TestCase
     public function testContextFieldPresenceRule(): void
     {
         // Create a processor that only masks when 'sensitive_data' field is present in context
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             ['/test@example\.com/' => '***EMAIL***'],
             [],
             [],
@@ -153,15 +141,12 @@ class ConditionalMaskingTest extends TestCase
             100,
             [],
             [
-                'sensitive_data_present' => GdprProcessor::createContextFieldRule('sensitive_data')
+                'sensitive_data_present' => ConditionalRuleFactory::createContextFieldRule('sensitive_data')
             ]
         );
 
         // Test with sensitive_data field present - should be masked
-        $sensitiveRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Info,
+        $sensitiveRecord = $this->createLogRecord(
             'Message with test@example.com',
             ['sensitive_data' => true, 'user_id' => 123]
         );
@@ -170,10 +155,7 @@ class ConditionalMaskingTest extends TestCase
         $this->assertSame('Message with ***EMAIL***', $result->message);
 
         // Test without sensitive_data field - should NOT be masked
-        $normalRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Info,
+        $normalRecord = $this->createLogRecord(
             'Message with test@example.com',
             ['user_id' => 123]
         );
@@ -185,7 +167,7 @@ class ConditionalMaskingTest extends TestCase
     public function testNestedContextFieldRule(): void
     {
         // Test with nested field path
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             ['/test@example\.com/' => '***EMAIL***'],
             [],
             [],
@@ -193,7 +175,7 @@ class ConditionalMaskingTest extends TestCase
             100,
             [],
             [
-                'user_gdpr_consent' => GdprProcessor::createContextFieldRule('user.gdpr_consent')
+                'user_gdpr_consent' => ConditionalRuleFactory::createContextFieldRule('user.gdpr_consent')
             ]
         );
 
@@ -225,7 +207,7 @@ class ConditionalMaskingTest extends TestCase
     public function testContextValueRule(): void
     {
         // Create a processor that only masks when environment is 'production'
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             ['/test@example\.com/' => '***EMAIL***'],
             [],
             [],
@@ -233,15 +215,12 @@ class ConditionalMaskingTest extends TestCase
             100,
             [],
             [
-                'production_only' => GdprProcessor::createContextValueRule('env', 'production')
+                'production_only' => ConditionalRuleFactory::createContextValueRule('env', 'production')
             ]
         );
 
         // Test with production environment - should be masked
-        $prodRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Info,
+        $prodRecord = $this->createLogRecord(
             'Message with test@example.com',
             ['env' => 'production', 'user_id' => 123]
         );
@@ -250,10 +229,7 @@ class ConditionalMaskingTest extends TestCase
         $this->assertSame('Message with ***EMAIL***', $result->message);
 
         // Test with development environment - should NOT be masked
-        $devRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Info,
+        $devRecord = $this->createLogRecord(
             'Message with test@example.com',
             ['env' => 'development', 'user_id' => 123]
         );
@@ -265,7 +241,7 @@ class ConditionalMaskingTest extends TestCase
     public function testMultipleConditionalRules(): void
     {
         // Create a processor with multiple rules - ALL must be true for masking to occur
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             ['/test@example\.com/' => '***EMAIL***'],
             [],
             [],
@@ -273,55 +249,51 @@ class ConditionalMaskingTest extends TestCase
             100,
             [],
             [
-                'error_level' => GdprProcessor::createLevelBasedRule(['Error', 'Critical']),
-                'production_env' => GdprProcessor::createContextValueRule('env', 'production'),
-                'security_channel' => GdprProcessor::createChannelBasedRule(['security'])
+                'error_level' => ConditionalRuleFactory::createLevelBasedRule(['Error', 'Critical']),
+                'production_env' => ConditionalRuleFactory::createContextValueRule('env', 'production'),
+                'security_channel' => ConditionalRuleFactory::createChannelBasedRule(['security'])
             ]
         );
 
         // Test with all conditions met - should be masked
-        $allConditionsRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'security',
-            Level::Error,
+        $allConditionsRecord = $this->createLogRecord(
             'Security error with test@example.com',
-            ['env' => 'production']
+            ['env' => 'production'],
+            Level::Error,
+            'security'
         );
 
         $result = $processor($allConditionsRecord);
         $this->assertSame('Security error with ***EMAIL***', $result->message);
 
         // Test with missing level condition - should NOT be masked
-        $wrongLevelRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'security',
-            Level::Info,
+        $wrongLevelRecord = $this->createLogRecord(
             'Security info with test@example.com',
-            ['env' => 'production']
+            ['env' => 'production'],
+            Level::Info,
+            'security'
         );
 
         $result = $processor($wrongLevelRecord);
         $this->assertSame('Security info with test@example.com', $result->message);
 
         // Test with missing environment condition - should NOT be masked
-        $wrongEnvRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'security',
-            Level::Error,
+        $wrongEnvRecord = $this->createLogRecord(
             'Security error with test@example.com',
-            ['env' => 'development']
+            ['env' => 'development'],
+            Level::Error,
+            'security'
         );
 
         $result = $processor($wrongEnvRecord);
         $this->assertSame('Security error with test@example.com', $result->message);
 
         // Test with missing channel condition - should NOT be masked
-        $wrongChannelRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'application',
-            Level::Error,
+        $wrongChannelRecord = $this->createLogRecord(
             'Application error with test@example.com',
-            ['env' => 'production']
+            ['env' => 'production'],
+            Level::Error,
+            'application'
         );
 
         $result = $processor($wrongChannelRecord);
@@ -331,9 +303,11 @@ class ConditionalMaskingTest extends TestCase
     public function testCustomConditionalRule(): void
     {
         // Create a custom rule that masks only logs with user_id > 1000
-        $customRule = (fn(LogRecord $record): bool => isset($record->context['user_id']) && $record->context['user_id'] > 1000);
+        $customRule = (
+            fn(LogRecord $record): bool => isset($record->context['user_id']) && $record->context['user_id'] > 1000
+        );
 
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             ['/test@example\.com/' => '***EMAIL***'],
             [],
             [],
@@ -346,10 +320,7 @@ class ConditionalMaskingTest extends TestCase
         );
 
         // Test with user_id > 1000 - should be masked
-        $highUserRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Info,
+        $highUserRecord = $this->createLogRecord(
             'Message with test@example.com',
             ['user_id' => 1001]
         );
@@ -358,10 +329,7 @@ class ConditionalMaskingTest extends TestCase
         $this->assertSame('Message with ***EMAIL***', $result->message);
 
         // Test with user_id <= 1000 - should NOT be masked
-        $lowUserRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Info,
+        $lowUserRecord = $this->createLogRecord(
             'Message with test@example.com',
             ['user_id' => 999]
         );
@@ -370,13 +338,7 @@ class ConditionalMaskingTest extends TestCase
         $this->assertSame('Message with test@example.com', $result->message);
 
         // Test without user_id - should NOT be masked
-        $noUserRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Info,
-            'Message with test@example.com',
-            []
-        );
+        $noUserRecord = $this->createLogRecord('Message with test@example.com');
 
         $result = $processor($noUserRecord);
         $this->assertSame('Message with test@example.com', $result->message);
@@ -389,7 +351,7 @@ class ConditionalMaskingTest extends TestCase
             $auditLogs[] = ['path' => $path, 'original' => $original, 'masked' => $masked];
         };
 
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             ['/test@example\.com/' => '***EMAIL***'],
             [],
             [],
@@ -397,18 +359,12 @@ class ConditionalMaskingTest extends TestCase
             100,
             [],
             [
-                'error_level' => GdprProcessor::createLevelBasedRule(['Error'])
+                'error_level' => ConditionalRuleFactory::createLevelBasedRule(['Error'])
             ]
         );
 
         // Test INFO level - should skip masking and log the skip
-        $infoRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Info,
-            'Info with test@example.com',
-            []
-        );
+        $infoRecord = $this->createLogRecord('Info with test@example.com');
 
         $result = $processor($infoRecord);
 
@@ -435,7 +391,7 @@ class ConditionalMaskingTest extends TestCase
                 throw new RuntimeException('Rule error');
             };
 
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             ['/test@example\.com/' => '***EMAIL***'],
             [],
             [],
@@ -448,13 +404,7 @@ class ConditionalMaskingTest extends TestCase
         );
 
         // Test that exception is caught and masking continues
-        $testRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Info,
-            'Message with test@example.com',
-            []
-        );
+        $testRecord = $this->createLogRecord('Message with test@example.com');
 
         $result = $processor($testRecord);
 
@@ -469,7 +419,7 @@ class ConditionalMaskingTest extends TestCase
     public function testConditionalMaskingWithContextMasking(): void
     {
         // Test that conditional rules work with context field masking too
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             [],
             ['email' => 'email@masked.com'],
             [],
@@ -477,15 +427,12 @@ class ConditionalMaskingTest extends TestCase
             100,
             [],
             [
-                'production_only' => GdprProcessor::createContextValueRule('env', 'production')
+                'production_only' => ConditionalRuleFactory::createContextValueRule('env', 'production')
             ]
         );
 
         // Test with production environment - context should be masked
-        $prodRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Info,
+        $prodRecord = $this->createLogRecord(
             'User login',
             ['env' => 'production', 'email' => 'user@example.com']
         );
@@ -494,10 +441,7 @@ class ConditionalMaskingTest extends TestCase
         $this->assertEquals('email@masked.com', $result->context['email']);
 
         // Test with development environment - context should NOT be masked
-        $devRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Info,
+        $devRecord = $this->createLogRecord(
             'User login',
             ['env' => 'development', 'email' => 'user@example.com']
         );
@@ -509,7 +453,7 @@ class ConditionalMaskingTest extends TestCase
     public function testConditionalMaskingWithDataTypeMasking(): void
     {
         // Test that conditional rules work with data type masking
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             [],
             [],
             [],
@@ -517,17 +461,16 @@ class ConditionalMaskingTest extends TestCase
             100,
             ['integer' => '***INT***'],
             [
-                'error_level' => GdprProcessor::createLevelBasedRule(['Error'])
+                'error_level' => ConditionalRuleFactory::createLevelBasedRule(['Error'])
             ]
         );
 
         // Test with ERROR level - integers should be masked
-        $errorRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Error,
+        $errorRecord = $this->createLogRecord(
             'Error occurred',
-            ['user_id' => 12345, 'count' => 42]
+            ['user_id' => 12345, 'count' => 42],
+            Level::Error,
+            'test'
         );
 
         $result = $processor($errorRecord);
@@ -535,10 +478,7 @@ class ConditionalMaskingTest extends TestCase
         $this->assertEquals('***INT***', $result->context['count']);
 
         // Test with INFO level - integers should NOT be masked
-        $infoRecord = new LogRecord(
-            new DateTimeImmutable(),
-            'test',
-            Level::Info,
+        $infoRecord = $this->createLogRecord(
             'Info message',
             ['user_id' => 12345, 'count' => 42]
         );

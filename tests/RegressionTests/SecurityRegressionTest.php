@@ -8,6 +8,7 @@ use Generator;
 use Throwable;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
+use Tests\TestHelpers;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -17,6 +18,8 @@ use Ivuorinen\MonologGdprFilter\GdprProcessor;
 use Ivuorinen\MonologGdprFilter\RateLimiter;
 use Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
+use Ivuorinen\MonologGdprFilter\PatternValidator;
+use Ivuorinen\MonologGdprFilter\DataTypeMasker;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -41,13 +44,15 @@ use RuntimeException;
 #[CoversClass(FieldMaskConfig::class)]
 class SecurityRegressionTest extends TestCase
 {
+    use TestHelpers;
+
     #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
 
         // Clear any static state
-        GdprProcessor::clearPatternCache();
+        PatternValidator::clearCache();
         RateLimiter::clearAll();
     }
 
@@ -87,12 +92,15 @@ class SecurityRegressionTest extends TestCase
 
         foreach ($redosPatterns as $pattern) {
             try {
-                GdprProcessor::validatePatternsArray([$pattern => 'masked']);
+                PatternValidator::validateAll([$pattern => 'masked']);
                 // If validation passes, log for future improvement but don't fail
                 error_log('Warning: ReDoS pattern not caught by validation: ' . $pattern);
                 $this->assertTrue(true, 'Pattern validation completed for: ' . $pattern);
             } catch (InvalidArgumentException $e) {
-                $this->assertStringContainsString('Invalid regex pattern', $e->getMessage());
+                $this->assertStringContainsString(
+                    'Invalid or unsafe regex pattern',
+                    $e->getMessage()
+                );
             } catch (Throwable $e) {
                 // Other exceptions are acceptable for malformed patterns
                 $this->assertInstanceOf(Throwable::class, $e);
@@ -121,10 +129,10 @@ class SecurityRegressionTest extends TestCase
         ];
 
         // Should not throw exceptions
-        GdprProcessor::validatePatternsArray($legitimatePatterns);
+        PatternValidator::validateAll($legitimatePatterns);
 
         // Should be able to create processor
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             patterns: $legitimatePatterns,
             fieldPaths: [],
             customCallbacks: [],
@@ -159,7 +167,7 @@ class SecurityRegressionTest extends TestCase
                 $auditLog[] = ['path' => $path, 'original' => $original, 'masked' => $masked];
             };
 
-            $processor = new GdprProcessor(
+            $processor = $this->createProcessor(
                 patterns: [],
                 fieldPaths: [],
                 customCallbacks: [],
@@ -250,7 +258,7 @@ class SecurityRegressionTest extends TestCase
 
         $current = 'deep_value';
 
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             patterns: ['/deep_value/' => '***MASKED***'],
             fieldPaths: [],
             customCallbacks: [],
@@ -294,7 +302,7 @@ class SecurityRegressionTest extends TestCase
         // Create a JSON structure that could cause exponential expansion
         $jsonBomb = str_repeat('{"a":', 100) . '"value"' . str_repeat('}', 100);
 
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             patterns: ['/value/' => '***MASKED***'],
             fieldPaths: [],
             customCallbacks: [],
@@ -348,7 +356,7 @@ class SecurityRegressionTest extends TestCase
 
         foreach ($maliciousPatterns as $pattern) {
             try {
-                new GdprProcessor(
+                $this->createProcessor(
                     patterns: [$pattern => 'masked'],
                     fieldPaths: [],
                     customCallbacks: [],
@@ -417,7 +425,7 @@ class SecurityRegressionTest extends TestCase
     public function concurrentAccessSafety(): void
     {
         // Clear cache to start fresh
-        GdprProcessor::clearPatternCache();
+        PatternValidator::clearCache();
 
         $patterns = [
             '/email\w+@\w+\.\w+/' => '***EMAIL***',
@@ -430,7 +438,7 @@ class SecurityRegressionTest extends TestCase
         $results = [];
 
         for ($i = 0; $i < 50; $i++) {
-            $processor = new GdprProcessor(
+            $processor = $this->createProcessor(
                 patterns: $patterns,
                 fieldPaths: [],
                 customCallbacks: [],
@@ -485,7 +493,7 @@ class SecurityRegressionTest extends TestCase
         ];
 
         // Should be able to create processor with malicious field paths without executing them
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             patterns: [],
             fieldPaths: $maliciousFieldPaths,
             customCallbacks: [],
@@ -536,7 +544,7 @@ class SecurityRegressionTest extends TestCase
     public function callbackInjectionPrevention(): void
     {
         // Test that only valid callables are accepted
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             patterns: [],
             fieldPaths: [],
             customCallbacks: [
@@ -598,13 +606,13 @@ class SecurityRegressionTest extends TestCase
     #[DataProvider('boundaryValuesProvider')]
     public function boundaryValueSafety(mixed $boundaryValue): void
     {
-        $processor = new GdprProcessor(
+        $processor = $this->createProcessor(
             patterns: ['/.*/' => '***MASKED***'],
             fieldPaths: [],
             customCallbacks: [],
             auditLogger: null,
             maxDepth: 100,
-            dataTypeMasks: GdprProcessor::getDefaultDataTypeMasks()
+            dataTypeMasks: DataTypeMasker::getDefaultMasks()
         );
 
         $testRecord = new LogRecord(
@@ -626,7 +634,7 @@ class SecurityRegressionTest extends TestCase
     protected function tearDown(): void
     {
         // Clean up any static state
-        GdprProcessor::clearPatternCache();
+        PatternValidator::clearCache();
         RateLimiter::clearAll();
 
         parent::tearDown();
