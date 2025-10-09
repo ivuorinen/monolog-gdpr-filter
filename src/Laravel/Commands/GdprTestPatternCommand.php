@@ -8,7 +8,7 @@ use Illuminate\Console\Command;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 
 /**
- * Artisan cfinal ommand for testing GDPR regex patterns.
+ * Artisan command for testing GDPR regex patterns.
  *
  * This command allows developers to test regex patterns against sample data
  * to ensure they work correctly before deploying to production.
