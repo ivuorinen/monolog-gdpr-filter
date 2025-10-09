@@ -26,7 +26,6 @@ class InvalidRegexPatternException extends GdprProcessorException
      * @param string $reason The reason why the pattern is invalid
      * @param int $pcreError Optional PCRE error code
      * @param Throwable|null $previous Previous exception for chaining
-     * @psalm-suppress MoreSpecificReturnType
      */
     public static function forPattern(
         string $pattern,
@@ -41,7 +40,6 @@ class InvalidRegexPatternException extends GdprProcessorException
             $message .= sprintf(' (PCRE Error: %s)', $pcreErrorMessage);
         }
 
-        /** @psalm-suppress LessSpecificReturnStatement */
         return self::withContext($message, [
             'pattern' => $pattern,
             'reason' => $reason,

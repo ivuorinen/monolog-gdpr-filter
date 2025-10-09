@@ -27,7 +27,6 @@ class AuditLoggingException extends GdprProcessorException
      * @param mixed $masked The masked value
      * @param string $reason The reason for the failure
      * @param Throwable|null $previous Previous exception for chaining
-     * @psalm-suppress MoreSpecificReturnType
      */
     public static function callbackFailed(
         string $path,
@@ -38,7 +37,6 @@ class AuditLoggingException extends GdprProcessorException
     ): static {
         $message = sprintf("Audit logging callback failed for path '%s': %s", $path, $reason);
 
-        /** @psalm-suppress LessSpecificReturnStatement */
         return self::withContext($message, [
             'audit_type' => 'callback_failure',
             'path' => $path,
@@ -57,7 +55,6 @@ class AuditLoggingException extends GdprProcessorException
      * @param mixed $value The value that failed to serialize
      * @param string $reason The reason for the serialization failure
      * @param Throwable|null $previous Previous exception for chaining
-     * @psalm-suppress MoreSpecificReturnType
      */
     public static function serializationFailed(
         string $path,
@@ -67,7 +64,6 @@ class AuditLoggingException extends GdprProcessorException
     ): static {
         $message = sprintf("Audit data serialization failed for path '%s': %s", $path, $reason);
 
-        /** @psalm-suppress LessSpecificReturnStatement */
         return self::withContext($message, [
             'audit_type' => 'serialization_failure',
             'path' => $path,
@@ -84,7 +80,6 @@ class AuditLoggingException extends GdprProcessorException
      * @param int $maxRequests Maximum allowed requests
      * @param string $reason The reason for the failure
      * @param Throwable|null $previous Previous exception for chaining
-     * @psalm-suppress MoreSpecificReturnType
      */
     public static function rateLimitingFailed(
         string $operationType,
@@ -95,7 +90,6 @@ class AuditLoggingException extends GdprProcessorException
     ): static {
         $message = sprintf("Rate-limited audit logging failed for operation '%s': %s", $operationType, $reason);
 
-        /** @psalm-suppress LessSpecificReturnStatement */
         return self::withContext($message, [
             'audit_type' => 'rate_limiting_failure',
             'operation_type' => $operationType,
@@ -111,7 +105,6 @@ class AuditLoggingException extends GdprProcessorException
      * @param string $configurationIssue Description of the configuration issue
      * @param array<string, mixed> $config The invalid configuration
      * @param Throwable|null $previous Previous exception for chaining
-     * @psalm-suppress MoreSpecificReturnType
      */
     public static function invalidConfiguration(
         string $configurationIssue,
@@ -120,7 +113,6 @@ class AuditLoggingException extends GdprProcessorException
     ): static {
         $message = 'Invalid audit logger configuration: ' . $configurationIssue;
 
-        /** @psalm-suppress LessSpecificReturnStatement */
         return self::withContext($message, [
             'audit_type' => 'configuration_error',
             'configuration_issue' => $configurationIssue,
@@ -134,7 +126,6 @@ class AuditLoggingException extends GdprProcessorException
      * @param string $loggerType The type of logger being created
      * @param string $reason The reason for the creation failure
      * @param Throwable|null $previous Previous exception for chaining
-     * @psalm-suppress MoreSpecificReturnType
      */
     public static function loggerCreationFailed(
         string $loggerType,
@@ -143,7 +134,6 @@ class AuditLoggingException extends GdprProcessorException
     ): static {
         $message = sprintf("Audit logger creation failed for type '%s': %s", $loggerType, $reason);
 
-        /** @psalm-suppress LessSpecificReturnStatement */
         return self::withContext($message, [
             'audit_type' => 'logger_creation_failure',
             'logger_type' => $loggerType,

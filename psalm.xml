@@ -81,6 +81,13 @@
       </errorLevel>
     </InvalidArgument>
 
+    <!-- Test helper methods in anonymous classes -->
+    <UndefinedMethod>
+      <errorLevel type="suppress">
+        <file name="tests/Strategies/AbstractMaskingStrategyTest.php" />
+      </errorLevel>
+    </UndefinedMethod>
+
     <!-- Test function calls -->
     <UndefinedFunction>
       <errorLevel type="suppress">
