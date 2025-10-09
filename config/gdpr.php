@@ -1,15 +1,5 @@
 <?php
 
-// phpcs:disable PSR1.Files.SideEffects.FoundWithSymbols
-
-// Helper function for environment variables when Laravel is not available
-if (!function_exists('env')) {
-    function env(string $key, mixed $default = null): mixed
-    {
-        return $_ENV[$key] ?? getenv($key) ?: $default;
-    }
-}
-
 return [
     /*
     |--------------------------------------------------------------------------

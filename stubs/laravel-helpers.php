@@ -15,7 +15,12 @@ if (!function_exists('app')) {
      * @param array<string, mixed> $parameters
      * @return mixed|\Illuminate\Contracts\Foundation\Application
      */
-    function app(?string $abstract = null, array $parameters = []) {}
+    function app(?string $abstract = null, array $parameters = [])
+    {
+        // Stub implementation - returns null when Laravel is not available
+        unset($abstract, $parameters);
+        return null;
+    }
 }
 
 if (!function_exists('config')) {
@@ -28,5 +33,28 @@ if (!function_exists('config')) {
      * @param mixed $default
      * @return mixed|\Illuminate\Config\Repository
      */
-    function config($key = null, $default = null) {}
+    function config($key = null, $default = null)
+    {
+        if (function_exists('app') && app() !== null && app()->bound('config')) {
+            /** @var \Illuminate\Config\Repository $config */
+            $config = app('config');
+            return $config->get($key, $default);
+        }
+
+        return $default;
+    }
+}
+
+if (!function_exists('env')) {
+    /**
+     * Get the value of an environment variable.
+     *
+     * @param string $key
+     * @param mixed $default
+     * @return mixed
+     */
+    function env(string $key, mixed $default = null): mixed
+    {
+        return $_ENV[$key] ?? getenv($key) ?: $default;
+    }
 }
