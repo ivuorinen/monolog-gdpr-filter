@@ -7,6 +7,7 @@ namespace Tests\RegressionTests;
 use DateTimeImmutable;
 use Generator;
 use Ivuorinen\MonologGdprFilter\DataTypeMasker;
+use Ivuorinen\MonologGdprFilter\MaskConstants;
 use Ivuorinen\MonologGdprFilter\Exceptions\InvalidRegexPatternException;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 use Ivuorinen\MonologGdprFilter\PatternValidator;
@@ -66,14 +67,14 @@ class CriticalBugRegressionTest extends TestCase
             auditLogger: null,
             maxDepth: 100,
             dataTypeMasks: [
-                'integer' => '***INT***',
-                'double' => '***FLOAT***',
-                'string' => '***STRING***',
-                'boolean' => '***BOOL***',
-                'NULL' => '***NULL***',
-                'array' => '***ARRAY***',
-                'object' => '***OBJECT***',
-                'resource' => '***RESOURCE***'
+                'integer' => MaskConstants::MASK_INT,
+                'double' => MaskConstants::MASK_FLOAT,
+                'string' => MaskConstants::MASK_STRING,
+                'boolean' => MaskConstants::MASK_BOOL,
+                'NULL' => MaskConstants::MASK_NULL,
+                'array' => MaskConstants::MASK_ARRAY,
+                'object' => MaskConstants::MASK_OBJECT,
+                'resource' => MaskConstants::MASK_RESOURCE
             ]
         );
 
@@ -252,8 +253,8 @@ class CriticalBugRegressionTest extends TestCase
 
         // Create multiple processors with same patterns concurrently
         $patterns = [
-            '/email\w+@\w+\.\w+/' => '***EMAIL***',
-            '/phone\d{10}/' => '***PHONE***',
+            '/email\w+@\w+\.\w+/' => MaskConstants::MASK_EMAIL,
+            '/phone\d{10}/' => MaskConstants::MASK_PHONE,
             '/ssn\d{3}-\d{2}-\d{4}/' => '***SSN***'
         ];
 
@@ -298,8 +299,8 @@ class CriticalBugRegressionTest extends TestCase
         }
 
         // Message should be properly masked
-        $this->assertStringContainsString('***EMAIL***', $expectedMessage);
-        $this->assertStringContainsString('***PHONE***', $expectedMessage);
+        $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $expectedMessage);
+        $this->assertStringContainsString(MaskConstants::MASK_PHONE, $expectedMessage);
     }
 
     /**
@@ -494,7 +495,7 @@ class CriticalBugRegressionTest extends TestCase
             . '{"level6":{"level7":{"level8":{"level9":{"level10":"deep_value"}}}}}}}}}}';
 
         $processor = $this->createProcessor(
-            patterns: ['/deep_value/' => '***MASKED***'],
+            patterns: ['/deep_value/' => MaskConstants::MASK_MASKED],
             fieldPaths: [],
             customCallbacks: [],
             auditLogger: null,

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Tests\TestConstants;
 use Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger;
+use Ivuorinen\MonologGdprFilter\MaskConstants;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 use Monolog\Level;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -70,8 +72,8 @@ final class GdprProcessorExtendedTest extends TestCase
         $logger1 = $this->createAuditLogger($logs1);
 
         $processor = $this->createProcessor(
-            patterns: ['/\d+/' => '***'],
-            fieldPaths: ['id' => '***'],
+            patterns: ['/\d+/' => MaskConstants::MASK_GENERIC],
+            fieldPaths: ['id' => MaskConstants::MASK_GENERIC],
             auditLogger: $logger1
         );
 
@@ -84,7 +86,7 @@ final class GdprProcessorExtendedTest extends TestCase
 
         // Verify first logger captured the masking
         $this->assertNotEmpty($logs1);
-        $this->assertSame('***', $result1->context['id']);
+        $this->assertSame(MaskConstants::MASK_GENERIC, $result1->context['id']);
         $countLogs1 = count($logs1);
 
         // Change audit logger
@@ -96,7 +98,7 @@ final class GdprProcessorExtendedTest extends TestCase
         $result2 = $processor($record);
 
         // Verify masking still works with new logger
-        $this->assertSame('***', $result2->context['id']);
+        $this->assertSame(MaskConstants::MASK_GENERIC, $result2->context['id']);
         // Verify second logger was used (logs2 should have entries)
         $this->assertNotEmpty($logs2);
         // Verify first logger was not used anymore (logs1 count should not increase)
@@ -110,7 +112,7 @@ final class GdprProcessorExtendedTest extends TestCase
         $logger = $this->createAuditLogger($logs);
 
         $processor = $this->createProcessor(
-            patterns: ['/\d+/' => '***'],
+            patterns: ['/\d+/' => MaskConstants::MASK_GENERIC],
             auditLogger: $logger
         );
 
@@ -128,7 +130,7 @@ final class GdprProcessorExtendedTest extends TestCase
     public function conditionalRulesSkipMaskingWhenRuleReturnsFalse(): void
     {
         $processor = $this->createProcessor(
-            patterns: ['/\d+/' => '***'],
+            patterns: ['/\d+/' => MaskConstants::MASK_GENERIC],
             conditionalRules: [
                 'skip_debug' => fn($record): bool => $record->level !== Level::Debug,
             ]
@@ -158,7 +160,7 @@ final class GdprProcessorExtendedTest extends TestCase
         $auditLogger = $this->createAuditLogger($logs);
 
         $processor = $this->createProcessor(
-            patterns: ['/\d+/' => '***'],
+            patterns: ['/\d+/' => MaskConstants::MASK_GENERIC],
             auditLogger: $auditLogger,
             conditionalRules: [
                 'skip_debug' => fn($record): false => false,
@@ -180,7 +182,7 @@ final class GdprProcessorExtendedTest extends TestCase
         $auditLogger = $this->createAuditLogger($logs);
 
         $processor = $this->createProcessor(
-            patterns: ['/\d+/' => '***'],
+            patterns: ['/\d+/' => MaskConstants::MASK_GENERIC],
             auditLogger: $auditLogger,
             conditionalRules: [
                 'throws_exception' => function ($record): never {
@@ -204,7 +206,7 @@ final class GdprProcessorExtendedTest extends TestCase
     #[Test]
     public function regExpMessageHandlesEmptyString(): void
     {
-        $processor = new GdprProcessor(patterns: ['/\d+/' => '***']);
+        $processor = new GdprProcessor(patterns: ['/\d+/' => MaskConstants::MASK_GENERIC]);
 
         $result = $processor->regExpMessage('');
 
@@ -227,12 +229,12 @@ final class GdprProcessorExtendedTest extends TestCase
     public function maskMessageHandlesComplexNestedJson(): void
     {
         $processor = new GdprProcessor(patterns: [
-            '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => '***@***.***',
+            '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => MaskConstants::MASK_EMAIL_PATTERN,
         ]);
 
         $message = json_encode([
             'user' => [
-                'email' => 'test@example.com',
+                'email' => TestConstants::EMAIL_TEST,
                 'profile' => [
                     'contact_email' => 'contact@example.com',
                 ],
@@ -241,15 +243,15 @@ final class GdprProcessorExtendedTest extends TestCase
 
         $result = $processor->maskMessage($message);
 
-        $this->assertStringNotContainsString('test@example.com', $result);
+        $this->assertStringNotContainsString(TestConstants::EMAIL_TEST, $result);
         $this->assertStringNotContainsString('contact@example.com', $result);
-        $this->assertStringContainsString('***@***.***', $result);
+        $this->assertStringContainsString(MaskConstants::MASK_EMAIL_PATTERN, $result);
     }
 
     #[Test]
     public function recursiveMaskHandlesLargeArrays(): void
     {
-        $processor = new GdprProcessor(patterns: ['/\d+/' => '***']);
+        $processor = new GdprProcessor(patterns: ['/\d+/' => MaskConstants::MASK_GENERIC]);
 
         // Create array larger than chunk size (1000 items)
         $largeArray = [];
@@ -261,7 +263,7 @@ final class GdprProcessorExtendedTest extends TestCase
 
         $this->assertIsArray($result);
         $this->assertCount(1500, $result);
-        $this->assertStringContainsString('***', $result['key_0']);
+        $this->assertStringContainsString(MaskConstants::MASK_GENERIC, $result['key_0']);
     }
 
     #[Test]
@@ -290,7 +292,7 @@ final class GdprProcessorExtendedTest extends TestCase
     {
         $processor = $this->createProcessor(
             patterns: [],
-            fieldPaths: ['user.email' => '***@***.***'],
+            fieldPaths: ['user.email' => MaskConstants::MASK_EMAIL_PATTERN],
             customCallbacks: ['user.id' => fn($v): string => 'ID_' . $v],
             dataTypeMasks: ['integer' => '0']
         );
@@ -300,7 +302,7 @@ final class GdprProcessorExtendedTest extends TestCase
             [
                 'user' => [
                     'id' => 123,
-                    'email' => 'test@example.com',
+                    'email' => TestConstants::EMAIL_TEST,
                     'age' => 25,
                 ],
             ]
@@ -309,7 +311,7 @@ final class GdprProcessorExtendedTest extends TestCase
         $result = $processor($record);
 
         $this->assertSame('ID_123', $result->context['user']['id']);
-        $this->assertSame('***@***.***', $result->context['user']['email']);
+        $this->assertSame(MaskConstants::MASK_EMAIL_PATTERN, $result->context['user']['email']);
         // DataTypeMasker returns integer 0, not string '0'
         $this->assertSame(0, $result->context['user']['age']);
     }
@@ -318,7 +320,7 @@ final class GdprProcessorExtendedTest extends TestCase
     public function invokeWithOnlyPatternsUsesRecursiveMask(): void
     {
         $processor = $this->createProcessor(
-            patterns: ['/\d{3}-\d{2}-\d{4}/' => '***-**-****']
+            patterns: ['/\d{3}-\d{2}-\d{4}/' => MaskConstants::MASK_SSN_PATTERN]
         );
 
         $record = $this->createLogRecord(
@@ -332,7 +334,7 @@ final class GdprProcessorExtendedTest extends TestCase
 
         $result = $processor($record);
 
-        $this->assertStringContainsString('***-**-****', $result->message);
-        $this->assertSame('***-**-****', $result->context['nested']['ssn']);
+        $this->assertStringContainsString(MaskConstants::MASK_SSN_PATTERN, $result->message);
+        $this->assertSame(MaskConstants::MASK_SSN_PATTERN, $result->context['nested']['ssn']);
     }
 }

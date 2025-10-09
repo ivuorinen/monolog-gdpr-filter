@@ -7,6 +7,7 @@ namespace Tests\Strategies;
 use PHPUnit\Framework\TestCase;
 use Tests\TestHelpers;
 use Ivuorinen\MonologGdprFilter\Strategies\DataTypeMaskingStrategy;
+use Ivuorinen\MonologGdprFilter\MaskConstants;
 
 /**
  * Enhanced tests for DataTypeMaskingStrategy to improve coverage.
@@ -57,7 +58,7 @@ final class DataTypeMaskingStrategyEnhancedTest extends TestCase
     public function testParseArrayMaskWithSimpleString(): void
     {
         $strategy = new DataTypeMaskingStrategy([
-            'array' => '***ARRAY***',
+            'array' => MaskConstants::MASK_ARRAY,
         ]);
 
         $logRecord = $this->createLogRecord();
@@ -65,7 +66,7 @@ final class DataTypeMaskingStrategyEnhancedTest extends TestCase
 
         // Simple strings get split on commas, so it becomes an array
         $this->assertIsArray($result);
-        $this->assertEquals(['***ARRAY***'], $result);
+        $this->assertEquals([MaskConstants::MASK_ARRAY], $result);
     }
 
     public function testParseObjectMaskWithJsonFormat(): void
@@ -100,7 +101,7 @@ final class DataTypeMaskingStrategyEnhancedTest extends TestCase
     public function testParseObjectMaskWithSimpleString(): void
     {
         $strategy = new DataTypeMaskingStrategy([
-            'object' => '***OBJECT***',
+            'object' => MaskConstants::MASK_OBJECT,
         ]);
 
         $obj = (object)['data' => 'value'];
@@ -109,7 +110,7 @@ final class DataTypeMaskingStrategyEnhancedTest extends TestCase
 
         // Simple strings get converted to object with 'masked' property
         $this->assertIsObject($result);
-        $this->assertEquals('***OBJECT***', $result->masked);
+        $this->assertEquals(MaskConstants::MASK_OBJECT, $result->masked);
     }
 
     public function testApplyTypeMaskForInteger(): void
@@ -204,20 +205,20 @@ final class DataTypeMaskingStrategyEnhancedTest extends TestCase
     public function testApplyTypeMaskForString(): void
     {
         $strategy = new DataTypeMaskingStrategy([
-            'string' => '***MASKED***',
+            'string' => MaskConstants::MASK_MASKED,
         ]);
 
         $logRecord = $this->createLogRecord();
         $result = $strategy->mask('sensitive data', 'test.path', $logRecord);
 
         $this->assertIsString($result);
-        $this->assertEquals('***MASKED***', $result);
+        $this->assertEquals(MaskConstants::MASK_MASKED, $result);
     }
 
     public function testIncludePathsFiltering(): void
     {
         $strategy = new DataTypeMaskingStrategy(
-            ['string' => '***MASKED***'],
+            ['string' => MaskConstants::MASK_MASKED],
             ['user.*', 'account.details']
         );
 
@@ -236,7 +237,7 @@ final class DataTypeMaskingStrategyEnhancedTest extends TestCase
     public function testExcludePathsPrecedence(): void
     {
         $strategy = new DataTypeMaskingStrategy(
-            ['string' => '***MASKED***'],
+            ['string' => MaskConstants::MASK_MASKED],
             ['user.*'],
             ['user.public', 'user.id']
         );
@@ -254,7 +255,7 @@ final class DataTypeMaskingStrategyEnhancedTest extends TestCase
     public function testWildcardPathMatching(): void
     {
         $strategy = new DataTypeMaskingStrategy(
-            ['string' => '***MASKED***'],
+            ['string' => MaskConstants::MASK_MASKED],
             ['*.email', 'data.*.sensitive']
         );
 
@@ -270,7 +271,7 @@ final class DataTypeMaskingStrategyEnhancedTest extends TestCase
     public function testShouldApplyWithNoIncludePaths(): void
     {
         $strategy = new DataTypeMaskingStrategy([
-            'string' => '***MASKED***',
+            'string' => MaskConstants::MASK_MASKED,
         ]);
 
         $logRecord = $this->createLogRecord();
@@ -283,7 +284,7 @@ final class DataTypeMaskingStrategyEnhancedTest extends TestCase
     public function testShouldNotApplyWhenTypeNotConfigured(): void
     {
         $strategy = new DataTypeMaskingStrategy([
-            'string' => '***MASKED***',
+            'string' => MaskConstants::MASK_MASKED,
         ]);
 
         $logRecord = $this->createLogRecord();
@@ -297,9 +298,9 @@ final class DataTypeMaskingStrategyEnhancedTest extends TestCase
     public function testGetName(): void
     {
         $strategy = new DataTypeMaskingStrategy([
-            'string' => '***STR***',
-            'integer' => '***INT***',
-            'boolean' => '***BOOL***',
+            'string' => MaskConstants::MASK_STRING,
+            'integer' => MaskConstants::MASK_INT,
+            'boolean' => MaskConstants::MASK_BOOL,
         ]);
 
         $name = $strategy->getName();
@@ -309,7 +310,7 @@ final class DataTypeMaskingStrategyEnhancedTest extends TestCase
 
     public function testGetConfiguration(): void
     {
-        $typeMasks = ['string' => '***MASKED***'];
+        $typeMasks = ['string' => MaskConstants::MASK_MASKED];
         $includePaths = ['user.*'];
         $excludePaths = ['user.public'];
 
@@ -326,7 +327,7 @@ final class DataTypeMaskingStrategyEnhancedTest extends TestCase
 
     public function testValidateReturnsTrue(): void
     {
-        $strategy = new DataTypeMaskingStrategy(['string' => '***MASKED***']);
+        $strategy = new DataTypeMaskingStrategy(['string' => MaskConstants::MASK_MASKED]);
         $this->assertTrue($strategy->validate());
     }
 }

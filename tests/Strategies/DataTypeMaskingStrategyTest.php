@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Strategies;
 
 use Ivuorinen\MonologGdprFilter\Strategies\DataTypeMaskingStrategy;
+use Ivuorinen\MonologGdprFilter\MaskConstants;
 use Monolog\LogRecord;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
@@ -28,7 +29,7 @@ final class DataTypeMaskingStrategyTest extends TestCase
     public function constructorAcceptsTypeMasksArray(): void
     {
         $strategy = new DataTypeMaskingStrategy([
-            'string' => '***',
+            'string' => MaskConstants::MASK_GENERIC,
             'integer' => '0',
         ]);
 
@@ -39,7 +40,7 @@ final class DataTypeMaskingStrategyTest extends TestCase
     public function constructorAcceptsCustomPriority(): void
     {
         $strategy = new DataTypeMaskingStrategy(
-            typeMasks: ['string' => '***'],
+            typeMasks: ['string' => MaskConstants::MASK_GENERIC],
             priority: 50
         );
 
@@ -50,7 +51,7 @@ final class DataTypeMaskingStrategyTest extends TestCase
     public function getNameReturnsDescriptiveName(): void
     {
         $strategy = new DataTypeMaskingStrategy([
-            'string' => '***',
+            'string' => MaskConstants::MASK_GENERIC,
             'integer' => '0',
             'boolean' => 'false',
         ]);
@@ -66,7 +67,7 @@ final class DataTypeMaskingStrategyTest extends TestCase
     #[Test]
     public function shouldApplyReturnsTrueForMappedType(): void
     {
-        $strategy = new DataTypeMaskingStrategy(['string' => '***']);
+        $strategy = new DataTypeMaskingStrategy(['string' => MaskConstants::MASK_GENERIC]);
 
         $this->assertTrue($strategy->shouldApply('test string', 'field', $this->logRecord));
     }
@@ -74,7 +75,7 @@ final class DataTypeMaskingStrategyTest extends TestCase
     #[Test]
     public function shouldApplyReturnsFalseForUnmappedType(): void
     {
-        $strategy = new DataTypeMaskingStrategy(['string' => '***']);
+        $strategy = new DataTypeMaskingStrategy(['string' => MaskConstants::MASK_GENERIC]);
 
         $this->assertFalse($strategy->shouldApply(123, 'field', $this->logRecord));
     }
@@ -83,7 +84,7 @@ final class DataTypeMaskingStrategyTest extends TestCase
     public function shouldApplyReturnsFalseForExcludedPath(): void
     {
         $strategy = new DataTypeMaskingStrategy(
-            typeMasks: ['string' => '***'],
+            typeMasks: ['string' => MaskConstants::MASK_GENERIC],
             excludePaths: ['debug.*']
         );
 
@@ -94,7 +95,7 @@ final class DataTypeMaskingStrategyTest extends TestCase
     public function shouldApplyRespectsIncludePaths(): void
     {
         $strategy = new DataTypeMaskingStrategy(
-            typeMasks: ['string' => '***'],
+            typeMasks: ['string' => MaskConstants::MASK_GENERIC],
             includePaths: ['user.*']
         );
 
@@ -252,7 +253,7 @@ final class DataTypeMaskingStrategyTest extends TestCase
     public function validateReturnsTrueForValidConfiguration(): void
     {
         $strategy = new DataTypeMaskingStrategy([
-            'string' => '***',
+            'string' => MaskConstants::MASK_GENERIC,
             'integer' => '0',
             'double' => '0.0',
             'boolean' => 'false',
@@ -276,7 +277,7 @@ final class DataTypeMaskingStrategyTest extends TestCase
     public function validateReturnsFalseForInvalidType(): void
     {
         $strategy = new DataTypeMaskingStrategy([
-            'invalid_type' => '***',
+            'invalid_type' => MaskConstants::MASK_GENERIC,
         ]);
 
         $this->assertFalse($strategy->validate());
@@ -359,7 +360,7 @@ final class DataTypeMaskingStrategyTest extends TestCase
     #[Test]
     public function getConfigurationReturnsFullConfiguration(): void
     {
-        $typeMasks = ['string' => '***'];
+        $typeMasks = ['string' => MaskConstants::MASK_GENERIC];
         $includePaths = ['user.*'];
         $excludePaths = ['debug.*'];
 
@@ -379,7 +380,7 @@ final class DataTypeMaskingStrategyTest extends TestCase
     #[Test]
     public function maskReturnsOriginalValueWhenNoMaskDefined(): void
     {
-        $strategy = new DataTypeMaskingStrategy(['string' => '***']);
+        $strategy = new DataTypeMaskingStrategy(['string' => MaskConstants::MASK_GENERIC]);
 
         $result = $strategy->mask(123, 'field', $this->logRecord);
 

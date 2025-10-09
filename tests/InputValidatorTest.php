@@ -8,6 +8,7 @@ use Ivuorinen\MonologGdprFilter\Exceptions\InvalidConfigurationException;
 use Ivuorinen\MonologGdprFilter\Exceptions\InvalidRegexPatternException;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
 use Ivuorinen\MonologGdprFilter\InputValidator;
+use Ivuorinen\MonologGdprFilter\MaskConstants;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -18,12 +19,12 @@ final class InputValidatorTest extends TestCase
     #[Test]
     public function validateAllPassesWithValidInputs(): void
     {
-        $patterns = ['/\d{3}-\d{2}-\d{4}/' => '***'];
-        $fieldPaths = ['user.email' => '***'];
+        $patterns = ['/\d{3}-\d{2}-\d{4}/' => MaskConstants::MASK_GENERIC];
+        $fieldPaths = ['user.email' => MaskConstants::MASK_GENERIC];
         $customCallbacks = ['user.id' => fn($value): string => (string) $value];
         $auditLogger = fn($field, $old, $new): null => null;
         $maxDepth = 10;
-        $dataTypeMasks = ['string' => '***'];
+        $dataTypeMasks = ['string' => MaskConstants::MASK_GENERIC];
         $conditionalRules = ['rule1' => fn($value): true => true];
 
         InputValidator::validateAll(
@@ -46,7 +47,7 @@ final class InputValidatorTest extends TestCase
         $this->expectExceptionMessage('pattern');
         $this->expectExceptionMessage('string');
 
-        InputValidator::validatePatterns([123 => '***']);
+        InputValidator::validatePatterns([123 => MaskConstants::MASK_GENERIC]);
     }
 
     #[Test]
@@ -56,7 +57,7 @@ final class InputValidatorTest extends TestCase
         $this->expectExceptionMessage('pattern');
         $this->expectExceptionMessage('empty');
 
-        InputValidator::validatePatterns(['' => '***']);
+        InputValidator::validatePatterns(['' => MaskConstants::MASK_GENERIC]);
     }
 
     #[Test]
@@ -74,14 +75,14 @@ final class InputValidatorTest extends TestCase
     {
         $this->expectException(InvalidRegexPatternException::class);
 
-        InputValidator::validatePatterns(['/[invalid/' => '***']);
+        InputValidator::validatePatterns(['/[invalid/' => MaskConstants::MASK_GENERIC]);
     }
 
     #[Test]
     public function validatePatternsPassesForValidPatterns(): void
     {
         InputValidator::validatePatterns([
-            '/\d{3}-\d{2}-\d{4}/' => '***-**-****',
+            '/\d{3}-\d{2}-\d{4}/' => MaskConstants::MASK_SSN_PATTERN,
             '/[a-z]+/' => 'REDACTED',
         ]);
 
@@ -95,7 +96,7 @@ final class InputValidatorTest extends TestCase
         $this->expectExceptionMessage('field path');
         $this->expectExceptionMessage('string');
 
-        InputValidator::validateFieldPaths([123 => '***']);
+        InputValidator::validateFieldPaths([123 => MaskConstants::MASK_GENERIC]);
     }
 
     #[Test]
@@ -105,7 +106,7 @@ final class InputValidatorTest extends TestCase
         $this->expectExceptionMessage('field path');
         $this->expectExceptionMessage('empty');
 
-        InputValidator::validateFieldPaths(['' => '***']);
+        InputValidator::validateFieldPaths(['' => MaskConstants::MASK_GENERIC]);
     }
 
     #[Test]
@@ -131,9 +132,9 @@ final class InputValidatorTest extends TestCase
     public function validateFieldPathsPassesForValidPaths(): void
     {
         InputValidator::validateFieldPaths([
-            'user.email' => '***@***.***',
+            'user.email' => MaskConstants::MASK_EMAIL_PATTERN,
             'user.password' => FieldMaskConfig::remove(),
-            'user.ssn' => FieldMaskConfig::regexMask('/\d{3}-\d{2}-\d{4}/', '***-**-****'),
+            'user.ssn' => FieldMaskConfig::regexMask('/\d{3}-\d{2}-\d{4}/', MaskConstants::MASK_SSN_PATTERN),
         ]);
 
         $this->assertTrue(true);
@@ -251,7 +252,7 @@ final class InputValidatorTest extends TestCase
         $this->expectExceptionMessage('data type mask key');
         $this->expectExceptionMessage('string');
 
-        InputValidator::validateDataTypeMasks([123 => '***']);
+        InputValidator::validateDataTypeMasks([123 => MaskConstants::MASK_GENERIC]);
     }
 
     #[Test]
@@ -261,7 +262,7 @@ final class InputValidatorTest extends TestCase
         $this->expectExceptionMessage('invalid_type');
         $this->expectExceptionMessage('integer, double, string, boolean');
 
-        InputValidator::validateDataTypeMasks(['invalid_type' => '***']);
+        InputValidator::validateDataTypeMasks(['invalid_type' => MaskConstants::MASK_GENERIC]);
     }
 
     #[Test]
@@ -288,10 +289,10 @@ final class InputValidatorTest extends TestCase
     public function validateDataTypeMasksPassesForValidTypes(): void
     {
         InputValidator::validateDataTypeMasks([
-            'integer' => '***',
-            'double' => '***',
+            'integer' => MaskConstants::MASK_GENERIC,
+            'double' => MaskConstants::MASK_GENERIC,
             'string' => 'REDACTED',
-            'boolean' => '***',
+            'boolean' => MaskConstants::MASK_GENERIC,
             'NULL' => 'null',
             'array' => '[]',
             'object' => '{}',
