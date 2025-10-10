@@ -60,9 +60,22 @@ parameters:
 
         # Allow intentional validation test failures
         - '#Parameter .* of (method|class) Ivuorinen\\MonologGdprFilter\\(GdprProcessor|RateLimitedAuditLogger).*(constructor|__construct).* expects .*, .* given#'
+        - '#Parameter \#1 \$patterns of static method Ivuorinen\\MonologGdprFilter\\InputValidator::validatePatterns\(\) expects array<string, string>, array.* given#'
+        - '#Parameter \#1 \$fieldPaths of static method Ivuorinen\\MonologGdprFilter\\InputValidator::validateFieldPaths\(\) expects .*, array.* given#'
+        - '#Parameter \#1 \$customCallbacks of static method Ivuorinen\\MonologGdprFilter\\InputValidator::validateCustomCallbacks\(\) expects .*, array.* given#'
+        - '#Parameter \#1 \$auditLogger of static method Ivuorinen\\MonologGdprFilter\\InputValidator::validateAuditLogger\(\) expects .*, .* given#'
+        - '#Parameter \#1 \$dataTypeMasks of static method Ivuorinen\\MonologGdprFilter\\InputValidator::validateDataTypeMasks\(\) expects array<string, string>, array.* given#'
+        - '#Parameter \#1 \$conditionalRules of static method Ivuorinen\\MonologGdprFilter\\InputValidator::validateConditionalRules\(\) expects .*, array.* given#'
+        - '#Parameter \#1 \$typeMasks of class Ivuorinen\\MonologGdprFilter\\Strategies\\DataTypeMaskingStrategy constructor expects array<string, string>, array.* given#'
+        - '#Parameter \#1 \$fieldConfigs of class Ivuorinen\\MonologGdprFilter\\Strategies\\FieldPathMaskingStrategy constructor expects .*, array.* given#'
+
+        # Allow test helper methods in anonymous classes (AbstractMaskingStrategyTest)
+        - '#Call to an undefined method Ivuorinen\\MonologGdprFilter\\Strategies\\AbstractMaskingStrategy::test.*#'
+        - '#Method Ivuorinen\\MonologGdprFilter\\Strategies\\AbstractMaskingStrategy@anonymous/.* has parameter .* with no value type specified in iterable type array#'
 
         # Allow test assertions that intentionally validate known types
         - '#Call to method PHPUnit\\Framework\\Assert::(assertIsArray|assertIsInt|assertTrue|assertContainsOnlyInstancesOf)\(\) .* will always evaluate to true#'
+        - '#Call to method PHPUnit\\Framework\\Assert::(assertIsString|assertIsFloat|assertIsBool)\(\) with .* will always evaluate to true#'
 
         # Allow PHPUnit attributes with named arguments
         - '#Attribute class PHPUnit\\Framework\\Attributes\\.*#'
