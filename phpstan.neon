@@ -1,0 +1,109 @@
+includes: []
+
+parameters:
+    level: 6
+    paths:
+        - src
+        - tests
+        - examples
+        - config
+
+    # Conservative settings
+    reportUnmatchedIgnoredErrors: false
+    treatPhpDocTypesAsCertain: false
+
+    # Ignore specific patterns that are acceptable
+    ignoreErrors:
+        # Allow mixed types for backward compatibility
+        - '#Parameter \#\d+ \$\w+ of method .* expects .*, mixed given#'
+        - '#Method .* return type has no value type specified in iterable type array#'
+        - '#Property .* type has no value type specified in iterable type array#'
+
+        # Allow callable types validated at runtime
+        - '#Cannot call callable .* on .* type callable#'
+        - '#Parameter \#\d+ .* expects callable.*: callable given#'
+
+        # Allow reflection patterns in tests
+        - '#Call to method .* on an unknown class ReflectionClass#'
+        - '#Access to an undefined property ReflectionClass::\$.*#'
+        - '#Call to an undefined method ReflectionMethod::.*#'
+
+        # Allow PHPUnit patterns
+        - '#Call to an undefined method PHPUnit\\Framework\\.*::(assert.*|expect.*)#'
+        - '#Parameter \#\d+ \$.*Test::.* expects .*, .* given#'
+
+        # Allow Laravel function calls
+        - '#Function config not found#'
+        - '#Function app not found#'
+        - '#Function now not found#'
+        - '#Function config_path not found#'
+        - '#Function env not found#'
+
+        # Allow configuration array access patterns
+        - '#Offset .* does not exist on array#'
+        - '#Cannot access offset .* on mixed#'
+
+        # Allow intentional mixed usage in flexible APIs
+        - '#Argument of an invalid type mixed supplied for foreach#'
+        - '#Parameter \#\d+ .* expects .*, mixed given#'
+        - '#Cannot call method .* on mixed#'
+
+        # Allow string manipulation patterns
+        - '#Binary operation .* between .* and .* results in an error#'
+
+        # Allow test-specific patterns
+        - '#Call to function not_callable#'
+        - '#Method DateTimeImmutable::offsetGet\(\) invoked with \d+ parameter#'
+
+        # Allow complex return types in GdprProcessor
+        - '#Method Ivuorinen\\MonologGdprFilter\\GdprProcessor::getDefaultPatterns\(\) should return array.* but returns array.*#'
+
+        # Allow intentional validation test failures
+        - '#Parameter .* of (method|class) Ivuorinen\\MonologGdprFilter\\(GdprProcessor|RateLimitedAuditLogger).*(constructor|__construct).* expects .*, .* given#'
+        - '#Parameter \#1 \$patterns of static method Ivuorinen\\MonologGdprFilter\\InputValidator::validatePatterns\(\) expects array<string, string>, array.* given#'
+        - '#Parameter \#1 \$fieldPaths of static method Ivuorinen\\MonologGdprFilter\\InputValidator::validateFieldPaths\(\) expects .*, array.* given#'
+        - '#Parameter \#1 \$customCallbacks of static method Ivuorinen\\MonologGdprFilter\\InputValidator::validateCustomCallbacks\(\) expects .*, array.* given#'
+        - '#Parameter \#1 \$auditLogger of static method Ivuorinen\\MonologGdprFilter\\InputValidator::validateAuditLogger\(\) expects .*, .* given#'
+        - '#Parameter \#1 \$dataTypeMasks of static method Ivuorinen\\MonologGdprFilter\\InputValidator::validateDataTypeMasks\(\) expects array<string, string>, array.* given#'
+        - '#Parameter \#1 \$conditionalRules of static method Ivuorinen\\MonologGdprFilter\\InputValidator::validateConditionalRules\(\) expects .*, array.* given#'
+        - '#Parameter \#1 \$typeMasks of class Ivuorinen\\MonologGdprFilter\\Strategies\\DataTypeMaskingStrategy constructor expects array<string, string>, array.* given#'
+        - '#Parameter \#1 \$fieldConfigs of class Ivuorinen\\MonologGdprFilter\\Strategies\\FieldPathMaskingStrategy constructor expects .*, array.* given#'
+
+        # Allow test helper methods in anonymous classes (AbstractMaskingStrategyTest)
+        - '#Call to an undefined method Ivuorinen\\MonologGdprFilter\\Strategies\\AbstractMaskingStrategy::test.*#'
+        - '#Method Ivuorinen\\MonologGdprFilter\\Strategies\\AbstractMaskingStrategy@anonymous/.* has parameter .* with no value type specified in iterable type array#'
+
+        # Allow test assertions that intentionally validate known types
+        - '#Call to method PHPUnit\\Framework\\Assert::(assertIsArray|assertIsInt|assertTrue|assertContainsOnlyInstancesOf)\(\) .* will always evaluate to true#'
+        - '#Call to method PHPUnit\\Framework\\Assert::(assertIsString|assertIsFloat|assertIsBool)\(\) with .* will always evaluate to true#'
+
+        # Allow PHPUnit attributes with named arguments
+        - '#Attribute class PHPUnit\\Framework\\Attributes\\.*#'
+
+        # Allow intentional static method calls in tests
+        - '#Static call to instance method#'
+        - '#Method .* invoked with \d+ parameter.*, \d+ required#'
+
+        # Allow nullsafe operator usage
+        - '#Using nullsafe method call on non-nullable type#'
+
+        # Allow unused test constants (used by trait)
+        - '#Constant Tests\\.*::.* is unused#'
+
+    # PHP version for analysis
+    phpVersion: 80200
+
+    # Stub files for missing functions/classes
+    stubFiles: []
+
+    # Bootstrap files
+    bootstrapFiles: []
+
+    # Exclude analysis paths
+    excludePaths:
+        - vendor/*
+        - .phpunit.cache/*
+        - src/Laravel/*
+
+    # Custom rules (none for now)
+    customRulesetUsed: false

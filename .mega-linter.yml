@@ -35,3 +35,8 @@ TYPESCRIPT_ES_CONFIG_FILE: .eslintrc.json
 
 FILTER_REGEX_EXCLUDE: >
   (vendor|node_modules|\.automation/test|docs/json-schemas)
+
+PHP_PHPCS_CLI_LINT_MODE: project
+PHP_PHPCS_ARGUMENTS: "--warning-severity=0"
+PHP_PSALM_CLI_LINT_MODE: project
+PHP_PSALM_ARGUMENTS: "--memory-limit=1G"

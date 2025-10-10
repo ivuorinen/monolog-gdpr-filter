@@ -1,20 +1,33 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>ivuorinen/renovate-config"],
+  "extends": [
+    "github>ivuorinen/renovate-config"
+  ],
   "packageRules": [
     {
-      "matchUpdateTypes": ["minor", "patch"],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
       "matchCurrentVersion": "!/^0/",
       "automerge": true
     },
     {
-      "matchDepTypes": ["devDependencies"],
+      "matchDepTypes": [
+        "devDependencies"
+      ],
       "automerge": true
     }
   ],
-  "schedule": ["before 4am on monday"],
+  "schedule": [
+    "before 4am on monday"
+  ],
   "vulnerabilityAlerts": {
-    "labels": ["security"],
-    "assignees": ["ivuorinen"]
+    "labels": [
+      "security"
+    ],
+    "assignees": [
+      "ivuorinen"
+    ]
   }
 }
