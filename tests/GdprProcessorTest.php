@@ -4,34 +4,40 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Ivuorinen\MonologGdprFilter\Exceptions\InvalidRegexPatternException;
+use Ivuorinen\MonologGdprFilter\DefaultPatterns;
+use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
+use Ivuorinen\MonologGdprFilter\GdprProcessor;
+use Ivuorinen\MonologGdprFilter\MaskConstants as Mask;
+use Monolog\JsonSerializableDateTimeImmutable;
+use Monolog\Level;
+use Monolog\LogRecord;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\TestCase;
-use Ivuorinen\MonologGdprFilter\GdprProcessor;
-use Monolog\LogRecord;
-use Monolog\Level;
-use Monolog\JsonSerializableDateTimeImmutable;
 
+/**
+ * Unit tests for GDPR processor.
+ *
+ * @api
+ */
 #[CoversClass(GdprProcessor::class)]
 #[CoversMethod(GdprProcessor::class, '__invoke')]
-#[CoversMethod(GdprProcessor::class, 'getDefaultPatterns')]
+#[CoversMethod(DefaultPatterns::class, 'get')]
 #[CoversMethod(GdprProcessor::class, 'maskMessage')]
-#[CoversMethod(GdprProcessor::class, 'maskWithRegex')]
 #[CoversMethod(GdprProcessor::class, 'recursiveMask')]
 #[CoversMethod(GdprProcessor::class, 'regExpMessage')]
-#[CoversMethod(GdprProcessor::class, 'removeField')]
-#[CoversMethod(GdprProcessor::class, 'replaceWith')]
 class GdprProcessorTest extends TestCase
 {
     use TestHelpers;
 
     public function testMaskWithRegexField(): void
     {
-        $patterns = GdprProcessor::getDefaultPatterns();
+        $patterns = DefaultPatterns::get();
         $fieldPaths = [
-            'user.email' => GdprProcessor::maskWithRegex(),
+            'user.email' => FieldMaskConfig::useProcessorPatterns(),
         ];
-        $processor = new GdprProcessor($patterns, $fieldPaths);
+        $processor = $this->createProcessor($patterns, $fieldPaths);
         $record = new LogRecord(
             datetime: new JsonSerializableDateTimeImmutable(true),
             channel: 'test',
@@ -46,11 +52,11 @@ class GdprProcessorTest extends TestCase
 
     public function testRemoveField(): void
     {
-        $patterns = GdprProcessor::getDefaultPatterns();
+        $patterns = DefaultPatterns::get();
         $fieldPaths = [
-            'user.ssn' => GdprProcessor::removeField(),
+            'user.ssn' => FieldMaskConfig::remove(),
         ];
-        $processor = new GdprProcessor($patterns, $fieldPaths);
+        $processor = $this->createProcessor($patterns, $fieldPaths);
         $record = new LogRecord(
             datetime: new JsonSerializableDateTimeImmutable(true),
             channel: 'test',
@@ -66,11 +72,11 @@ class GdprProcessorTest extends TestCase
 
     public function testReplaceWithField(): void
     {
-        $patterns = GdprProcessor::getDefaultPatterns();
+        $patterns = DefaultPatterns::get();
         $fieldPaths = [
-            'user.card' => GdprProcessor::replaceWith('MASKED'),
+            'user.card' => FieldMaskConfig::replace('MASKED'),
         ];
-        $processor = new GdprProcessor($patterns, $fieldPaths);
+        $processor = $this->createProcessor($patterns, $fieldPaths);
         $record = new LogRecord(
             datetime: new JsonSerializableDateTimeImmutable(true),
             channel: 'test',
@@ -85,14 +91,14 @@ class GdprProcessorTest extends TestCase
 
     public function testCustomCallback(): void
     {
-        $patterns = GdprProcessor::getDefaultPatterns();
+        $patterns = DefaultPatterns::get();
         $fieldPaths = [
-            'user.name' => GdprProcessor::maskWithRegex(),
+            'user.name' => FieldMaskConfig::useProcessorPatterns(),
         ];
         $customCallbacks = [
             'user.name' => fn($value): string => strtoupper((string) $value),
         ];
-        $processor = new GdprProcessor($patterns, $fieldPaths, $customCallbacks);
+        $processor = $this->createProcessor($patterns, $fieldPaths, $customCallbacks);
         $record = new LogRecord(
             datetime: new JsonSerializableDateTimeImmutable(true),
             channel: 'test',
@@ -107,15 +113,15 @@ class GdprProcessorTest extends TestCase
 
     public function testAuditLoggerIsCalled(): void
     {
-        $patterns = GdprProcessor::getDefaultPatterns();
+        $patterns = DefaultPatterns::get();
         $fieldPaths = [
-            'user.email' => GdprProcessor::maskWithRegex(),
+            'user.email' => FieldMaskConfig::useProcessorPatterns(),
         ];
         $auditCalls = [];
         $auditLogger = function ($path, $original, $masked) use (&$auditCalls): void {
             $auditCalls[] = [$path, $original, $masked];
         };
-        $processor = new GdprProcessor($patterns, $fieldPaths, [], $auditLogger);
+        $processor = $this->createProcessor($patterns, $fieldPaths, [], $auditLogger);
         $record = new LogRecord(
             datetime: new JsonSerializableDateTimeImmutable(true),
             channel: 'test',
@@ -135,7 +141,7 @@ class GdprProcessorTest extends TestCase
             '/foo/' => 'bar',
             '/baz/' => 'qux',
         ];
-        $processor = new GdprProcessor($patterns);
+        $processor = $this->createProcessor($patterns);
         $masked = $processor->maskMessage('foo and baz');
         $this->assertSame('bar and qux', $masked);
     }
@@ -146,7 +152,7 @@ class GdprProcessorTest extends TestCase
             '/secret/' => self::MASKED_SECRET,
         ];
         $processor = new class ($patterns) extends GdprProcessor {
-            public function callRecursiveMask($data)
+            public function callRecursiveMask(mixed $data): array|string
             {
                 return $this->recursiveMask($data);
             }
@@ -160,15 +166,15 @@ class GdprProcessorTest extends TestCase
         $this->assertSame([
             'a' => self::MASKED_SECRET,
             'b' => ['c' => self::MASKED_SECRET],
-            'd' => '123',
+            'd' => 123,
         ], $masked);
     }
 
     public function testStaticHelpers(): void
     {
-        $regex = GdprProcessor::maskWithRegex();
-        $remove = GdprProcessor::removeField();
-        $replace = GdprProcessor::replaceWith('MASKED');
+        $regex = FieldMaskConfig::useProcessorPatterns();
+        $remove = FieldMaskConfig::remove();
+        $replace = FieldMaskConfig::replace('MASKED');
         $this->assertSame('mask_regex', $regex->type);
         $this->assertSame('remove', $remove->type);
         $this->assertSame('replace', $replace->type);
@@ -177,8 +183,8 @@ class GdprProcessorTest extends TestCase
 
     public function testRecursiveMasking(): void
     {
-        $patterns = GdprProcessor::getDefaultPatterns();
-        $processor = new GdprProcessor($patterns);
+        $patterns = DefaultPatterns::get();
+        $processor = $this->createProcessor($patterns);
         $record = new LogRecord(
             datetime: new JsonSerializableDateTimeImmutable(true),
             channel: 'test',
@@ -202,11 +208,11 @@ class GdprProcessorTest extends TestCase
 
     public function testStringReplacementBackwardCompatibility(): void
     {
-        $patterns = GdprProcessor::getDefaultPatterns();
+        $patterns = DefaultPatterns::get();
         $fieldPaths = [
-            'user.email' => '[MASKED]', // string, not FieldMaskConfig
+            'user.email' => Mask::MASK_BRACKETS, // string, not FieldMaskConfig
         ];
-        $processor = new GdprProcessor($patterns, $fieldPaths);
+        $processor = $this->createProcessor($patterns, $fieldPaths);
         $record = new LogRecord(
             datetime: new JsonSerializableDateTimeImmutable(true),
             channel: 'test',
@@ -216,16 +222,16 @@ class GdprProcessorTest extends TestCase
             extra: []
         );
         $processed = $processor($record);
-        $this->assertSame('[MASKED]', $processed->context['user']['email']);
+        $this->assertSame(Mask::MASK_BRACKETS, $processed->context['user']['email']);
     }
 
     public function testNonStringValueInContext(): void
     {
-        $patterns = GdprProcessor::getDefaultPatterns();
+        $patterns = DefaultPatterns::get();
         $fieldPaths = [
-            'user.id' => GdprProcessor::maskWithRegex(),
+            'user.id' => FieldMaskConfig::useProcessorPatterns(),
         ];
-        $processor = new GdprProcessor($patterns, $fieldPaths);
+        $processor = $this->createProcessor($patterns, $fieldPaths);
         $record = new LogRecord(
             datetime: new JsonSerializableDateTimeImmutable(true),
             channel: 'test',
@@ -240,11 +246,11 @@ class GdprProcessorTest extends TestCase
 
     public function testMissingFieldInContext(): void
     {
-        $patterns = GdprProcessor::getDefaultPatterns();
+        $patterns = DefaultPatterns::get();
         $fieldPaths = [
-            'user.missing' => GdprProcessor::maskWithRegex(),
+            'user.missing' => FieldMaskConfig::useProcessorPatterns(),
         ];
-        $processor = new GdprProcessor($patterns, $fieldPaths);
+        $processor = $this->createProcessor($patterns, $fieldPaths);
         $record = new LogRecord(
             datetime: new JsonSerializableDateTimeImmutable(true),
             channel: 'test',
@@ -257,56 +263,43 @@ class GdprProcessorTest extends TestCase
         $this->assertArrayNotHasKey('missing', $processed->context['user']);
     }
 
-    public function testPregReplaceErrorInMaskMessage(): void
+    public function testInvalidRegexPatternThrowsExceptionOnConstruction(): void
     {
-        // Invalid pattern triggers preg_replace error
-        $patterns = [
-            self::INVALID_REGEX => 'MASKED',
-        ];
+        // Test that invalid regex patterns are caught during construction
+        $this->expectException(InvalidRegexPatternException::class);
 
-        $calls = [];
-        $auditLogger = function ($path, $original, $masked) use (&$calls): void {
-            $calls[] = [$path, $original, $masked];
-        };
-        $processor = new GdprProcessor($patterns, [], [], $auditLogger);
-        $result = $processor->maskMessage('test');
-        $this->assertSame('test', $result);
-        $this->assertNotEmpty($calls);
-        $this->assertSame(['preg_replace_error', 'test', 'test'], $calls[0]);
+        $this->expectExceptionMessage("Invalid regex pattern '/[invalid/'");
+
+        $this->createProcessor([self::INVALID_REGEX => 'MASKED']);
     }
 
-    public function testPregReplaceErrorInRegExpMessage(): void
+    public function testValidRegexPatternsAreAcceptedDuringConstruction(): void
     {
-        $patterns = [
-            self::INVALID_REGEX => 'MASKED',
+        // Test that valid regex patterns work correctly
+        $validPatterns = [
+            '/test/' => 'REPLACED',
+            '/\d+/' => 'NUMBER',
+            '/[a-z]+/' => 'LETTERS'
         ];
-        $calls = [];
-        $auditLogger = function ($path, $original, $masked) use (&$calls): void {
-            $calls[] = [$path, $original, $masked];
-        };
-        $processor = new GdprProcessor($patterns, [], [], $auditLogger);
-        $result = $processor->regExpMessage('test');
-        $this->assertSame('test', $result);
-        $this->assertNotEmpty($calls);
-        $this->assertSame(['preg_replace_error', 'test', 'test'], $calls[0]);
+
+        $processor = $this->createProcessor($validPatterns);
+        $this->assertInstanceOf(GdprProcessor::class, $processor);
+
+        // Test that the patterns actually work
+        $result = $processor->maskMessage('test 123 abc');
+        $this->assertStringContainsString('REPLACED', $result);
+        $this->assertStringContainsString('NUMBER', $result);
+        $this->assertStringContainsString('LETTERS', $result);
     }
 
-    public function testRegExpMessageHandlesPregReplaceError(): void
+    public function testIncompleteRegexPatternThrowsExceptionOnConstruction(): void
     {
-        $invalidPattern = ['/(unclosed[' => 'REPLACED'];
-        $called = false;
-        $logger = function ($type, $original, $message) use (&$called) {
-            $called = true;
-            $this->assertSame('preg_replace_error', $type);
-            $this->assertSame('test', $original);
-            $this->assertSame('test', $message);
-        };
-        $processor = new GdprProcessor($invalidPattern);
-        $processor->setAuditLogger($logger);
+        // Test that incomplete regex patterns are caught during construction
+        $this->expectException(InvalidRegexPatternException::class);
 
-        $result = $processor->regExpMessage('test');
-        $this->assertTrue($called, 'Audit logger should be called on preg_replace error');
-        $this->assertSame('test', $result, 'Message should be unchanged if preg_replace fails');
+        $this->expectExceptionMessage("Invalid regex pattern '/(unclosed['");
+
+        $this->createProcessor(['/(unclosed[' => 'REPLACED']);
     }
 
     public function testRegExpMessageReturnsOriginalIfResultIsEmptyString(): void
@@ -314,7 +307,7 @@ class GdprProcessorTest extends TestCase
         $patterns = [
             '/^foo$/' => '',
         ];
-        $processor = new GdprProcessor($patterns);
+        $processor = $this->createProcessor($patterns);
         $result = $processor->regExpMessage('foo');
         $this->assertSame('foo', $result, 'Should return original message if preg_replace result is empty string');
     }
@@ -324,7 +317,7 @@ class GdprProcessorTest extends TestCase
         $patterns = [
             '/^foo$/' => '0',
         ];
-        $processor = new GdprProcessor($patterns);
+        $processor = $this->createProcessor($patterns);
         $result = $processor->regExpMessage('foo');
         $this->assertSame('foo', $result, 'Should return original message if preg_replace result is string "0"');
     }

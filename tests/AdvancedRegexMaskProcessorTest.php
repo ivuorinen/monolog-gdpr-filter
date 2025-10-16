@@ -4,10 +4,16 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Tests for advanced regex masking processor.
+ *
+ * @api
+ */
 #[CoversClass(GdprProcessor::class)]
 class AdvancedRegexMaskProcessorTest extends TestCase
 {
@@ -15,9 +21,7 @@ class AdvancedRegexMaskProcessorTest extends TestCase
 
     private GdprProcessor $processor;
 
-    /**
-     * @psalm-suppress MissingOverrideAttribute
-     */
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -31,7 +35,7 @@ class AdvancedRegexMaskProcessorTest extends TestCase
         $fieldPaths = [
             "user.ssn" => "[GDPR]",
             "payment.card" => "[CC]",
-            "contact.email" => GdprProcessor::maskWithRegex(), // use regex-masked
+            "contact.email" => FieldMaskConfig::useProcessorPatterns(), // use regex-masked
             "metadata.session" => "[SESSION]",
         ];
 
@@ -41,7 +45,7 @@ class AdvancedRegexMaskProcessorTest extends TestCase
     public function testMaskCreditCardInMessage(): void
     {
         $record = $this->logEntry()->with(message: "Card: 1234567812345678");
-        $result = ($this->processor)($record);
+        $result = ($this->processor)($record)->toArray();
         $this->assertSame("Card: ***CC***", $result["message"]);
     }
 
@@ -49,7 +53,7 @@ class AdvancedRegexMaskProcessorTest extends TestCase
     {
         $record = $this->logEntry()->with(message: "Email: user@example.com");
 
-        $result = ($this->processor)($record);
+        $result = ($this->processor)($record)->toArray();
         $this->assertSame("Email: ***EMAIL***", $result["message"]);
     }
 
@@ -66,7 +70,7 @@ class AdvancedRegexMaskProcessorTest extends TestCase
             extra: [],
         );
 
-        $result = ($this->processor)($record);
+        $result = ($this->processor)($record)->toArray();
 
         $this->assertSame("[GDPR]", $result["context"]["user"]["ssn"]);
         $this->assertSame("[CC]", $result["context"]["payment"]["card"]);

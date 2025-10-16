@@ -11,6 +11,11 @@ use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
 use PHPUnit\Framework\TestCase;
 use Adbar\Dot;
 
+/**
+ * GDPR Processor Methods Test
+ *
+ * @api
+ */
 #[CoversClass(className: GdprProcessor::class)]
 #[CoversMethod(className: GdprProcessor::class, methodName: '__invoke')]
 #[CoversMethod(className: GdprProcessor::class, methodName: 'maskFieldPaths')]
@@ -26,9 +31,9 @@ class GdprProcessorMethodsTest extends TestCase
             '/john.doe/' => 'bar',
         ];
         $fieldPaths = [
-            'user.email' => GdprProcessor::maskWithRegex(),
-            'user.ssn' => GdprProcessor::removeField(),
-            'user.card' => GdprProcessor::replaceWith('MASKED'),
+            'user.email' => FieldMaskConfig::useProcessorPatterns(),
+            'user.ssn' => FieldMaskConfig::remove(),
+            'user.card' => FieldMaskConfig::replace('MASKED'),
         ];
         $context = [
             'user' => [
@@ -52,10 +57,10 @@ class GdprProcessorMethodsTest extends TestCase
     {
         $patterns = [];
         $fieldPaths = [
-            'user.name' => GdprProcessor::maskWithRegex(),
+            'user.name' => FieldMaskConfig::useProcessorPatterns(),
         ];
         $customCallbacks = [
-            'user.name' => fn($value) => strtoupper((string) $value),
+            'user.name' => fn($value): string => strtoupper((string) $value),
         ];
         $processor = new GdprProcessor($patterns, $fieldPaths, $customCallbacks);
         $method = $this->getReflection($processor, 'maskValue');
@@ -67,7 +72,7 @@ class GdprProcessorMethodsTest extends TestCase
     {
         $patterns = [];
         $fieldPaths = [
-            'user.ssn' => GdprProcessor::removeField(),
+            'user.ssn' => FieldMaskConfig::remove(),
         ];
         $processor = new GdprProcessor($patterns, $fieldPaths);
         $method = $this->getReflection($processor, 'maskValue');
@@ -79,7 +84,7 @@ class GdprProcessorMethodsTest extends TestCase
     {
         $patterns = [];
         $fieldPaths = [
-            'user.card' => GdprProcessor::replaceWith('MASKED'),
+            'user.card' => FieldMaskConfig::replace('MASKED'),
         ];
         $processor = new GdprProcessor($patterns, $fieldPaths);
         $method = $this->getReflection($processor, 'maskValue');

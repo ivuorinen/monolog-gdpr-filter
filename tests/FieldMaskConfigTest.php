@@ -9,6 +9,11 @@ use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\TestCase;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
 
+/**
+ * Test field mask configuration.
+ *
+ * @api
+ */
 #[CoversClass(className: FieldMaskConfig::class)]
 #[CoversMethod(className: FieldMaskConfig::class, methodName: '__construct')]
 class FieldMaskConfigTest extends TestCase
