@@ -2,6 +2,7 @@
 
 namespace Ivuorinen\MonologGdprFilter;
 
+use Ivuorinen\MonologGdprFilter\Exceptions\PatternValidationException;
 use Closure;
 use Throwable;
 use Error;
@@ -325,7 +326,7 @@ class GdprProcessor implements ProcessorInterface
     public function setAuditLogger(?callable $auditLogger): void
     {
         $this->auditLogger = $auditLogger;
-        
+
         // Propagate to child processors
         $this->contextProcessor->setAuditLogger($auditLogger);
         $this->recursiveProcessor->setAuditLogger($auditLogger);
@@ -343,7 +344,7 @@ class GdprProcessor implements ProcessorInterface
         try {
             PatternValidator::validateAll($patterns);
         } catch (\InvalidArgumentException $e) {
-            throw \Ivuorinen\MonologGdprFilter\Exceptions\PatternValidationException::forMultiplePatterns(
+            throw PatternValidationException::forMultiplePatterns(
                 ['validation_error' => $e->getMessage()],
                 $e
             );

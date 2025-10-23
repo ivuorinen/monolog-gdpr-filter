@@ -48,7 +48,7 @@ class GdprTestPatternCommand extends Command
         $replacement = $args[1];
         $testString = $args[2];
         $validate = $args[3];
-        
+
         $this->displayTestHeader($pattern, $replacement, $testString);
 
         if ($validate && !$this->validatePattern($pattern, $replacement)) {
@@ -123,13 +123,12 @@ class GdprTestPatternCommand extends Command
 
         try {
             $this->validateInputs($pattern, $testString);
-            
+
             $processor = new GdprProcessor([$pattern => $replacement]);
             $result = $processor->regExpMessage($testString);
 
             $this->displayTestResult($result, $testString);
             $this->showMatchDetails($pattern, $testString);
-
         } catch (CommandExecutionException $exception) {
             $this->error('✗ Pattern test failed: ' . $exception->getMessage());
             return 1;

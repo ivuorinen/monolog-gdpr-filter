@@ -24,7 +24,6 @@ use Ivuorinen\MonologGdprFilter\Exceptions\GdprProcessorException;
 use Ivuorinen\MonologGdprFilter\PatternValidator;
 use Ivuorinen\MonologGdprFilter\DataTypeMasker;
 use InvalidArgumentException;
-use RuntimeException;
 
 /**
  * Security regression tests to prevent vulnerability reintroduction.
