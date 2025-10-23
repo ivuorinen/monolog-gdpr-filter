@@ -7,6 +7,7 @@ namespace Tests;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
+use Ivuorinen\MonologGdprFilter\ContextProcessor;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
 use PHPUnit\Framework\TestCase;
 use Adbar\Dot;
@@ -17,8 +18,8 @@ use Adbar\Dot;
  * @api
  */
 #[CoversClass(className: GdprProcessor::class)]
+#[CoversClass(className: ContextProcessor::class)]
 #[CoversMethod(className: GdprProcessor::class, methodName: '__invoke')]
-#[CoversMethod(className: GdprProcessor::class, methodName: 'maskFieldPaths')]
 #[CoversMethod(className: GdprProcessor::class, methodName: 'maskValue')]
 #[CoversMethod(className: GdprProcessor::class, methodName: 'logAudit')]
 class GdprProcessorMethodsTest extends TestCase
@@ -42,15 +43,14 @@ class GdprProcessorMethodsTest extends TestCase
                 'card' => self::TEST_CC,
             ],
         ];
-        $accessor = new Dot($context);
+        
         $processor = new GdprProcessor($patterns, $fieldPaths);
-        $method = $this->getReflection($processor, 'maskFieldPaths');
-        $method->invoke($processor, $accessor);
+        $record = $this->createLogRecord(context: $context);
+        $result = $processor($record);
 
-        $result = $accessor->all();
-        $this->assertSame('bar@example.com', $result['user']['email']);
-        $this->assertSame('MASKED', $result['user']['card']);
-        $this->assertArrayNotHasKey('ssn', $result['user']);
+        $this->assertSame('bar@example.com', $result->context['user']['email']);
+        $this->assertSame('MASKED', $result->context['user']['card']);
+        $this->assertArrayNotHasKey('ssn', $result->context['user']);
     }
 
     public function testMaskValueWithCustomCallback(): void
@@ -62,10 +62,13 @@ class GdprProcessorMethodsTest extends TestCase
         $customCallbacks = [
             'user.name' => fn($value): string => strtoupper((string) $value),
         ];
+        $context = ['user' => ['name' => 'john']];
+        
         $processor = new GdprProcessor($patterns, $fieldPaths, $customCallbacks);
-        $method = $this->getReflection($processor, 'maskValue');
-        $result = $method->invoke($processor, 'user.name', 'john', $fieldPaths['user.name']);
-        $this->assertSame(['masked' => 'JOHN', 'remove' => false], $result);
+        $record = $this->createLogRecord(context: $context);
+        $result = $processor($record);
+        
+        $this->assertSame('JOHN', $result->context['user']['name']);
     }
 
     public function testMaskValueWithRemove(): void
@@ -74,10 +77,13 @@ class GdprProcessorMethodsTest extends TestCase
         $fieldPaths = [
             'user.ssn' => FieldMaskConfig::remove(),
         ];
+        $context = ['user' => ['ssn' => self::TEST_HETU]];
+        
         $processor = new GdprProcessor($patterns, $fieldPaths);
-        $method = $this->getReflection($processor, 'maskValue');
-        $result = $method->invoke($processor, 'user.ssn', self::TEST_HETU, $fieldPaths['user.ssn']);
-        $this->assertSame(['masked' => null, 'remove' => true], $result);
+        $record = $this->createLogRecord(context: $context);
+        $result = $processor($record);
+        
+        $this->assertArrayNotHasKey('ssn', $result->context['user']);
     }
 
     public function testMaskValueWithReplace(): void
@@ -86,23 +92,29 @@ class GdprProcessorMethodsTest extends TestCase
         $fieldPaths = [
             'user.card' => FieldMaskConfig::replace('MASKED'),
         ];
+        $context = ['user' => ['card' => self::TEST_CC]];
+        
         $processor = new GdprProcessor($patterns, $fieldPaths);
-        $method = $this->getReflection($processor, 'maskValue');
-        $result = $method->invoke($processor, 'user.card', self::TEST_CC, $fieldPaths['user.card']);
-        $this->assertSame(['masked' => 'MASKED', 'remove' => false], $result);
+        $record = $this->createLogRecord(context: $context);
+        $result = $processor($record);
+        
+        $this->assertSame('MASKED', $result->context['user']['card']);
     }
 
     public function testLogAuditIsCalled(): void
     {
         $patterns = [];
-        $fieldPaths = [];
+        $fieldPaths = ['user.email' => FieldMaskConfig::replace('MASKED')];
         $calls = [];
         $auditLogger = function ($path, $original, $masked) use (&$calls): void {
             $calls[] = [$path, $original, $masked];
         };
+        $context = ['user' => ['email' => self::TEST_EMAIL]];
+        
         $processor = new GdprProcessor($patterns, $fieldPaths, [], $auditLogger);
-        $method = $this->getReflection($processor, 'logAudit');
-        $method->invoke($processor, 'user.email', self::TEST_EMAIL, 'MASKED');
+        $record = $this->createLogRecord(context: $context);
+        $processor($record);
+        
         $this->assertNotEmpty($calls);
         $this->assertSame(['user.email', self::TEST_EMAIL, 'MASKED'], $calls[0]);
     }
@@ -113,10 +125,13 @@ class GdprProcessorMethodsTest extends TestCase
         $fieldPaths = [
             'user.unknown' => new FieldMaskConfig('999'), // unknown type
         ];
+        $context = ['user' => ['unknown' => 'foo']];
+        
         $processor = new GdprProcessor($patterns, $fieldPaths);
-        $method = $this->getReflection($processor, 'maskValue');
-        $result = $method->invoke($processor, 'user.unknown', 'foo', $fieldPaths['user.unknown']);
-        $this->assertSame(['masked' => '999', 'remove' => false], $result);
+        $record = $this->createLogRecord(context: $context);
+        $result = $processor($record);
+        
+        $this->assertSame('999', $result->context['user']['unknown']);
     }
 
     public function testMaskValueWithStringConfigBackwardCompatibility(): void
@@ -125,9 +140,12 @@ class GdprProcessorMethodsTest extends TestCase
         $fieldPaths = [
             'user.simple' => 'MASKED',
         ];
+        $context = ['user' => ['simple' => 'foo']];
+        
         $processor = new GdprProcessor($patterns, $fieldPaths);
-        $method = $this->getReflection($processor, 'maskValue');
-        $result = $method->invoke($processor, 'user.simple', 'foo', $fieldPaths['user.simple']);
-        $this->assertSame(['masked' => 'MASKED', 'remove' => false], $result);
+        $record = $this->createLogRecord(context: $context);
+        $result = $processor($record);
+        
+        $this->assertSame('MASKED', $result->context['user']['simple']);
     }
 }

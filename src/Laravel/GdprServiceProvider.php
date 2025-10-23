@@ -2,13 +2,14 @@
 
 namespace Ivuorinen\MonologGdprFilter\Laravel;
 
-use Exception;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Carbon;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 use Ivuorinen\MonologGdprFilter\Laravel\Commands\GdprTestPatternCommand;
 use Ivuorinen\MonologGdprFilter\Laravel\Commands\GdprDebugCommand;
+use Ivuorinen\MonologGdprFilter\Exceptions\ServiceRegistrationException;
 
 /**
  * Laravel Service Provider for Monolog GDPR Filter.
@@ -42,7 +43,7 @@ class GdprServiceProvider extends ServiceProvider
                         'path' => $path,
                         'original_type' => gettype($original),
                         'was_masked' => $original !== $masked,
-                        'timestamp' => \now()->toISOString(),
+                        'timestamp' => Carbon::now()->toISOString(),
                     ]);
                 };
             }
@@ -66,7 +67,7 @@ class GdprServiceProvider extends ServiceProvider
     {
         // Publish configuration file
         $this->publishes([
-            __DIR__ . '/../../config/gdpr.php' => \config_path('gdpr.php'),
+            __DIR__ . '/../../config/gdpr.php' => $this->app->configPath('gdpr.php'),
         ], 'gdpr-config');
 
         // Register artisan commands
@@ -100,9 +101,14 @@ class GdprServiceProvider extends ServiceProvider
                 if (method_exists($channelLogger, 'pushProcessor')) {
                     $channelLogger->pushProcessor($processor);
                 }
-            } catch (Exception $e) {
-                // Silently ignore channels that don't exist
-                Log::debug(sprintf("GDPR: Could not register with channel '%s': ", $channelName) . $e->getMessage());
+            } catch (\Throwable $e) {
+                // Log proper service registration failure but continue with other channels
+                $exception = ServiceRegistrationException::forChannel(
+                    $channelName,
+                    $e->getMessage(),
+                    $e
+                );
+                Log::debug('GDPR service registration warning: ' . $exception->getMessage());
             }
         }
     }

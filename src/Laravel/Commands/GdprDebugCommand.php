@@ -6,9 +6,9 @@ use Monolog\LogRecord;
 use DateTimeImmutable;
 use Monolog\Level;
 use JsonException;
-use Exception;
 use Illuminate\Console\Command;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
+use Ivuorinen\MonologGdprFilter\Exceptions\CommandExecutionException;
 
 /**
  * Artisan command for debugging GDPR configuration and testing.
@@ -21,6 +21,8 @@ use Ivuorinen\MonologGdprFilter\GdprProcessor;
  */
 class GdprDebugCommand extends Command
 {
+    private const COMMAND_NAME = 'gdpr:debug';
+
     /**
      * The name and signature of the console command.
      *
@@ -159,9 +161,19 @@ class GdprDebugCommand extends Command
                 $this->line((string)json_encode($result->context, JSON_PRETTY_PRINT));
             }
         } catch (JsonException $e) {
-            $this->error('Invalid JSON data: ' . $e->getMessage());
-        } catch (Exception $e) {
-            $this->error('Error processing data: ' . $e->getMessage());
+            throw CommandExecutionException::forJsonProcessing(
+                self::COMMAND_NAME,
+                $testData,
+                $e->getMessage(),
+                $e
+            );
+        } catch (\Throwable $e) {
+            throw CommandExecutionException::forOperation(
+                self::COMMAND_NAME,
+                'data processing',
+                $e->getMessage(),
+                $e
+            );
         }
     }
 
@@ -175,14 +187,19 @@ class GdprDebugCommand extends Command
         $this->line('--------------');
 
         try {
-            $processor = \app('gdpr.processor');
+            \app('gdpr.processor');
             $this->line('<info>✓</info> GDPR processor is registered and ready');
 
             $config = \config('gdpr', []);
-            $patterns = $config['patterns'] ?? $processor::getDefaultPatterns();
+            $patterns = $config['patterns'] ?? GdprProcessor::getDefaultPatterns();
             $this->line('Patterns configured: ' . count($patterns));
-        } catch (Exception $exception) {
-            $this->error('✗ GDPR processor is not properly configured: ' . $exception->getMessage());
+        } catch (\Throwable $exception) {
+            throw CommandExecutionException::forOperation(
+                self::COMMAND_NAME,
+                'configuration check',
+                'GDPR processor is not properly configured: ' . $exception->getMessage(),
+                $exception
+            );
         }
 
         $this->line('');

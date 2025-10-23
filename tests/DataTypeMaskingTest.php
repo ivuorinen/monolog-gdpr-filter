@@ -48,7 +48,7 @@ class DataTypeMaskingTest extends TestCase
             ['integer' => MaskConstants::MASK_INT]
         );
 
-        $logRecord = $this->createLogRecord('Test message', ['age' => 25, 'count' => 100]);
+        $logRecord = $this->createLogRecord(context: ['age' => 25, 'count' => 100]);
 
         $result = $processor($logRecord);
 
@@ -64,15 +64,15 @@ class DataTypeMaskingTest extends TestCase
             [],
             null,
             100,
-            ['double' => '***FLOAT***']
+            ['double' => MaskConstants::MASK_FLOAT]
         );
 
-        $logRecord = $this->createLogRecord('Test message', ['price' => 99.99, 'rating' => 4.5]);
+        $logRecord = $this->createLogRecord(context: ['price' => 99.99, 'rating' => 4.5]);
 
         $result = $processor($logRecord);
 
-        $this->assertEquals('***FLOAT***', $result->context['price']);
-        $this->assertEquals('***FLOAT***', $result->context['rating']);
+        $this->assertEquals(MaskConstants::MASK_FLOAT, $result->context['price']);
+        $this->assertEquals(MaskConstants::MASK_FLOAT, $result->context['rating']);
     }
 
     public function testBooleanMasking(): void
@@ -83,15 +83,15 @@ class DataTypeMaskingTest extends TestCase
             [],
             null,
             100,
-            ['boolean' => '***BOOL***']
+            ['boolean' => MaskConstants::MASK_BOOL]
         );
 
-        $logRecord = $this->createLogRecord('Test message', ['active' => true, 'deleted' => false]);
+        $logRecord = $this->createLogRecord(context: ['active' => true, 'deleted' => false]);
 
         $result = $processor($logRecord);
 
-        $this->assertEquals('***BOOL***', $result->context['active']);
-        $this->assertEquals('***BOOL***', $result->context['deleted']);
+        $this->assertEquals(MaskConstants::MASK_BOOL, $result->context['active']);
+        $this->assertEquals(MaskConstants::MASK_BOOL, $result->context['deleted']);
     }
 
     public function testNullMasking(): void
@@ -102,15 +102,15 @@ class DataTypeMaskingTest extends TestCase
             [],
             null,
             100,
-            ['NULL' => '***NULL***']
+            ['NULL' => MaskConstants::MASK_NULL]
         );
 
-        $logRecord = $this->createLogRecord('Test message', ['optional_field' => null, 'another_null' => null]);
+        $logRecord = $this->createLogRecord(context: ['optional_field' => null, 'another_null' => null]);
 
         $result = $processor($logRecord);
 
-        $this->assertEquals('***NULL***', $result->context['optional_field']);
-        $this->assertEquals('***NULL***', $result->context['another_null']);
+        $this->assertEquals(MaskConstants::MASK_NULL, $result->context['optional_field']);
+        $this->assertEquals(MaskConstants::MASK_NULL, $result->context['another_null']);
     }
 
     public function testObjectMasking(): void
@@ -121,18 +121,18 @@ class DataTypeMaskingTest extends TestCase
             [],
             null,
             100,
-            ['object' => '***OBJECT***']
+            ['object' => MaskConstants::MASK_OBJECT]
         );
 
         $testObject = new stdClass();
         $testObject->name = 'test';
 
-        $logRecord = $this->createLogRecord('Test message', ['user' => $testObject]);
+        $logRecord = $this->createLogRecord(context: ['user' => $testObject]);
 
         $result = $processor($logRecord);
 
         $this->assertIsObject($result->context['user']);
-        $this->assertEquals('***OBJECT***', $result->context['user']->masked);
+        $this->assertEquals(MaskConstants::MASK_OBJECT, $result->context['user']->masked);
         $this->assertEquals('stdClass', $result->context['user']->original_class);
     }
 
@@ -144,21 +144,21 @@ class DataTypeMaskingTest extends TestCase
             [],
             null,
             100,
-            ['array' => '***ARRAY***']
+            ['array' => MaskConstants::MASK_ARRAY]
         );
 
         $logRecord = new LogRecord(
             new DateTimeImmutable(),
             'test',
             Level::Info,
-            'Test message',
+            TestConstants::MESSAGE_DEFAULT,
             ['tags' => ['php', 'gdpr'], 'metadata' => ['key' => 'value']]
         );
 
         $result = $processor($logRecord);
 
-        $this->assertEquals(['***ARRAY***'], $result->context['tags']);
-        $this->assertEquals(['***ARRAY***'], $result->context['metadata']);
+        $this->assertEquals([MaskConstants::MASK_ARRAY], $result->context['tags']);
+        $this->assertEquals([MaskConstants::MASK_ARRAY], $result->context['metadata']);
     }
 
     public function testRecursiveArrayMasking(): void
@@ -176,7 +176,7 @@ class DataTypeMaskingTest extends TestCase
             new DateTimeImmutable(),
             'test',
             Level::Info,
-            'Test message',
+            TestConstants::MESSAGE_DEFAULT,
             ['nested' => ['level1' => ['level2' => ['count' => 42]]]]
         );
 
@@ -197,12 +197,12 @@ class DataTypeMaskingTest extends TestCase
             [
                 'integer' => MaskConstants::MASK_INT,
                 'string' => MaskConstants::MASK_STRING,
-                'boolean' => '***BOOL***',
-                'NULL' => '***NULL***',
+                'boolean' => MaskConstants::MASK_BOOL,
+                'NULL' => MaskConstants::MASK_NULL,
             ]
         );
 
-        $logRecord = $this->createLogRecord('Test message', [
+        $logRecord = $this->createLogRecord(context: [
             'age' => 30,
             'name' => 'John Doe',
             'active' => true,
@@ -214,8 +214,8 @@ class DataTypeMaskingTest extends TestCase
 
         $this->assertEquals(MaskConstants::MASK_INT, $result->context['age']);
         $this->assertEquals(MaskConstants::MASK_STRING, $result->context['name']);
-        $this->assertEquals('***BOOL***', $result->context['active']);
-        $this->assertEquals('***NULL***', $result->context['deleted_at']);
+        $this->assertEquals(MaskConstants::MASK_BOOL, $result->context['active']);
+        $this->assertEquals(MaskConstants::MASK_NULL, $result->context['deleted_at']);
         $this->assertEqualsWithDelta(98.5, $result->context['score'], PHP_FLOAT_EPSILON); // Should remain unchanged
     }
 
@@ -233,7 +233,7 @@ class DataTypeMaskingTest extends TestCase
             ]
         );
 
-        $logRecord = $this->createLogRecord('Test message', ['age' => 25, 'salary' => 50000.50]);
+        $logRecord = $this->createLogRecord(context: ['age' => 25, 'salary' => 50000.50]);
 
         $result = $processor($logRecord);
 
@@ -252,7 +252,7 @@ class DataTypeMaskingTest extends TestCase
             ['boolean' => 'preserve']
         );
 
-        $logRecord = $this->createLogRecord('Test message', ['active' => true, 'deleted' => false]);
+        $logRecord = $this->createLogRecord(context: ['active' => true, 'deleted' => false]);
 
         $result = $processor($logRecord);
 
@@ -265,9 +265,9 @@ class DataTypeMaskingTest extends TestCase
         // Test with empty data type masks
         $processor = $this->createProcessor([], [], [], null, 100, []);
 
-        $logRecord = $this->createLogRecord('Test message', [
+        $logRecord = $this->createLogRecord(context: [
             'age' => 30,
-            'name' => 'John Doe',
+            'name' => TestConstants::NAME_FULL,
             'active' => true,
             'deleted_at' => null,
         ]);
@@ -276,7 +276,7 @@ class DataTypeMaskingTest extends TestCase
 
         // All values should remain unchanged
         $this->assertEquals(30, $result->context['age']);
-        $this->assertEquals('John Doe', $result->context['name']);
+        $this->assertEquals(TestConstants::NAME_FULL, $result->context['name']);
         $this->assertTrue($result->context['active']);
         $this->assertNull($result->context['deleted_at']);
     }
@@ -293,7 +293,7 @@ class DataTypeMaskingTest extends TestCase
             ['integer' => MaskConstants::MASK_INT]
         );
 
-        $logRecord = $this->createLogRecord('Test message', [
+        $logRecord = $this->createLogRecord(context: [
             'email' => TestConstants::EMAIL_TEST,
             'user_id' => 12345,
         ]);

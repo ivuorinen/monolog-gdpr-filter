@@ -7,6 +7,7 @@ namespace Tests;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 use Tests\TestHelpers;
+use Tests\TestConstants;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 use Monolog\LogRecord;
 use Monolog\Level;
@@ -111,7 +112,7 @@ class PerformanceBenchmarkTest extends TestCase
                 new DateTimeImmutable(),
                 'test',
                 Level::Info,
-                'Test message',
+                TestConstants::MESSAGE_DEFAULT,
                 $testData
             );
             $result = $processor($logRecord);
@@ -155,7 +156,7 @@ class PerformanceBenchmarkTest extends TestCase
                 new DateTimeImmutable(),
                 'test',
                 Level::Info,
-                'Test message',
+                TestConstants::MESSAGE_DEFAULT,
                 $largeArray
             );
             $result = $processor($logRecord);
@@ -254,7 +255,7 @@ class PerformanceBenchmarkTest extends TestCase
             new DateTimeImmutable(),
             'test',
             Level::Info,
-            'Test message',
+            TestConstants::MESSAGE_DEFAULT,
             $largeArray
         );
         $result = $processor($logRecord);
@@ -306,7 +307,7 @@ class PerformanceBenchmarkTest extends TestCase
                     new DateTimeImmutable(),
                     'test',
                     Level::Info,
-                    'Test message',
+                    TestConstants::MESSAGE_DEFAULT,
                     $data
                 );
                 $results[] = $processor($logRecord);
