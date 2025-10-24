@@ -11,6 +11,7 @@ use Ivuorinen\MonologGdprFilter\MaskConstants as Mask;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Tests\TestConstants;
 
 /**
  * Tests for the FieldMaskConfig class.
@@ -86,11 +87,11 @@ class FieldMaskConfigValidationTest extends TestCase
     #[Test]
     public function regexMaskAcceptsValidPattern(): void
     {
-        $config = FieldMaskConfig::regexMask('/\d+/', Mask::MASK_NUMBER);
+        $config = FieldMaskConfig::regexMask(TestConstants::PATTERN_DIGITS, Mask::MASK_NUMBER);
 
         $this->assertSame(FieldMaskConfig::MASK_REGEX, $config->type);
-        $this->assertSame('/\d+/::***NUMBER***', $config->replacement);
-        $this->assertSame('/\d+/', $config->getRegexPattern());
+        $this->assertSame(TestConstants::PATTERN_DIGITS . '::' . Mask::MASK_NUMBER, $config->replacement);
+        $this->assertSame(TestConstants::PATTERN_DIGITS, $config->getRegexPattern());
         $this->assertSame(Mask::MASK_NUMBER, $config->getReplacement());
     }
 
@@ -126,7 +127,7 @@ class FieldMaskConfigValidationTest extends TestCase
     public function fromArrayThrowsExceptionForEmptyReplacementWithReplaceType(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Cannot be null or empty for REPLACE type');
+        $this->expectExceptionMessage(TestConstants::ERROR_REPLACE_TYPE_EMPTY);
 
         FieldMaskConfig::fromArray([
             'type' => FieldMaskConfig::REPLACE,
@@ -138,7 +139,7 @@ class FieldMaskConfigValidationTest extends TestCase
     public function fromArrayThrowsExceptionForNullReplacementWithReplaceType(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Cannot be null or empty for REPLACE type');
+        $this->expectExceptionMessage(TestConstants::ERROR_REPLACE_TYPE_EMPTY);
 
         FieldMaskConfig::fromArray([
             'type' => FieldMaskConfig::REPLACE,
@@ -150,7 +151,7 @@ class FieldMaskConfigValidationTest extends TestCase
     public function fromArrayThrowsExceptionForWhitespaceOnlyReplacementWithReplaceType(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Cannot be null or empty for REPLACE type');
+        $this->expectExceptionMessage(TestConstants::ERROR_REPLACE_TYPE_EMPTY);
 
         FieldMaskConfig::fromArray([
             'type' => FieldMaskConfig::REPLACE,
@@ -186,12 +187,12 @@ class FieldMaskConfigValidationTest extends TestCase
     {
         $config = FieldMaskConfig::fromArray([
             'type' => FieldMaskConfig::MASK_REGEX,
-            'replacement' => '/\d+/::' . Mask::MASK_NUMBER
+            'replacement' => TestConstants::PATTERN_DIGITS . '::' . Mask::MASK_NUMBER
         ]);
 
         $this->assertSame(FieldMaskConfig::MASK_REGEX, $config->type);
         $this->assertTrue($config->hasRegexPattern());
-        $this->assertSame('/\d+/', $config->getRegexPattern());
+        $this->assertSame(TestConstants::PATTERN_DIGITS, $config->getRegexPattern());
         $this->assertSame(Mask::MASK_NUMBER, $config->getReplacement());
     }
 
@@ -227,10 +228,10 @@ class FieldMaskConfigValidationTest extends TestCase
     #[Test]
     public function constructorAcceptsValidParameters(): void
     {
-        $config = new FieldMaskConfig(FieldMaskConfig::REPLACE, '[TEST]');
+        $config = new FieldMaskConfig(FieldMaskConfig::REPLACE, TestConstants::REPLACEMENT_TEST);
 
         $this->assertSame(FieldMaskConfig::REPLACE, $config->type);
-        $this->assertSame('[TEST]', $config->replacement);
+        $this->assertSame(TestConstants::REPLACEMENT_TEST, $config->replacement);
     }
 
     #[Test]
@@ -265,7 +266,7 @@ class FieldMaskConfigValidationTest extends TestCase
         $removeConfig = FieldMaskConfig::remove();
         $this->assertNull($removeConfig->getRegexPattern());
 
-        $replaceConfig = FieldMaskConfig::replace('[TEST]');
+        $replaceConfig = FieldMaskConfig::replace(TestConstants::REPLACEMENT_TEST);
         $this->assertNull($replaceConfig->getRegexPattern());
     }
 
@@ -275,7 +276,7 @@ class FieldMaskConfigValidationTest extends TestCase
         $removeConfig = FieldMaskConfig::remove();
         $this->assertFalse($removeConfig->hasRegexPattern());
 
-        $replaceConfig = FieldMaskConfig::replace('[TEST]');
+        $replaceConfig = FieldMaskConfig::replace(TestConstants::REPLACEMENT_TEST);
         $this->assertFalse($replaceConfig->hasRegexPattern());
     }
 }

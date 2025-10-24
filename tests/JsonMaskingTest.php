@@ -11,6 +11,7 @@ use Monolog\Level;
 use Monolog\LogRecord;
 use PHPUnit\Framework\TestCase;
 use Tests\TestHelpers;
+use Tests\TestConstants;
 
 /**
  * Test JSON string masking functionality within log messages.
@@ -24,7 +25,7 @@ class JsonMaskingTest extends TestCase
     public function testSimpleJsonObjectMasking(): void
     {
         $processor = $this->createProcessor([
-            '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => MaskConstants::MASK_EMAIL
+            TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL
         ]);
 
         $message = 'User data: {"email": "user@example.com", "name": "John Doe"}';
@@ -43,7 +44,7 @@ class JsonMaskingTest extends TestCase
     public function testJsonArrayMasking(): void
     {
         $processor = $this->createProcessor([
-            '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => MaskConstants::MASK_EMAIL
+            TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL
         ]);
 
         $message = 'Users: [{"email": "admin@example.com"}, {"email": "user@test.com"}]';
@@ -63,7 +64,7 @@ class JsonMaskingTest extends TestCase
     public function testNestedJsonMasking(): void
     {
         $processor = $this->createProcessor([
-            '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => MaskConstants::MASK_EMAIL,
+            TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL,
             '/\b\d{3}-\d{2}-\d{4}\b/' => MaskConstants::MASK_USSSN
         ]);
 
@@ -87,7 +88,7 @@ class JsonMaskingTest extends TestCase
     public function testMultipleJsonStringsInMessage(): void
     {
         $processor = $this->createProcessor([
-            '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => MaskConstants::MASK_EMAIL
+            TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL
         ]);
 
         $message = 'Request: {"email": "req@example.com"} Response: {"email": "resp@test.com", "status": "ok"}';
@@ -113,7 +114,7 @@ class JsonMaskingTest extends TestCase
     public function testInvalidJsonStillGetsMasked(): void
     {
         $processor = $this->createProcessor([
-            '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => MaskConstants::MASK_EMAIL
+            TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL
         ]);
 
         $message = 'Invalid JSON: {email: "invalid@example.com", missing quotes} and email@test.com';
@@ -125,13 +126,13 @@ class JsonMaskingTest extends TestCase
         $this->assertStringNotContainsString('email@test.com', $result);
 
         // The structure should still be there, just with masked emails
-        $this->assertStringContainsString('{email: "***EMAIL***", missing quotes}', $result);
+        $this->assertStringContainsString('{email: "' . MaskConstants::MASK_EMAIL . '", missing quotes}', $result);
     }
 
     public function testJsonWithSpecialCharacters(): void
     {
         $processor = $this->createProcessor([
-            '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => MaskConstants::MASK_EMAIL
+            TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL
         ]);
 
         $message = 'Data: {"email": "user@example.com", "message": "Hello \"world\"", "unicode": "café ñoño"}';
@@ -150,7 +151,7 @@ class JsonMaskingTest extends TestCase
     public function testJsonMaskingWithDataTypeMasks(): void
     {
         $processor = $this->createProcessor(
-            ['/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => MaskConstants::MASK_EMAIL],
+            [TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL],
             [],
             [],
             null,
@@ -180,7 +181,7 @@ class JsonMaskingTest extends TestCase
         };
 
         $processor = $this->createProcessor(
-            ['/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => MaskConstants::MASK_EMAIL],
+            [TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL],
             [],
             [],
             $auditLogger
@@ -210,7 +211,7 @@ class JsonMaskingTest extends TestCase
     public function testJsonMaskingInLogRecord(): void
     {
         $processor = $this->createProcessor([
-            '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => MaskConstants::MASK_EMAIL
+            TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL
         ]);
 
         $logRecord = new LogRecord(
@@ -236,7 +237,7 @@ class JsonMaskingTest extends TestCase
     public function testJsonMaskingWithConditionalRules(): void
     {
         $processor = $this->createProcessor(
-            ['/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => MaskConstants::MASK_EMAIL],
+            [TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL],
             [],
             [],
             null,
@@ -277,7 +278,7 @@ class JsonMaskingTest extends TestCase
     public function testComplexJsonWithArraysAndObjects(): void
     {
         $processor = $this->createProcessor([
-            '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => MaskConstants::MASK_EMAIL,
+            TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL,
             '/\+1-\d{3}-\d{3}-\d{4}/' => MaskConstants::MASK_PHONE
         ]);
 
@@ -331,7 +332,7 @@ class JsonMaskingTest extends TestCase
         };
 
         $processor = $this->createProcessor(
-            ['/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => MaskConstants::MASK_EMAIL],
+            [TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL],
             [],
             [],
             $auditLogger
@@ -400,7 +401,7 @@ class JsonMaskingTest extends TestCase
     public function testEmptyJsonHandling(): void
     {
         $processor = $this->createProcessor([
-            '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => MaskConstants::MASK_EMAIL
+            TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL
         ]);
 
         $message = 'Empty objects: {} [] {"empty": {}}';
@@ -415,7 +416,7 @@ class JsonMaskingTest extends TestCase
     public function testJsonWithNullValues(): void
     {
         $processor = $this->createProcessor([
-            '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => MaskConstants::MASK_EMAIL
+            TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL
         ]);
 
         $message = 'Data: {"email": "user@example.com", "optional": null, "empty": ""}';

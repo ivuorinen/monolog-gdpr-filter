@@ -132,7 +132,7 @@ class GdprProcessorTest extends TestCase
         );
         $processor($record);
         $this->assertNotEmpty($auditCalls);
-        $this->assertSame(['user.email', 'john.doe@example.com', '***EMAIL***'], $auditCalls[0]);
+        $this->assertSame(['user.email', 'john.doe@example.com', Mask::MASK_EMAIL], $auditCalls[0]);
     }
 
     public function testMaskMessage(): void
@@ -202,8 +202,8 @@ class GdprProcessorTest extends TestCase
         );
         $processed = $processor($record);
         $this->assertSame(self::MASKED_EMAIL, $processed->context['user']['email']);
-        $this->assertSame('***HETU***', $processed->context['user']['ssn']);
-        $this->assertSame('***CC***', $processed->context['user']['card']);
+        $this->assertSame(Mask::MASK_HETU, $processed->context['user']['ssn']);
+        $this->assertSame(Mask::MASK_CC, $processed->context['user']['card']);
     }
 
     public function testStringReplacementBackwardCompatibility(): void

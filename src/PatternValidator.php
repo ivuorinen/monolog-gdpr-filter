@@ -40,46 +40,49 @@ final class PatternValidator
             return self::$validPatternCache[$pattern];
         }
 
+        $isValid = true;
+
         // Check for basic regex structure
         if (strlen($pattern) < 3) {
-            self::$validPatternCache[$pattern] = false;
-            return false;
+            $isValid = false;
         }
 
         // Must start and end with delimiters
-        $firstChar = $pattern[0];
-        $lastDelimPos = strrpos($pattern, $firstChar);
-        if ($lastDelimPos === false || $lastDelimPos === 0) {
-            self::$validPatternCache[$pattern] = false;
-            return false;
+        if ($isValid) {
+            $firstChar = $pattern[0];
+            $lastDelimPos = strrpos($pattern, $firstChar);
+            if ($lastDelimPos === false || $lastDelimPos === 0) {
+                $isValid = false;
+            }
         }
 
         // Enhanced ReDoS protection - check for potentially dangerous patterns
-        if (self::hasDangerousPattern($pattern)) {
-            self::$validPatternCache[$pattern] = false;
-            return false;
+        if ($isValid && self::hasDangerousPattern($pattern)) {
+            $isValid = false;
         }
 
         // Test if the pattern is valid by trying to compile it
-        set_error_handler(
-            /**
-             * @return true
-             */
-            static fn(): bool => true
-        );
+        if ($isValid) {
+            set_error_handler(
+                /**
+                 * @return true
+                 */
+                static fn(): bool => true
+            );
 
-        try {
-            /** @psalm-suppress ArgumentTypeCoercion */
-            $result = preg_match($pattern, '');
-            $isValid = $result !== false;
-            self::$validPatternCache[$pattern] = $isValid;
-            return $isValid;
-        } catch (Error) {
-            self::$validPatternCache[$pattern] = false;
-            return false;
-        } finally {
-            restore_error_handler();
+            try {
+                /** @psalm-suppress ArgumentTypeCoercion */
+                $result = preg_match($pattern, '');
+                $isValid = $result !== false;
+            } catch (Error) {
+                $isValid = false;
+            } finally {
+                restore_error_handler();
+            }
         }
+
+        self::$validPatternCache[$pattern] = $isValid;
+        return $isValid;
     }
 
     /**

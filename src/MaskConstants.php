@@ -31,6 +31,7 @@ final class MaskConstants
 
     // Personal identifiers
     public const MASK_HETU = '***HETU***';          // Finnish SSN
+    public const MASK_SSN = '***SSN***';            // Generic SSN
     public const MASK_USSSN = '***USSSN***';        // US SSN
     public const MASK_UKNI = '***UKNI***';          // UK National Insurance
     public const MASK_CASIN = '***CASIN***';        // Canadian SIN
@@ -68,6 +69,7 @@ final class MaskConstants
     public const MASK_INTERNAL = '***INTERNAL***';
     public const MASK_CUSTOMER = '***CUSTOMER***';
     public const MASK_NUMBER = '***NUMBER***';
+    public const MASK_ITEM = '***ITEM***';
 
     // Custom mask patterns for partial masking
     public const MASK_SSN_PATTERN = '***-**-****';      // SSN with format preserved

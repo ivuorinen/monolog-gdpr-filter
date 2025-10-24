@@ -9,6 +9,7 @@ use Generator;
 use Ivuorinen\MonologGdprFilter\DataTypeMasker;
 use Ivuorinen\MonologGdprFilter\MaskConstants;
 use Ivuorinen\MonologGdprFilter\Exceptions\InvalidRegexPatternException;
+use Ivuorinen\MonologGdprFilter\Exceptions\RuleExecutionException;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 use Ivuorinen\MonologGdprFilter\PatternValidator;
 use Monolog\Level;
@@ -18,7 +19,6 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Tests\TestHelpers;
-use RuntimeException;
 use Throwable;
 use Ivuorinen\MonologGdprFilter\RateLimiter;
 use Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger;
@@ -255,7 +255,7 @@ class CriticalBugRegressionTest extends TestCase
         $patterns = [
             '/email\w+@\w+\.\w+/' => MaskConstants::MASK_EMAIL,
             '/phone\d{10}/' => MaskConstants::MASK_PHONE,
-            '/ssn\d{3}-\d{2}-\d{4}/' => '***SSN***'
+            '/ssn\d{3}-\d{2}-\d{4}/' => MaskConstants::MASK_SSN
         ];
 
         $processors = [];
@@ -422,7 +422,8 @@ class CriticalBugRegressionTest extends TestCase
                  * @return never
                  */
                 function (): void {
-                    throw new RuntimeException(
+                    throw RuleExecutionException::forConditionalRule(
+                        'failing_rule',
                         'Database connection failed: host=sensitive.db.com user=secret_user password=secret123'
                     );
                 }
@@ -554,7 +555,7 @@ class CriticalBugRegressionTest extends TestCase
         }
 
         $processor = $this->createProcessor(
-            patterns: ['/test_data_item/' => '***ITEM***'],
+            patterns: ['/test_data_item/' => MaskConstants::MASK_ITEM],
             fieldPaths: [],
             customCallbacks: [],
             auditLogger: null,

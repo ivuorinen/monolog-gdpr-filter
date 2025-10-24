@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use Tests\TestHelpers;
 use Tests\TestConstants;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
+use Ivuorinen\MonologGdprFilter\MaskConstants;
 use Monolog\LogRecord;
 use Monolog\Level;
 use Ivuorinen\MonologGdprFilter\DefaultPatterns;
@@ -39,7 +40,7 @@ class PerformanceBenchmarkTest extends TestCase
             return [
                 'email' => 'user@example.com',
                 'phone' => '+1234567890',
-                'ssn' => '123-45-6789',
+                'ssn' => TestConstants::SSN_US,
                 'id' => random_int(1000, 9999),
             ];
         }
@@ -70,7 +71,7 @@ class PerformanceBenchmarkTest extends TestCase
 
         for ($i = 0; $i < $iterations; $i++) {
             $result = $processor->regExpMessage($testMessage);
-            $this->assertStringContainsString('***EMAIL***', $result);
+            $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
         }
 
         $endTime = microtime(true);
@@ -143,7 +144,7 @@ class PerformanceBenchmarkTest extends TestCase
             $largeArray = [];
             for ($i = 0; $i < $size; $i++) {
                 $largeArray['item_' . $i] = [
-                    'email' => sprintf('user%d@example.com', $i),
+                    'email' => sprintf(TestConstants::TEMPLATE_USER_EMAIL, $i),
                     'data' => 'Some data for item ' . $i,
                     'metadata' => ['timestamp' => time(), 'id' => $i],
                 ];
@@ -169,7 +170,7 @@ class PerformanceBenchmarkTest extends TestCase
             // Verify processing worked
             $this->assertInstanceOf(LogRecord::class, $result);
             $this->assertCount($size, $result->context);
-            $this->assertStringContainsString('***EMAIL***', (string) $result->context['item_0']['email']);
+            $this->assertStringContainsString(MaskConstants::MASK_EMAIL, (string) $result->context['item_0']['email']);
 
             // Performance should scale reasonably
             $timePerItem = $duration / $size;
@@ -185,7 +186,7 @@ class PerformanceBenchmarkTest extends TestCase
         PatternValidator::clearCache();
 
         $processor = $this->getTestProcessor();
-        $testMessage = 'Contact john@example.com, SSN: 123-45-6789, Phone: +1-555-123-4567';
+        $testMessage = 'Contact john@example.com, SSN: ' . TestConstants::SSN_US . ', Phone: +1-555-123-4567';
 
         // First run - patterns will be cached
         microtime(true);
@@ -234,8 +235,8 @@ class PerformanceBenchmarkTest extends TestCase
         $largeArray = [];
         for ($i = 0; $i < 2000; $i++) { // Reduced for test environment
             $largeArray['item_' . $i] = [
-                'email' => sprintf('user%d@example.com', $i),
-                'ssn' => '123-45-6789',
+                'email' => sprintf(TestConstants::TEMPLATE_USER_EMAIL, $i),
+                'ssn' => TestConstants::SSN_US,
                 'phone' => '+1-555-123-4567',
                 'nested' => [
                     'level1' => [
@@ -266,7 +267,7 @@ class PerformanceBenchmarkTest extends TestCase
         // Verify processing worked
         $this->assertInstanceOf(LogRecord::class, $result);
         $this->assertCount(2000, $result->context);
-        $this->assertStringContainsString('***EMAIL***', (string) $result->context['item_0']['email']);
+        $this->assertStringContainsString(MaskConstants::MASK_EMAIL, (string) $result->context['item_0']['email']);
 
         // Memory usage should be reasonable even for large datasets
         $this->assertLessThan(50, $memoryUsed, 'Memory usage should be under 50MB for dataset');
@@ -289,8 +290,8 @@ class PerformanceBenchmarkTest extends TestCase
             for ($i = 0; $i < $concurrency; $i++) {
                 $testData[] = [
                     'user' => [
-                        'email' => sprintf('user%d@example.com', $i),
-                        'ssn' => '123-45-6789',
+                        'email' => sprintf(TestConstants::TEMPLATE_USER_EMAIL, $i),
+                        'ssn' => TestConstants::SSN_US,
                     ],
                     'request' => [
                         'ip' => '192.168.1.' . ($i + 100),
@@ -343,7 +344,8 @@ class PerformanceBenchmarkTest extends TestCase
     {
         // Compare optimized vs simple implementation
         $patterns = DefaultPatterns::get();
-        $testMessage = 'Email: john@example.com, SSN: 123-45-6789, Phone: +1-555-123-4567, IP: 192.168.1.1';
+        $testMessage = 'Email: john@example.com, SSN: ' . TestConstants::SSN_US
+            . ', Phone: +1-555-123-4567, IP: 192.168.1.1';
 
         // Optimized processor (with caching, etc.)
         $optimizedProcessor = $this->createProcessor($patterns);

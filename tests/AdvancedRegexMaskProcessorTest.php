@@ -6,6 +6,7 @@ namespace Tests;
 
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
+use Ivuorinen\MonologGdprFilter\MaskConstants;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -27,9 +28,9 @@ class AdvancedRegexMaskProcessorTest extends TestCase
         parent::setUp();
 
         $patterns = [
-            "/\b\d{6}[-+A]?\d{3}[A-Z]\b/u" => "***HETU***",
-            "/\b[0-9]{16}\b/u" => "***CC***",
-            "/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/" => "***EMAIL***",
+            "/\b\d{6}[-+A]?\d{3}[A-Z]\b/u" => MaskConstants::MASK_HETU,
+            "/\b[0-9]{16}\b/u" => MaskConstants::MASK_CC,
+            "/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/" => MaskConstants::MASK_EMAIL,
         ];
 
         $fieldPaths = [
@@ -46,7 +47,7 @@ class AdvancedRegexMaskProcessorTest extends TestCase
     {
         $record = $this->logEntry()->with(message: "Card: 1234567812345678");
         $result = ($this->processor)($record)->toArray();
-        $this->assertSame("Card: ***CC***", $result["message"]);
+        $this->assertSame("Card: " . MaskConstants::MASK_CC, $result["message"]);
     }
 
     public function testMaskEmailInMessage(): void
@@ -54,7 +55,7 @@ class AdvancedRegexMaskProcessorTest extends TestCase
         $record = $this->logEntry()->with(message: "Email: user@example.com");
 
         $result = ($this->processor)($record)->toArray();
-        $this->assertSame("Email: ***EMAIL***", $result["message"]);
+        $this->assertSame("Email: " . MaskConstants::MASK_EMAIL, $result["message"]);
     }
 
     public function testContextFieldPathReplacements(): void
@@ -75,7 +76,7 @@ class AdvancedRegexMaskProcessorTest extends TestCase
         $this->assertSame("[GDPR]", $result["context"]["user"]["ssn"]);
         $this->assertSame("[CC]", $result["context"]["payment"]["card"]);
         // empty replacement uses regex-masked value
-        $this->assertSame("***EMAIL***", $result["context"]["contact"]["email"]);
+        $this->assertSame(MaskConstants::MASK_EMAIL, $result["context"]["contact"]["email"]);
         $this->assertSame("[SESSION]", $result["context"]["metadata"]["session"]);
     }
 }

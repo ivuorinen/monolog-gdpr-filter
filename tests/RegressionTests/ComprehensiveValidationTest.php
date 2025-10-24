@@ -17,7 +17,7 @@ use Ivuorinen\MonologGdprFilter\MaskConstants;
 use Ivuorinen\MonologGdprFilter\RateLimiter;
 use Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
-use RuntimeException;
+use Ivuorinen\MonologGdprFilter\Exceptions\RuleExecutionException;
 use Ivuorinen\MonologGdprFilter\DataTypeMasker;
 use Ivuorinen\MonologGdprFilter\PatternValidator;
 use stdClass;
@@ -108,7 +108,7 @@ class ComprehensiveValidationTest extends TestCase
             'array_associative' => ['key' => 'value'],
             'array_nested' => ['level1' => ['level2' => 'value']],
             'object_stdclass' => new stdClass(),
-            'object_with_props' => (object)['prop' => 'value'],
+            'object_with_props' => (object) ['prop' => 'value'],
         ];
 
         foreach ($allPhpTypes as $typeName => $value) {
@@ -281,7 +281,8 @@ class ComprehensiveValidationTest extends TestCase
     public function errorMessageSanitizationRemovesSensitiveData(): void
     {
         $sensitiveScenarios = [
-            'database_credentials' => 'Database error: connection failed host=secret-db.com user=admin password=secret123',
+            'database_credentials' => 'Database error: connection failed host=secret-db.com ' .
+                'user=admin password=secret123',
             'api_keys' => 'API authentication failed: api_key=sk_live_1234567890abcdef token=bearer_secret_token',
             'file_paths' => 'Configuration error: cannot read /var/www/secret-app/config/database.php',
             'connection_strings' => 'Redis connection failed: redis://user:pass@internal-cache:6379',
@@ -301,12 +302,15 @@ class ComprehensiveValidationTest extends TestCase
                 dataTypeMasks: [],
                 conditionalRules: [
                     'test_rule' =>
-                    /**
-                     * @return never
-                     */
-                    function (LogRecord $record) use ($sensitiveMessage): void {
-                        throw new RuntimeException($sensitiveMessage);
-                    }
+                        /**
+                         * @return never
+                         */
+                        function () use ($sensitiveMessage): void {
+                            throw RuleExecutionException::forConditionalRule(
+                                'test_rule',
+                                $sensitiveMessage
+                            );
+                        }
                 ]
             );
 
@@ -324,13 +328,19 @@ class ComprehensiveValidationTest extends TestCase
 
             // Find the error log entry
             $errorLogs = array_filter($this->auditLog, fn(array $log): bool => $log['path'] === 'conditional_error');
-            $this->assertNotEmpty($errorLogs, 'Error should be logged for scenario: ' . $scenario);
+            $this->assertNotEmpty(
+                $errorLogs,
+                'Error should be logged for scenario: ' . $scenario
+            );
 
             $errorLog = reset($errorLogs);
             $loggedMessage = $errorLog['masked'];
 
             // Validate that error was logged
-            $this->assertStringContainsString('Rule error:', (string) $loggedMessage);
+            $this->assertStringContainsString(
+                'Rule error:',
+                (string) $loggedMessage
+            );
 
             // Check for sanitization effectiveness
             $sensitiveTermsFound = [];
@@ -356,9 +366,14 @@ class ComprehensiveValidationTest extends TestCase
                     "⚠️  Scenario '%s': Sensitive terms still present: ",
                     $scenario
                 ) . implode(', ', $sensitiveTermsFound));
-                error_log('    Full message: ' . $loggedMessage);
+                error_log(
+                    '    Full message: ' . $loggedMessage
+                );
             } else {
-                error_log(sprintf("✅ Scenario '%s': No sensitive terms found in sanitized message", $scenario));
+                error_log(sprintf(
+                    "✅ Scenario '%s': No sensitive terms found in sanitized message",
+                    $scenario
+                ));
             }
 
             // Clear audit log for next scenario
@@ -401,7 +416,7 @@ class ComprehensiveValidationTest extends TestCase
         $this->assertGreaterThan(0, $stats['cleanup_interval']);
 
         $json = json_encode($stats);
-        if ($json == false) {
+        if ($json === false) {
             $this->fail('RateLimiter::getMemoryStats() returned false');
         }
 
@@ -601,7 +616,7 @@ class ComprehensiveValidationTest extends TestCase
 
         error_log(
             "✅ Complete integration test passed with "
-                . count($this->auditLog) . " audit log entries"
+            . count($this->auditLog) . " audit log entries"
         );
     }
 

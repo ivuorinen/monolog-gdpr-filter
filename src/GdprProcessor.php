@@ -3,6 +3,7 @@
 namespace Ivuorinen\MonologGdprFilter;
 
 use Ivuorinen\MonologGdprFilter\Exceptions\PatternValidationException;
+use Ivuorinen\MonologGdprFilter\Exceptions\InvalidRegexPatternException;
 use Closure;
 use Throwable;
 use Error;
@@ -157,7 +158,10 @@ class GdprProcessor implements ProcessorInterface
         }
 
         if ($this->customCallbacks !== []) {
-            $processedFields = array_merge($processedFields, $this->contextProcessor->processCustomCallbacks($accessor));
+            $processedFields = array_merge(
+                $processedFields,
+                $this->contextProcessor->processCustomCallbacks($accessor)
+            );
         }
 
         if ($this->fieldPaths !== [] || $this->customCallbacks !== []) {
@@ -343,7 +347,7 @@ class GdprProcessor implements ProcessorInterface
     {
         try {
             PatternValidator::validateAll($patterns);
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidRegexPatternException $e) {
             throw PatternValidationException::forMultiplePatterns(
                 ['validation_error' => $e->getMessage()],
                 $e

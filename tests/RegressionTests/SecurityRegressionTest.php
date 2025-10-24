@@ -436,7 +436,7 @@ class SecurityRegressionTest extends TestCase
         $patterns = [
             '/email\w+@\w+\.\w+/' => MaskConstants::MASK_EMAIL,
             '/phone\d{10}/' => MaskConstants::MASK_PHONE,
-            '/ssn\d{3}-\d{2}-\d{4}/' => '***SSN***',
+            '/ssn\d{3}-\d{2}-\d{4}/' => MaskConstants::MASK_SSN,
         ];
 
         // Simulate concurrent processor creation (would be different threads in real scenario)

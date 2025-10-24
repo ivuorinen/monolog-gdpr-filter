@@ -36,7 +36,7 @@ class RegexMaskProcessorTest extends TestCase
     {
         parent::setUp();
         $patterns = [
-            "/\b\d{6}[-+A]?\d{3}[A-Z]\b/u" => "***MASKED***",
+            "/\b\d{6}[-+A]?\d{3}[A-Z]\b/u" => Mask::MASK_MASKED,
         ];
         $fieldPaths = [
             "user.ssn" => self::GDPR_REPLACEMENT,
@@ -101,7 +101,7 @@ class RegexMaskProcessorTest extends TestCase
         );
         $processor($record);
         $this->assertNotEmpty($auditCalls);
-        $this->assertSame(["user.email", "john.doe@example.com", "***EMAIL***"], $auditCalls[0]);
+        $this->assertSame(["user.email", "john.doe@example.com", Mask::MASK_EMAIL], $auditCalls[0]);
     }
 
     public function testInvalidRegexPatternThrowsExceptionOnConstruction(): void
@@ -175,7 +175,7 @@ class RegexMaskProcessorTest extends TestCase
         foreach ($testHetu as $hetu) {
             $record = $this->logEntry()->with(message: 'ID: ' . $hetu);
             $result = ($this->processor)($record)->toArray();
-            $this->assertSame("ID: ***MASKED***", $result["message"]);
+            $this->assertSame("ID: " . Mask::MASK_MASKED, $result["message"]);
         }
     }
 
@@ -196,7 +196,7 @@ class RegexMaskProcessorTest extends TestCase
             context: ["order" => ["total" => self::TEST_HETU . " €150"]],
         );
         $result = ($this->processor)($record)->toArray();
-        $this->assertSame("***MASKED*** €150", $result["context"]["order"]["total"]);
+        $this->assertSame(Mask::MASK_MASKED . " €150", $result["context"]["order"]["total"]);
     }
 
     public function testNoMaskingWhenPatternDoesNotMatch(): void

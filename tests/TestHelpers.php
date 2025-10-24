@@ -208,7 +208,7 @@ trait TestHelpers
      */
     protected function getEmailPattern(): array
     {
-        return ['/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => '***EMAIL***'];
+        return ['/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => MaskConstants::MASK_EMAIL];
     }
 
     /**
@@ -218,7 +218,7 @@ trait TestHelpers
      */
     protected function getSsnPattern(): array
     {
-        return ['/\b\d{3}-\d{2}-\d{4}\b/' => '***SSN***'];
+        return ['/\b\d{3}-\d{2}-\d{4}\b/' => MaskConstants::MASK_SSN];
     }
 
     /**
@@ -228,15 +228,13 @@ trait TestHelpers
      */
     protected function getCreditCardPattern(): array
     {
-        return ['/\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b/' => '***CARD***'];
+        return ['/\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b/' => MaskConstants::MASK_CARD];
     }
 
     /**
      * Get all common test patterns.
      *
      * @return string[]
-     *
-     * @psalm-return array{'/b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+.[A-Z|a-z]{2,}b/': '***EMAIL***', '/bd{3}-d{2}-d{4}b/': '***SSN***', '/bd{4}[-s]?d{4}[-s]?d{4}[-s]?d{4}b/': '***CARD***'}
      */
     protected function getCommonPatterns(): array
     {

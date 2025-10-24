@@ -31,28 +31,44 @@ class CustomExceptionsTest extends TestCase
     public function testGdprProcessorExceptionWithContext(): void
     {
         $context = ['field' => 'email', 'value' => TestConstants::EMAIL_TEST];
-        $exception = GdprProcessorException::withContext('Base message', $context);
+        $exception = GdprProcessorException::withContext(TestConstants::MESSAGE_BASE, $context);
 
-        $this->assertStringContainsString('Base message', $exception->getMessage());
+        $this->assertStringContainsString(TestConstants::MESSAGE_BASE, $exception->getMessage());
         $this->assertStringContainsString('field: "email"', $exception->getMessage());
         $this->assertStringContainsString('value: "test@example.com"', $exception->getMessage());
     }
 
     public function testGdprProcessorExceptionWithEmptyContext(): void
     {
-        $exception = GdprProcessorException::withContext('Base message', []);
+        $exception = GdprProcessorException::withContext(TestConstants::MESSAGE_BASE, []);
 
-        $this->assertSame('Base message', $exception->getMessage());
+        $this->assertSame(TestConstants::MESSAGE_BASE, $exception->getMessage());
     }
 
     public function testInvalidRegexPatternExceptionForPattern(): void
     {
-        $exception = InvalidRegexPatternException::forPattern('/invalid[/', 'Unclosed bracket', PREG_INTERNAL_ERROR);
+        $exception = InvalidRegexPatternException::forPattern(
+            TestConstants::PATTERN_INVALID_UNCLOSED_BRACKET,
+            'Unclosed bracket',
+            PREG_INTERNAL_ERROR
+        );
 
-        $this->assertStringContainsString("Invalid regex pattern '/invalid[/'", $exception->getMessage());
-        $this->assertStringContainsString('Unclosed bracket', $exception->getMessage());
-        $this->assertStringContainsString('PCRE Error: Internal PCRE error', $exception->getMessage());
-        $this->assertEquals(PREG_INTERNAL_ERROR, $exception->getCode());
+        $this->assertStringContainsString(
+            "Invalid regex pattern '" . TestConstants::PATTERN_INVALID_UNCLOSED_BRACKET . "'",
+            $exception->getMessage()
+        );
+        $this->assertStringContainsString(
+            'Unclosed bracket',
+            $exception->getMessage()
+        );
+        $this->assertStringContainsString(
+            'PCRE Error: Internal PCRE error',
+            $exception->getMessage()
+        );
+        $this->assertEquals(
+            PREG_INTERNAL_ERROR,
+            $exception->getCode()
+        );
     }
 
     public function testInvalidRegexPatternExceptionCompilationFailed(): void
@@ -88,20 +104,31 @@ class CustomExceptionsTest extends TestCase
         ];
 
         foreach ($testCases as $errorCode => $expectedMessage) {
-            $exception = InvalidRegexPatternException::forPattern('/test/', 'Test', $errorCode);
+            $exception = InvalidRegexPatternException::forPattern(TestConstants::PATTERN_TEST, 'Test', $errorCode);
             $this->assertStringContainsString($expectedMessage, $exception->getMessage());
         }
 
         // Test case where no error is provided (should not include PCRE error message)
-        $noErrorException = InvalidRegexPatternException::forPattern('/test/', 'Test', PREG_NO_ERROR);
+        $noErrorException = InvalidRegexPatternException::forPattern(
+            TestConstants::PATTERN_TEST,
+            'Test',
+            PREG_NO_ERROR
+        );
         $this->assertStringNotContainsString('PCRE Error:', $noErrorException->getMessage());
     }
 
     public function testMaskingOperationFailedExceptionRegexMasking(): void
     {
-        $exception = MaskingOperationFailedException::regexMaskingFailed('/test/', 'input string', 'PCRE error');
+        $exception = MaskingOperationFailedException::regexMaskingFailed(
+            TestConstants::PATTERN_TEST,
+            'input string',
+            'PCRE error'
+        );
 
-        $this->assertStringContainsString("Regex masking failed for pattern '/test/'", $exception->getMessage());
+        $this->assertStringContainsString(
+            "Regex masking failed for pattern '" . TestConstants::PATTERN_TEST . "'",
+            $exception->getMessage()
+        );
         $this->assertStringContainsString('PCRE error', $exception->getMessage());
         $this->assertStringContainsString('operation_type: "regex_masking"', $exception->getMessage());
         $this->assertStringContainsString('input_length: 12', $exception->getMessage());
@@ -323,8 +350,12 @@ class CustomExceptionsTest extends TestCase
     public function testExceptionHierarchy(): void
     {
         $baseException = new GdprProcessorException('Base exception');
-        $regexException = InvalidRegexPatternException::forPattern('/test/', 'Invalid');
-        $maskingException = MaskingOperationFailedException::regexMaskingFailed('/test/', 'input', 'Failed');
+        $regexException = InvalidRegexPatternException::forPattern(TestConstants::PATTERN_TEST, 'Invalid');
+        $maskingException = MaskingOperationFailedException::regexMaskingFailed(
+            TestConstants::PATTERN_TEST,
+            'input',
+            'Failed'
+        );
         $auditException = AuditLoggingException::callbackFailed('path', 'original', 'masked', 'Failed');
         $depthException = RecursionDepthExceededException::depthExceeded(10, 5, 'path');
 
@@ -346,7 +377,12 @@ class CustomExceptionsTest extends TestCase
     public function testExceptionChaining(): void
     {
         $originalException = new RuntimeException('Original error');
-        $gdprException = InvalidRegexPatternException::forPattern('/test/', 'Invalid pattern', 0, $originalException);
+        $gdprException = InvalidRegexPatternException::forPattern(
+            TestConstants::PATTERN_TEST,
+            'Invalid pattern',
+            0,
+            $originalException
+        );
 
         $this->assertSame($originalException, $gdprException->getPrevious());
         $this->assertSame('Original error', $gdprException->getPrevious()->getMessage());

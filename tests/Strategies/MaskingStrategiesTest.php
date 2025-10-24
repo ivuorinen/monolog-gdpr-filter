@@ -8,6 +8,7 @@ use Ivuorinen\MonologGdprFilter\Exceptions\GdprProcessorException;
 use Ivuorinen\MonologGdprFilter\MaskConstants;
 use PHPUnit\Framework\TestCase;
 use Tests\TestHelpers;
+use Tests\TestConstants;
 use Monolog\LogRecord;
 use Monolog\Level;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
@@ -43,12 +44,23 @@ class MaskingStrategiesTest extends TestCase
         $this->assertSame(60, $strategy->getPriority());
 
         // Test shouldApply
-        $this->assertTrue($strategy->shouldApply('Contact: john@example.com', 'message', $logRecord));
-        $this->assertFalse($strategy->shouldApply('No sensitive data here', 'message', $logRecord));
+        $this->assertTrue($strategy->shouldApply(
+            'Contact: john@example.com',
+            TestConstants::FIELD_MESSAGE,
+            $logRecord
+        ));
+        $this->assertFalse($strategy->shouldApply('No sensitive data here', TestConstants::FIELD_MESSAGE, $logRecord));
 
         // Test masking
-        $masked = $strategy->mask('Email: john@example.com, Card: 1234-5678-9012-3456', 'message', $logRecord);
-        $this->assertEquals('Email: ***EMAIL***, Card: ' . MaskConstants::MASK_CC, $masked);
+        $masked = $strategy->mask(
+            'Email: john@example.com, Card: 1234-5678-9012-3456',
+            TestConstants::FIELD_MESSAGE,
+            $logRecord
+        );
+        $this->assertEquals(
+            'Email: ' . MaskConstants::MASK_EMAIL . ', Card: ' . MaskConstants::MASK_CC,
+            $masked
+        );
 
         // Test validation
         $this->assertTrue($strategy->validate());
@@ -57,7 +69,7 @@ class MaskingStrategiesTest extends TestCase
     public function testRegexMaskingStrategyWithInvalidPattern(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
-        new RegexMaskingStrategy(['/invalid[/' => 'masked']);
+        new RegexMaskingStrategy([TestConstants::PATTERN_INVALID_UNCLOSED_BRACKET => 'masked']);
     }
 
     public function testRegexMaskingStrategyWithReDoSPattern(): void
@@ -68,26 +80,36 @@ class MaskingStrategiesTest extends TestCase
 
     public function testRegexMaskingStrategyWithIncludeExcludePaths(): void
     {
-        $patterns = ['/test/' => MaskConstants::MASK_MASKED];
-        $strategy = new RegexMaskingStrategy($patterns, ['user.*'], ['user.public']);
+        $patterns = [TestConstants::PATTERN_TEST => MaskConstants::MASK_MASKED];
+        $strategy = new RegexMaskingStrategy(
+            $patterns,
+            [TestConstants::PATH_USER_WILDCARD],
+            [TestConstants::FIELD_USER_PUBLIC]
+        );
         $logRecord = $this->createLogRecord();
 
         // Should apply to included paths
-        $this->assertTrue($strategy->shouldApply('test data', 'user.email', $logRecord));
+        $this->assertTrue(
+            $strategy->shouldApply(TestConstants::DATA_TEST_DATA, TestConstants::FIELD_USER_EMAIL, $logRecord)
+        );
 
         // Should not apply to excluded paths
-        $this->assertFalse($strategy->shouldApply('test data', 'user.public', $logRecord));
+        $this->assertFalse(
+            $strategy->shouldApply(TestConstants::DATA_TEST_DATA, TestConstants::FIELD_USER_PUBLIC, $logRecord)
+        );
 
         // Should not apply to non-included paths
-        $this->assertFalse($strategy->shouldApply('test data', 'system.log', $logRecord));
+        $this->assertFalse(
+            $strategy->shouldApply(TestConstants::DATA_TEST_DATA, TestConstants::FIELD_SYSTEM_LOG, $logRecord)
+        );
     }
 
     public function testFieldPathMaskingStrategy(): void
     {
         $configs = [
-            'user.email' => MaskConstants::MASK_EMAIL,
-            'user.password' => FieldMaskConfig::remove(),
-            'user.name' => FieldMaskConfig::regexMask('/\w+/', MaskConstants::MASK_GENERIC),
+            TestConstants::FIELD_USER_EMAIL => MaskConstants::MASK_EMAIL,
+            TestConstants::FIELD_USER_PASSWORD => FieldMaskConfig::remove(),
+            TestConstants::FIELD_USER_NAME => FieldMaskConfig::regexMask('/\w+/', MaskConstants::MASK_GENERIC),
         ];
 
         $strategy = new FieldPathMaskingStrategy($configs);
@@ -98,19 +120,19 @@ class MaskingStrategiesTest extends TestCase
         $this->assertSame(80, $strategy->getPriority());
 
         // Test shouldApply
-        $this->assertTrue($strategy->shouldApply('john@example.com', 'user.email', $logRecord));
+        $this->assertTrue($strategy->shouldApply('john@example.com', TestConstants::FIELD_USER_EMAIL, $logRecord));
         $this->assertFalse($strategy->shouldApply('some value', 'other.field', $logRecord));
 
         // Test static replacement
-        $masked = $strategy->mask('john@example.com', 'user.email', $logRecord);
+        $masked = $strategy->mask('john@example.com', TestConstants::FIELD_USER_EMAIL, $logRecord);
         $this->assertEquals(MaskConstants::MASK_EMAIL, $masked);
 
         // Test removal (returns null)
-        $masked = $strategy->mask('password123', 'user.password', $logRecord);
+        $masked = $strategy->mask('password123', TestConstants::FIELD_USER_PASSWORD, $logRecord);
         $this->assertNull($masked);
 
         // Test regex replacement
-        $masked = $strategy->mask('John Doe', 'user.name', $logRecord);
+        $masked = $strategy->mask('John Doe', TestConstants::FIELD_USER_NAME, $logRecord);
         $this->assertEquals('*** ***', $masked);
 
         // Test validation
@@ -119,17 +141,17 @@ class MaskingStrategiesTest extends TestCase
 
     public function testFieldPathMaskingStrategyWithWildcards(): void
     {
-        $strategy = new FieldPathMaskingStrategy(['user.*' => MaskConstants::MASK_MASKED]);
+        $strategy = new FieldPathMaskingStrategy([TestConstants::PATH_USER_WILDCARD => MaskConstants::MASK_MASKED]);
         $logRecord = $this->createLogRecord();
 
-        $this->assertTrue($strategy->shouldApply('value', 'user.email', $logRecord));
-        $this->assertTrue($strategy->shouldApply('value', 'user.name', $logRecord));
-        $this->assertFalse($strategy->shouldApply('value', 'system.log', $logRecord));
+        $this->assertTrue($strategy->shouldApply('value', TestConstants::FIELD_USER_EMAIL, $logRecord));
+        $this->assertTrue($strategy->shouldApply('value', TestConstants::FIELD_USER_NAME, $logRecord));
+        $this->assertFalse($strategy->shouldApply('value', TestConstants::FIELD_SYSTEM_LOG, $logRecord));
     }
 
     public function testConditionalMaskingStrategy(): void
     {
-        $baseStrategy = new RegexMaskingStrategy(['/test/' => MaskConstants::MASK_MASKED]);
+        $baseStrategy = new RegexMaskingStrategy([TestConstants::PATTERN_TEST => MaskConstants::MASK_MASKED]);
         $conditions = [
             'level' => fn(LogRecord $r): bool => $r->level === Level::Error,
             'channel' => fn(LogRecord $r): bool => $r->channel === 'security',
@@ -142,15 +164,33 @@ class MaskingStrategiesTest extends TestCase
         $this->assertSame(70, $strategy->getPriority());
 
         // Test conditions not met
-        $logRecord = $this->createLogRecord('test data', [], Level::Info, 'test');
-        $this->assertFalse($strategy->shouldApply('test data', 'message', $logRecord));
+        $logRecord = $this->createLogRecord(
+            TestConstants::DATA_TEST_DATA,
+            [],
+            Level::Info,
+            TestConstants::CHANNEL_TEST
+        );
+        $this->assertFalse($strategy->shouldApply(
+            TestConstants::DATA_TEST_DATA,
+            TestConstants::FIELD_MESSAGE,
+            $logRecord
+        ));
 
         // Test conditions met
-        $logRecord = $this->createLogRecord('test data', [], Level::Error, 'security');
-        $this->assertTrue($strategy->shouldApply('test data', 'message', $logRecord));
+        $logRecord = $this->createLogRecord(
+            TestConstants::DATA_TEST_DATA,
+            [],
+            Level::Error,
+            TestConstants::CHANNEL_SECURITY
+        );
+        $this->assertTrue($strategy->shouldApply(
+            TestConstants::DATA_TEST_DATA,
+            TestConstants::FIELD_MESSAGE,
+            $logRecord
+        ));
 
         // Test masking when conditions are met
-        $masked = $strategy->mask('test data', 'message', $logRecord);
+        $masked = $strategy->mask(TestConstants::DATA_TEST_DATA, TestConstants::FIELD_MESSAGE, $logRecord);
         $this->assertEquals('***MASKED*** data', $masked);
 
         // Test validation
@@ -159,30 +199,62 @@ class MaskingStrategiesTest extends TestCase
 
     public function testConditionalMaskingStrategyFactoryMethods(): void
     {
-        $baseStrategy = new RegexMaskingStrategy(['/test/' => MaskConstants::MASK_MASKED]);
+        $baseStrategy = new RegexMaskingStrategy([TestConstants::PATTERN_TEST => MaskConstants::MASK_MASKED]);
 
         // Test forLevels
         $levelStrategy = ConditionalMaskingStrategy::forLevels($baseStrategy, ['Error', 'Critical']);
         $this->assertInstanceOf(ConditionalMaskingStrategy::class, $levelStrategy);
 
-        $errorRecord = $this->createLogRecord('test', [], Level::Error, 'test');
-        $infoRecord = $this->createLogRecord('test', [], Level::Info, 'test');
-        $this->assertTrue($levelStrategy->shouldApply('test', 'message', $errorRecord));
-        $this->assertFalse($levelStrategy->shouldApply('test', 'message', $infoRecord));
+        $errorRecord = $this->createLogRecord(TestConstants::DATA_TEST, [], Level::Error, TestConstants::CHANNEL_TEST);
+        $infoRecord = $this->createLogRecord(TestConstants::DATA_TEST, [], Level::Info, TestConstants::CHANNEL_TEST);
+        $this->assertTrue($levelStrategy->shouldApply(
+            TestConstants::DATA_TEST,
+            TestConstants::FIELD_MESSAGE,
+            $errorRecord
+        ));
+        $this->assertFalse($levelStrategy->shouldApply(
+            TestConstants::DATA_TEST,
+            TestConstants::FIELD_MESSAGE,
+            $infoRecord
+        ));
 
         // Test forChannels
-        $channelStrategy = ConditionalMaskingStrategy::forChannels($baseStrategy, ['security', 'audit']);
-        $securityRecord = $this->createLogRecord('test', [], Level::Error, 'security');
-        $generalRecord = $this->createLogRecord('test', [], Level::Error, 'general');
-        $this->assertTrue($channelStrategy->shouldApply('test', 'message', $securityRecord));
-        $this->assertFalse($channelStrategy->shouldApply('test', 'message', $generalRecord));
+        $channelStrategy = ConditionalMaskingStrategy::forChannels(
+            $baseStrategy,
+            [TestConstants::CHANNEL_SECURITY, TestConstants::CHANNEL_AUDIT]
+        );
+        $securityRecord = $this->createLogRecord(
+            TestConstants::DATA_TEST,
+            [],
+            Level::Error,
+            TestConstants::CHANNEL_SECURITY
+        );
+        $generalRecord = $this->createLogRecord(TestConstants::DATA_TEST, [], Level::Error, 'general');
+        $this->assertTrue($channelStrategy->shouldApply(
+            TestConstants::DATA_TEST,
+            TestConstants::FIELD_MESSAGE,
+            $securityRecord
+        ));
+        $this->assertFalse($channelStrategy->shouldApply(
+            TestConstants::DATA_TEST,
+            TestConstants::FIELD_MESSAGE,
+            $generalRecord
+        ));
 
         // Test forContext
         $contextStrategy = ConditionalMaskingStrategy::forContext($baseStrategy, ['sensitive' => true]);
-        $sensitiveRecord = $this->createLogRecord('test', ['sensitive' => true]);
-        $normalRecord = $this->createLogRecord('test', ['sensitive' => false]);
-        $this->assertTrue($contextStrategy->shouldApply('test', 'message', $sensitiveRecord));
-        $this->assertFalse($contextStrategy->shouldApply('test', 'message', $normalRecord));
+        $sensitiveRecord = $this->createLogRecord(TestConstants::DATA_TEST, ['sensitive' => true]);
+        $normalRecord = $this->createLogRecord(TestConstants::DATA_TEST, ['sensitive' => false]);
+        $this->assertTrue($contextStrategy->shouldApply(
+            TestConstants::DATA_TEST,
+            TestConstants::FIELD_MESSAGE,
+            $sensitiveRecord
+        ));
+        $this->assertFalse($contextStrategy->shouldApply(
+            TestConstants::DATA_TEST,
+            TestConstants::FIELD_MESSAGE,
+            $normalRecord
+        ));
     }
 
     public function testDataTypeMaskingStrategy(): void
@@ -201,15 +273,18 @@ class MaskingStrategiesTest extends TestCase
         $this->assertSame(40, $strategy->getPriority());
 
         // Test shouldApply
-        $this->assertTrue($strategy->shouldApply('string value', 'field', $logRecord));
-        $this->assertTrue($strategy->shouldApply(123, 'field', $logRecord));
-        $this->assertTrue($strategy->shouldApply(true, 'field', $logRecord));
-        $this->assertFalse($strategy->shouldApply([], 'field', $logRecord)); // No mask for arrays
+        $this->assertTrue($strategy->shouldApply('string value', TestConstants::FIELD_GENERIC, $logRecord));
+        $this->assertTrue($strategy->shouldApply(123, TestConstants::FIELD_GENERIC, $logRecord));
+        $this->assertTrue($strategy->shouldApply(true, TestConstants::FIELD_GENERIC, $logRecord));
+        $this->assertFalse($strategy->shouldApply([], TestConstants::FIELD_GENERIC, $logRecord)); // No mask for arrays
 
         // Test masking
-        $this->assertEquals(MaskConstants::MASK_STRING, $strategy->mask('original string', 'field', $logRecord));
-        $this->assertEquals(999, $strategy->mask(123, 'field', $logRecord));
-        $this->assertFalse($strategy->mask(true, 'field', $logRecord));
+        $this->assertEquals(
+            MaskConstants::MASK_STRING,
+            $strategy->mask('original string', TestConstants::FIELD_GENERIC, $logRecord)
+        );
+        $this->assertEquals(999, $strategy->mask(123, TestConstants::FIELD_GENERIC, $logRecord));
+        $this->assertFalse($strategy->mask(true, TestConstants::FIELD_GENERIC, $logRecord));
 
         // Test validation
         $this->assertTrue($strategy->validate());
@@ -228,9 +303,9 @@ class MaskingStrategiesTest extends TestCase
         $this->assertTrue($sensitiveStrategy->validate());
 
         $logRecord = $this->createLogRecord();
-        $this->assertTrue($sensitiveStrategy->shouldApply('string', 'field', $logRecord));
+        $this->assertTrue($sensitiveStrategy->shouldApply('string', TestConstants::FIELD_GENERIC, $logRecord));
         // Integers not considered sensitive
-        $this->assertFalse($sensitiveStrategy->shouldApply(123, 'field', $logRecord));
+        $this->assertFalse($sensitiveStrategy->shouldApply(123, TestConstants::FIELD_GENERIC, $logRecord));
     }
 
     public function testAbstractMaskingStrategyUtilities(): void
@@ -245,7 +320,7 @@ class MaskingStrategiesTest extends TestCase
             #[\Override]
             public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
             {
-                return $this->pathMatches($path, 'user.*');
+                return $this->pathMatches($path, TestConstants::PATH_USER_WILDCARD);
             }
 
             /**
@@ -289,9 +364,18 @@ class MaskingStrategiesTest extends TestCase
         $this->assertSame('', $strategy->testValueToString(null));
 
         // Test pathMatches
-        $this->assertTrue($strategy->testPathMatches('user.email', 'user.*'));
-        $this->assertTrue($strategy->testPathMatches('user.name', 'user.*'));
-        $this->assertFalse($strategy->testPathMatches('system.log', 'user.*'));
+        $this->assertTrue($strategy->testPathMatches(
+            TestConstants::FIELD_USER_EMAIL,
+            TestConstants::PATH_USER_WILDCARD
+        ));
+        $this->assertTrue($strategy->testPathMatches(
+            TestConstants::FIELD_USER_NAME,
+            TestConstants::PATH_USER_WILDCARD
+        ));
+        $this->assertFalse($strategy->testPathMatches(
+            TestConstants::FIELD_SYSTEM_LOG,
+            TestConstants::PATH_USER_WILDCARD
+        ));
         $this->assertTrue($strategy->testPathMatches('exact.match', 'exact.match'));
 
         // Test recordMatches
@@ -326,15 +410,15 @@ class MaskingStrategiesTest extends TestCase
 
         // Test masking (should use highest priority applicable strategy)
         $logRecord = $this->createLogRecord();
-        $result = $manager->maskValue('test1 test2', 'message', $logRecord);
+        $result = $manager->maskValue('test1 test2', TestConstants::FIELD_MESSAGE, $logRecord);
         $this->assertEquals('masked1 test2', $result); // Only first strategy applied
 
         // Test hasApplicableStrategy
-        $this->assertTrue($manager->hasApplicableStrategy('test1', 'message', $logRecord));
-        $this->assertFalse($manager->hasApplicableStrategy('no match', 'message', $logRecord));
+        $this->assertTrue($manager->hasApplicableStrategy('test1', TestConstants::FIELD_MESSAGE, $logRecord));
+        $this->assertFalse($manager->hasApplicableStrategy('no match', TestConstants::FIELD_MESSAGE, $logRecord));
 
         // Test getApplicableStrategies
-        $applicable = $manager->getApplicableStrategies('test1 test2', 'message', $logRecord);
+        $applicable = $manager->getApplicableStrategies('test1 test2', TestConstants::FIELD_MESSAGE, $logRecord);
         $this->assertCount(2, $applicable); // Both strategies would match
 
         // Test removeStrategy
@@ -350,8 +434,13 @@ class MaskingStrategiesTest extends TestCase
     public function testStrategyManagerStatistics(): void
     {
         $manager = new StrategyManager();
-        $manager->addStrategy(new RegexMaskingStrategy(['/test/' => 'masked'], [], [], 90));
-        $manager->addStrategy(new DataTypeMaskingStrategy(['string' => 'masked'], [], [], 40));
+        $manager->addStrategy(new RegexMaskingStrategy(
+            [TestConstants::PATTERN_TEST => TestConstants::DATA_MASKED],
+            [],
+            [],
+            90
+        ));
+        $manager->addStrategy(new DataTypeMaskingStrategy(['string' => TestConstants::DATA_MASKED], [], [], 40));
 
         $stats = $manager->getStatistics();
 
@@ -366,7 +455,7 @@ class MaskingStrategiesTest extends TestCase
     public function testStrategyManagerValidation(): void
     {
         $manager = new StrategyManager();
-        $validStrategy = new RegexMaskingStrategy(['/test/' => 'masked']);
+        $validStrategy = new RegexMaskingStrategy([TestConstants::PATTERN_TEST => TestConstants::DATA_MASKED]);
 
         // Test adding valid strategy
         $manager->addStrategy($validStrategy);
@@ -416,9 +505,9 @@ class MaskingStrategiesTest extends TestCase
 
     public function testStrategyManagerCreateDefault(): void
     {
-        $regexPatterns = ['/test/' => 'masked'];
-        $fieldConfigs = ['field' => 'masked'];
-        $typeMasks = ['string' => 'masked'];
+        $regexPatterns = [TestConstants::PATTERN_TEST => TestConstants::DATA_MASKED];
+        $fieldConfigs = [TestConstants::FIELD_GENERIC => TestConstants::DATA_MASKED];
+        $typeMasks = ['string' => TestConstants::DATA_MASKED];
 
         $manager = StrategyManager::createDefault($regexPatterns, $fieldConfigs, $typeMasks);
 

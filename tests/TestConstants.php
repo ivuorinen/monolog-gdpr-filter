@@ -81,6 +81,19 @@ final class TestConstants
     public const MESSAGE_DEFAULT = 'Test message';
     public const MESSAGE_SENSITIVE = 'Sensitive data detected';
     public const MESSAGE_ERROR = 'Error occurred';
+    public const MESSAGE_BASE = 'Base message';
+    public const MESSAGE_WITH_EMAIL = 'Message with test@example.com';
+    public const MESSAGE_WITH_EMAIL_PREFIX = 'Message with ';
+    public const MESSAGE_INFO_EMAIL = 'Info with test@example.com';
+    public const MESSAGE_USER_ACTION_EMAIL = 'User action with test@example.com';
+    public const MESSAGE_SECURITY_ERROR_EMAIL = 'Security error with test@example.com';
+
+    // Message Templates
+    public const TEMPLATE_USER_EMAIL = 'user%d@example.com';
+    public const TEMPLATE_MESSAGE_EMAIL = 'Message %d with test@example.com';
+
+    // Error Messages
+    public const ERROR_REPLACE_TYPE_EMPTY = 'Cannot be null or empty for REPLACE type';
 
     // Channels
     public const CHANNEL_TEST = 'test';
@@ -94,11 +107,40 @@ final class TestConstants
     public const CONTEXT_PASSWORD = 'password';
     public const CONTEXT_SENSITIVE_DATA = 'sensitive_data';
 
+    // Regex Patterns
+    public const PATTERN_EMAIL_TEST = '/test@example\.com/';
+    public const PATTERN_INVALID_UNCLOSED_BRACKET = '/invalid[/';
+    public const PATTERN_TEST = '/test/';
+    public const PATTERN_DIGITS = '/\d+/';
+    public const PATTERN_SECRET = '/secret/';
+    public const PATTERN_EMAIL_FULL = '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/';
+
+    // Field Paths
+    public const FIELD_MESSAGE = 'message';
+    public const FIELD_GENERIC = 'field';
+    public const FIELD_USER_EMAIL = 'user.email';
+    public const FIELD_USER_NAME = 'user.name';
+    public const FIELD_USER_PUBLIC = 'user.public';
+    public const FIELD_USER_PASSWORD = 'user.password';
+    public const FIELD_SYSTEM_LOG = 'system.log';
+
+    // Path Patterns
+    public const PATH_USER_WILDCARD = 'user.*';
+
+    // Test Data
+    public const DATA_TEST = 'test';
+    public const DATA_TEST_DATA = 'test data';
+    public const DATA_MASKED = 'masked';
+
+    // Replacement Values
+    public const REPLACEMENT_TEST = '[TEST]';
+
     /**
      * Prevent instantiation.
      *
      * @psalm-suppress UnusedConstructor
      */
     private function __construct()
-    {}
+    {
+    }
 }
