@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Strategies;
 
 use PHPUnit\Framework\TestCase;
+use Tests\TestConstants;
 use Tests\TestHelpers;
 use Monolog\LogRecord;
 use Monolog\Level;
@@ -67,9 +68,10 @@ final class ConditionalMaskingStrategyEnhancedTest extends TestCase
             fn(LogRecord $record): bool => true,
             'throws_exception' =>
             /**
+             * @param \Monolog\LogRecord $_record Intentionally unused parameter
              * @return never
              */
-            function (LogRecord $record): never {
+            function (LogRecord $_record): never {
                 throw new \RuntimeException('Condition failed');
             },
         ];
@@ -90,9 +92,10 @@ final class ConditionalMaskingStrategyEnhancedTest extends TestCase
         $conditions = [
             'throws_exception' =>
             /**
+             * @param \Monolog\LogRecord $_record Intentionally unused parameter
              * @return never
              */
-            function (LogRecord $record): never {
+            function (LogRecord $_record): never {
                 throw new \RuntimeException('Condition failed');
             },
             'always_true' =>
@@ -144,10 +147,10 @@ final class ConditionalMaskingStrategyEnhancedTest extends TestCase
             ['Error', 'Warning', 'Critical']
         );
 
-        $errorRecord = $this->createLogRecord('Test message', [], Level::Error);
-        $warningRecord = $this->createLogRecord('Test message', [], Level::Warning);
-        $criticalRecord = $this->createLogRecord('Test message', [], Level::Critical);
-        $infoRecord = $this->createLogRecord('Test message', [], Level::Info);
+        $errorRecord = $this->createLogRecord(TestConstants::MESSAGE_DEFAULT, [], Level::Error);
+        $warningRecord = $this->createLogRecord(TestConstants::MESSAGE_DEFAULT, [], Level::Warning);
+        $criticalRecord = $this->createLogRecord(TestConstants::MESSAGE_DEFAULT, [], Level::Critical);
+        $infoRecord = $this->createLogRecord(TestConstants::MESSAGE_DEFAULT, [], Level::Info);
 
         $this->assertTrue($strategy->shouldApply('secret', 'message', $errorRecord));
         $this->assertTrue($strategy->shouldApply('secret', 'message', $warningRecord));
@@ -164,9 +167,9 @@ final class ConditionalMaskingStrategyEnhancedTest extends TestCase
             ['security', 'audit', 'admin']
         );
 
-        $securityRecord = $this->createLogRecord('Test message', [], Level::Info, 'security');
-        $auditRecord = $this->createLogRecord('Test message', [], Level::Info, 'audit');
-        $testRecord = $this->createLogRecord('Test message', [], Level::Info, 'test');
+        $securityRecord = $this->createLogRecord(TestConstants::MESSAGE_DEFAULT, [], Level::Info, 'security');
+        $auditRecord = $this->createLogRecord(TestConstants::MESSAGE_DEFAULT, [], Level::Info, 'audit');
+        $testRecord = $this->createLogRecord(TestConstants::MESSAGE_DEFAULT, [], Level::Info, 'test');
 
         $this->assertTrue($strategy->shouldApply('secret', 'message', $securityRecord));
         $this->assertTrue($strategy->shouldApply('secret', 'message', $auditRecord));
@@ -182,9 +185,9 @@ final class ConditionalMaskingStrategyEnhancedTest extends TestCase
             ['env' => 'production', 'sensitive' => true]
         );
 
-        $prodRecord = $this->createLogRecord('Test message', ['env' => 'production', 'sensitive' => true]);
-        $devRecord = $this->createLogRecord('Test message', ['env' => 'development', 'sensitive' => true]);
-        $noContextRecord = $this->createLogRecord('Test message');
+        $prodRecord = $this->createLogRecord(TestConstants::MESSAGE_DEFAULT, ['env' => 'production', 'sensitive' => true]);
+        $devRecord = $this->createLogRecord(TestConstants::MESSAGE_DEFAULT, ['env' => 'development', 'sensitive' => true]);
+        $noContextRecord = $this->createLogRecord(TestConstants::MESSAGE_DEFAULT);
 
         $this->assertTrue($strategy->shouldApply('secret', 'message', $prodRecord));
         $this->assertFalse($strategy->shouldApply('secret', 'message', $devRecord));

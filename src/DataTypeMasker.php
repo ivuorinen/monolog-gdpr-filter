@@ -150,23 +150,46 @@ final class DataTypeMasker
                 continue;
             }
 
-            if (is_array($value)) {
-                $result[$key] = $this->applyToContext($value, $processedFields, $fieldPath, $recursiveMaskCallback);
-            } else {
-                $type = gettype($value);
-                if (isset($this->dataTypeMasks[$type])) {
-                    $masked = $this->applyMasking($value, $recursiveMaskCallback);
-                    if ($masked !== $value && $this->auditLogger !== null) {
-                        ($this->auditLogger)($fieldPath, $value, $masked);
-                    }
-
-                    $result[$key] = $masked;
-                } else {
-                    $result[$key] = $value;
-                }
-            }
+            $result[$key] = $this->processFieldValue(
+                $value,
+                $fieldPath,
+                $processedFields,
+                $recursiveMaskCallback
+            );
         }
 
         return $result;
+    }
+
+    /**
+     * Process a single field value, applying masking if applicable.
+     *
+     * @param mixed $value
+     * @param string $fieldPath
+     * @param array<string> $processedFields
+     * @param (callable(array<mixed>|string, int=):(array<mixed>|string))|null $recursiveMaskCallback
+     * @return mixed
+     */
+    private function processFieldValue(
+        mixed $value,
+        string $fieldPath,
+        array $processedFields,
+        ?callable $recursiveMaskCallback
+    ): mixed {
+        if (is_array($value)) {
+            return $this->applyToContext($value, $processedFields, $fieldPath, $recursiveMaskCallback);
+        }
+
+        $type = gettype($value);
+        if (!isset($this->dataTypeMasks[$type])) {
+            return $value;
+        }
+
+        $masked = $this->applyMasking($value, $recursiveMaskCallback);
+        if ($masked !== $value && $this->auditLogger !== null) {
+            ($this->auditLogger)($fieldPath, $value, $masked);
+        }
+
+        return $masked;
     }
 }

@@ -115,7 +115,7 @@ final class FieldPathMaskingStrategyTest extends TestCase
     public function maskAppliesRegexReplacement(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            'user.ssn' => FieldMaskConfig::regexMask('/\d{3}-\d{2}-\d{4}/', MaskConstants::MASK_SSN_PATTERN),
+            'user.ssn' => FieldMaskConfig::regexMask(TestConstants::PATTERN_SSN_FORMAT, MaskConstants::MASK_SSN_PATTERN),
         ]);
 
         $result = $strategy->mask(TestConstants::SSN_US, 'user.ssn', $this->logRecord);
@@ -210,7 +210,7 @@ final class FieldPathMaskingStrategyTest extends TestCase
         $strategy = new FieldPathMaskingStrategy([
             'user.email' => MaskConstants::MASK_EMAIL_PATTERN,
             'user.password' => FieldMaskConfig::remove(),
-            'user.ssn' => FieldMaskConfig::regexMask('/\d{3}-\d{2}-\d{4}/', MaskConstants::MASK_SSN_PATTERN),
+            'user.ssn' => FieldMaskConfig::regexMask(TestConstants::PATTERN_SSN_FORMAT, MaskConstants::MASK_SSN_PATTERN),
         ]);
 
         $this->assertTrue($strategy->validate());
@@ -263,7 +263,7 @@ final class FieldPathMaskingStrategyTest extends TestCase
             'user.field' => FieldMaskConfig::regexMask('/[invalid/', MaskConstants::MASK_GENERIC),
         ]);
         unset($strategy); // Satisfy SonarQube - this line won't be reached if exception is thrown
-        $this->fail('Expected exception was not thrown');
+        $this->fail(TestConstants::ERROR_EXCEPTION_NOT_THROWN);
     }
 
     #[Test]
@@ -300,7 +300,7 @@ final class FieldPathMaskingStrategyTest extends TestCase
     public function maskHandlesMultipleReplacementsInSameValue(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            'message' => FieldMaskConfig::regexMask('/\d{3}-\d{2}-\d{4}/', MaskConstants::MASK_SSN_PATTERN),
+            'message' => FieldMaskConfig::regexMask(TestConstants::PATTERN_SSN_FORMAT, MaskConstants::MASK_SSN_PATTERN),
         ]);
 
         $input = 'SSNs: 123-45-6789 and 987-65-4321';

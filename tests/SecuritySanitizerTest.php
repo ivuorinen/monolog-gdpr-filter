@@ -58,7 +58,7 @@ class SecuritySanitizerTest extends TestCase
         $sanitized = SecuritySanitizer::sanitizeErrorMessage($longMessage);
 
         $this->assertLessThanOrEqual(550, strlen($sanitized)); // 500 + " (truncated for security)"
-        $this->assertStringContainsString('(truncated for security)', $sanitized);
+        $this->assertStringContainsString(TestConstants::ERROR_TRUNCATED_SECURITY, $sanitized);
     }
 
     #[Test]
@@ -144,7 +144,7 @@ class SecuritySanitizerTest extends TestCase
         $sanitized = SecuritySanitizer::sanitizeErrorMessage($longMessageWithPassword);
 
         $this->assertStringNotContainsString('secret123', $sanitized);
-        $this->assertStringContainsString('(truncated for security)', $sanitized);
+        $this->assertStringContainsString(TestConstants::ERROR_TRUNCATED_SECURITY, $sanitized);
         $this->assertLessThanOrEqual(550, strlen($sanitized));
     }
 
@@ -164,7 +164,7 @@ class SecuritySanitizerTest extends TestCase
         $message = str_repeat('a', 501);
         $sanitized = SecuritySanitizer::sanitizeErrorMessage($message);
 
-        $this->assertStringContainsString('(truncated for security)', $sanitized);
+        $this->assertStringContainsString(TestConstants::ERROR_TRUNCATED_SECURITY, $sanitized);
         $this->assertLessThanOrEqual(550, strlen($sanitized)); // 500 + truncation message
     }
 }

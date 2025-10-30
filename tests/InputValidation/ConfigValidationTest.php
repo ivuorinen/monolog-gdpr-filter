@@ -7,6 +7,7 @@ namespace Tests\InputValidation;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Tests\TestConstants;
 
 /**
  * Tests for the ConfigValidationTest class.
@@ -128,7 +129,7 @@ class ConfigValidationTest extends TestCase
             $this->assertSame(
                 $expectedResult,
                 $config['auto_register'],
-                sprintf("Environment value '%s' should result in ", $envValue) . ($expectedResult ? 'true' : 'false')
+                sprintf(TestConstants::TEMPLATE_ENV_VALUE_RESULT, $envValue) . ($expectedResult ? 'true' : 'false')
             );
         }
 
@@ -157,7 +158,7 @@ class ConfigValidationTest extends TestCase
             $this->assertSame(
                 $expectedResult,
                 $config['max_depth'],
-                sprintf("Environment value '%s' should result in %s", $envValue, $expectedResult)
+                sprintf(TestConstants::TEMPLATE_ENV_VALUE_RESULT_FULL, $envValue, $expectedResult)
             );
         }
 
@@ -183,7 +184,7 @@ class ConfigValidationTest extends TestCase
             $this->assertSame(
                 $expectedResult,
                 $config['audit_logging']['enabled'],
-                sprintf("Environment value '%s' should result in ", $envValue) . ($expectedResult ? 'true' : 'false')
+                sprintf(TestConstants::TEMPLATE_ENV_VALUE_RESULT, $envValue) . ($expectedResult ? 'true' : 'false')
             );
         }
 
@@ -235,7 +236,7 @@ class ConfigValidationTest extends TestCase
             $this->assertSame(
                 $expectedResult,
                 $config['performance']['chunk_size'],
-                sprintf("Environment value '%s' should result in %s", $envValue, $expectedResult)
+                sprintf(TestConstants::TEMPLATE_ENV_VALUE_RESULT_FULL, $envValue, $expectedResult)
             );
         }
 
@@ -262,7 +263,7 @@ class ConfigValidationTest extends TestCase
             $this->assertSame(
                 $expectedResult,
                 $config['performance']['garbage_collection_threshold'],
-                sprintf("Environment value '%s' should result in %s", $envValue, $expectedResult)
+                sprintf(TestConstants::TEMPLATE_ENV_VALUE_RESULT_FULL, $envValue, $expectedResult)
             );
         }
 
@@ -319,7 +320,7 @@ class ConfigValidationTest extends TestCase
             $this->assertSame(
                 $expectedResult,
                 $config['validation']['max_pattern_length'],
-                sprintf("Environment value '%s' should result in %s", $envValue, $expectedResult)
+                sprintf(TestConstants::TEMPLATE_ENV_VALUE_RESULT_FULL, $envValue, $expectedResult)
             );
         }
 
@@ -346,7 +347,7 @@ class ConfigValidationTest extends TestCase
             $this->assertSame(
                 $expectedResult,
                 $config['validation']['max_field_path_length'],
-                sprintf("Environment value '%s' should result in %s", $envValue, $expectedResult)
+                sprintf(TestConstants::TEMPLATE_ENV_VALUE_RESULT_FULL, $envValue, $expectedResult)
             );
         }
 
@@ -372,7 +373,7 @@ class ConfigValidationTest extends TestCase
             $this->assertSame(
                 $expectedResult,
                 $config['validation']['allow_empty_patterns'],
-                sprintf("Environment value '%s' should result in ", $envValue) . ($expectedResult ? 'true' : 'false')
+                sprintf(TestConstants::TEMPLATE_ENV_VALUE_RESULT, $envValue) . ($expectedResult ? 'true' : 'false')
             );
         }
 
@@ -398,7 +399,7 @@ class ConfigValidationTest extends TestCase
             $this->assertSame(
                 $expectedResult,
                 $config['validation']['strict_regex_validation'],
-                sprintf("Environment value '%s' should result in ", $envValue) . ($expectedResult ? 'true' : 'false')
+                sprintf(TestConstants::TEMPLATE_ENV_VALUE_RESULT, $envValue) . ($expectedResult ? 'true' : 'false')
             );
         }
 

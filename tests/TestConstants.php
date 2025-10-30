@@ -94,6 +94,19 @@ final class TestConstants
 
     // Error Messages
     public const ERROR_REPLACE_TYPE_EMPTY = 'Cannot be null or empty for REPLACE type';
+    public const ERROR_EXCEPTION_NOT_THROWN = 'Expected exception was not thrown';
+    public const ERROR_RATE_LIMIT_KEY_EMPTY = 'Rate limiting key cannot be empty';
+    public const ERROR_TRUNCATED_SECURITY = '(truncated for security)';
+
+    // Test Messages and Data
+    public const MESSAGE_TEST_LOWERCASE = 'test message';
+    public const MESSAGE_USER_ID = 'User ID: 12345';
+    public const DATA_PUBLIC = 'public data';
+    public const DATA_NUMBER_STRING = '12345';
+
+    // Template Messages
+    public const TEMPLATE_ENV_VALUE_RESULT = "Environment value '%s' should result in ";
+    public const TEMPLATE_ENV_VALUE_RESULT_FULL = "Environment value '%s' should result in %s";
 
     // Channels
     public const CHANNEL_TEST = 'test';
@@ -114,6 +127,9 @@ final class TestConstants
     public const PATTERN_DIGITS = '/\d+/';
     public const PATTERN_SECRET = '/secret/';
     public const PATTERN_EMAIL_FULL = '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/';
+    public const PATTERN_RECURSIVE = '/(?R)/';
+    public const PATTERN_NAMED_RECURSION = '/(?P>name)/';
+    public const PATTERN_SSN_FORMAT = '/\d{3}-\d{2}-\d{4}/';
 
     // Field Paths
     public const FIELD_MESSAGE = 'message';

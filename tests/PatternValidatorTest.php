@@ -38,7 +38,7 @@ class PatternValidatorTest extends TestCase
     #[Test]
     public function isValidReturnsTrueForValidPattern(): void
     {
-        $this->assertTrue(PatternValidator::isValid('/\d+/'));
+        $this->assertTrue(PatternValidator::isValid(TestConstants::PATTERN_DIGITS));
         $this->assertTrue(PatternValidator::isValid('/[a-z]+/i'));
         $this->assertTrue(PatternValidator::isValid('/^test$/'));
     }
@@ -54,16 +54,16 @@ class PatternValidatorTest extends TestCase
     #[Test]
     public function isValidReturnsFalseForDangerousPatterns(): void
     {
-        $this->assertFalse(PatternValidator::isValid('/(?R)/'));
-        $this->assertFalse(PatternValidator::isValid('/(?P>name)/'));
+        $this->assertFalse(PatternValidator::isValid(TestConstants::PATTERN_RECURSIVE));
+        $this->assertFalse(PatternValidator::isValid(TestConstants::PATTERN_NAMED_RECURSION));
     }
 
     #[Test]
     public function isValidDetectsRecursivePatterns(): void
     {
         // hasDangerousPattern is private, test via isValid
-        $this->assertFalse(PatternValidator::isValid('/(?R)/'));
-        $this->assertFalse(PatternValidator::isValid('/(?P>name)/'));
+        $this->assertFalse(PatternValidator::isValid(TestConstants::PATTERN_RECURSIVE));
+        $this->assertFalse(PatternValidator::isValid(TestConstants::PATTERN_NAMED_RECURSION));
         $this->assertFalse(PatternValidator::isValid('/\x{10000000}/'));
     }
 
@@ -89,16 +89,16 @@ class PatternValidatorTest extends TestCase
     public function cachePatternsCachesValidPatterns(): void
     {
         $patterns = [
-            '/\d+/' => 'mask1',
+            TestConstants::PATTERN_DIGITS => 'mask1',
             '/[a-z]+/' => 'mask2',
         ];
 
         PatternValidator::cachePatterns($patterns);
         $cache = PatternValidator::getCache();
 
-        $this->assertArrayHasKey('/\d+/', $cache);
+        $this->assertArrayHasKey(TestConstants::PATTERN_DIGITS, $cache);
         $this->assertArrayHasKey('/[a-z]+/', $cache);
-        $this->assertTrue($cache['/\d+/']);
+        $this->assertTrue($cache[TestConstants::PATTERN_DIGITS]);
         $this->assertTrue($cache['/[a-z]+/']);
     }
 
@@ -146,7 +146,7 @@ class PatternValidatorTest extends TestCase
     {
         $this->expectException(InvalidRegexPatternException::class);
 
-        PatternValidator::validateAll(['/(?R)/' => 'mask']);
+        PatternValidator::validateAll([TestConstants::PATTERN_RECURSIVE => 'mask']);
     }
 
     #[Test]
@@ -161,7 +161,7 @@ class PatternValidatorTest extends TestCase
     #[Test]
     public function clearCacheRemovesAllCachedPatterns(): void
     {
-        PatternValidator::cachePatterns(['/\d+/' => 'mask']);
+        PatternValidator::cachePatterns([TestConstants::PATTERN_DIGITS => 'mask']);
         $this->assertNotEmpty(PatternValidator::getCache());
 
         PatternValidator::clearCache();
@@ -171,7 +171,7 @@ class PatternValidatorTest extends TestCase
     #[Test]
     public function isValidUsesCacheOnSecondCall(): void
     {
-        $pattern = '/\d+/';
+        $pattern = TestConstants::PATTERN_DIGITS;
 
         // First call should cache
         $result1 = PatternValidator::isValid($pattern);
@@ -194,12 +194,12 @@ class PatternValidatorTest extends TestCase
     /**
      * @return string[][]
      *
-     * @psalm-return array{'simple digits': array{pattern: '/\d+/'}, 'email pattern': array{pattern: '/[a-z]+@[a-z]+\.[a-z]+/'}, 'phone pattern': array{pattern: '/\+?\d{1,3}[\s-]?\d{3}[\s-]?\d{4}/'}, 'ssn pattern': array{pattern: '/\d{3}-\d{2}-\d{4}/'}, 'word boundary': array{pattern: '/\b\w+\b/'}, 'case insensitive': array{pattern: '/test/i'}, multiline: array{pattern: '/^test$/m'}, unicode: array{pattern: '/\p{L}+/u'}}
+     * @psalm-return array{'simple digits': array{pattern: TestConstants::PATTERN_DIGITS}, 'email pattern': array{pattern: '/[a-z]+@[a-z]+\.[a-z]+/'}, 'phone pattern': array{pattern: '/\+?\d{1,3}[\s-]?\d{3}[\s-]?\d{4}/'}, 'ssn pattern': array{pattern: '/\d{3}-\d{2}-\d{4}/'}, 'word boundary': array{pattern: '/\b\w+\b/'}, 'case insensitive': array{pattern: '/test/i'}, multiline: array{pattern: '/^test$/m'}, unicode: array{pattern: '/\p{L}+/u'}}
      */
     public static function validPatternProvider(): array
     {
         return [
-            'simple digits' => ['pattern' => '/\d+/'],
+            'simple digits' => ['pattern' => TestConstants::PATTERN_DIGITS],
             'email pattern' => ['pattern' => '/[a-z]+@[a-z]+\.[a-z]+/'],
             'phone pattern' => ['pattern' => '/\+?\d{1,3}[\s-]?\d{3}[\s-]?\d{4}/'],
             'ssn pattern' => ['pattern' => '/\d{3}-\d{2}-\d{4}/'],
@@ -220,7 +220,7 @@ class PatternValidatorTest extends TestCase
     /**
      * @return string[][]
      *
-     * @psalm-return array{'no delimiters': array{pattern: 'test'}, unclosed: array{pattern: '/unclosed'}, empty: array{pattern: '//'}, 'invalid bracket': array{pattern: '/[invalid/'}, recursive: array{pattern: '/(?R)/'}, 'named recursion': array{pattern: '/(?P>name)/'}, 'nested quantifiers': array{pattern: '/^(a+)+$/'}, 'invalid unicode': array{pattern: '/\x{10000000}/'}}
+     * @psalm-return array{'no delimiters': array{pattern: 'test'}, unclosed: array{pattern: '/unclosed'}, empty: array{pattern: '//'}, 'invalid bracket': array{pattern: '/[invalid/'}, recursive: array{pattern: TestConstants::PATTERN_RECURSIVE}, 'named recursion': array{pattern: TestConstants::PATTERN_NAMED_RECURSION}, 'nested quantifiers': array{pattern: '/^(a+)+$/'}, 'invalid unicode': array{pattern: '/\x{10000000}/'}}
      */
     public static function invalidPatternProvider(): array
     {
@@ -229,8 +229,8 @@ class PatternValidatorTest extends TestCase
             'unclosed' => ['pattern' => '/unclosed'],
             'empty' => ['pattern' => '//'],
             'invalid bracket' => ['pattern' => '/[invalid/'],
-            'recursive' => ['pattern' => '/(?R)/'],
-            'named recursion' => ['pattern' => '/(?P>name)/'],
+            'recursive' => ['pattern' => TestConstants::PATTERN_RECURSIVE],
+            'named recursion' => ['pattern' => TestConstants::PATTERN_NAMED_RECURSION],
             'nested quantifiers' => ['pattern' => '/^(a+)+$/'],
             'invalid unicode' => ['pattern' => '/\x{10000000}/'],
         ];

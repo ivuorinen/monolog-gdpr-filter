@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Strategies;
 
 use PHPUnit\Framework\TestCase;
+use Tests\TestConstants;
 use Tests\TestHelpers;
 use Ivuorinen\MonologGdprFilter\Strategies\DataTypeMaskingStrategy;
 use Ivuorinen\MonologGdprFilter\MaskConstants;
@@ -219,7 +220,7 @@ final class DataTypeMaskingStrategyEnhancedTest extends TestCase
     {
         $strategy = new DataTypeMaskingStrategy(
             ['string' => MaskConstants::MASK_MASKED],
-            ['user.*', 'account.details']
+            [TestConstants::PATH_USER_WILDCARD, 'account.details']
         );
 
         $logRecord = $this->createLogRecord();
@@ -238,7 +239,7 @@ final class DataTypeMaskingStrategyEnhancedTest extends TestCase
     {
         $strategy = new DataTypeMaskingStrategy(
             ['string' => MaskConstants::MASK_MASKED],
-            ['user.*'],
+            [TestConstants::PATH_USER_WILDCARD],
             ['user.public', 'user.id']
         );
 

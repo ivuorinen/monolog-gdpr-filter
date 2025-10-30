@@ -78,7 +78,7 @@ final class GdprProcessorExtendedTest extends TestCase
         );
 
         $record = $this->createLogRecord(
-            'User ID: 12345',
+            TestConstants::MESSAGE_USER_ID,
             ['id' => 12345]
         );
 
@@ -118,7 +118,7 @@ final class GdprProcessorExtendedTest extends TestCase
 
         $processor->setAuditLogger(null);
 
-        $record = $this->createLogRecord('User ID: 12345');
+        $record = $this->createLogRecord(TestConstants::MESSAGE_USER_ID);
 
         $processor($record);
 
@@ -185,13 +185,17 @@ final class GdprProcessorExtendedTest extends TestCase
             patterns: ['/\d+/' => MaskConstants::MASK_GENERIC],
             auditLogger: $auditLogger,
             conditionalRules: [
-                'throws_exception' => function ($record): never {
+                /**
+                 * @param \Monolog\LogRecord $_record Intentionally unused parameter
+                 * @return never
+                 */
+                'throws_exception' => function ($_record): never {
                     throw new \RuntimeException('Rule failed');
                 },
             ]
         );
 
-        $record = $this->createLogRecord('User ID: 12345');
+        $record = $this->createLogRecord(TestConstants::MESSAGE_USER_ID);
 
         $result = $processor($record);
 

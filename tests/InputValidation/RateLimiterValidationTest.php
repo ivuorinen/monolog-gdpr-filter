@@ -9,6 +9,7 @@ use Ivuorinen\MonologGdprFilter\RateLimiter;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Tests\TestConstants;
 
 /**
  * Tests for the RateLimiter class.
@@ -106,7 +107,7 @@ class RateLimiterValidationTest extends TestCase
         $rateLimiter = new RateLimiter(10, 60);
 
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage('Rate limiting key cannot be empty');
+        $this->expectExceptionMessage(TestConstants::ERROR_RATE_LIMIT_KEY_EMPTY);
 
         $rateLimiter->isAllowed('');
     }
@@ -117,7 +118,7 @@ class RateLimiterValidationTest extends TestCase
         $rateLimiter = new RateLimiter(10, 60);
 
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage('Rate limiting key cannot be empty');
+        $this->expectExceptionMessage(TestConstants::ERROR_RATE_LIMIT_KEY_EMPTY);
 
         $rateLimiter->isAllowed('   ');
     }
@@ -160,7 +161,7 @@ class RateLimiterValidationTest extends TestCase
         $rateLimiter = new RateLimiter(10, 60);
 
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage('Rate limiting key cannot be empty');
+        $this->expectExceptionMessage(TestConstants::ERROR_RATE_LIMIT_KEY_EMPTY);
 
         $rateLimiter->getTimeUntilReset('');
     }
@@ -171,7 +172,7 @@ class RateLimiterValidationTest extends TestCase
         $rateLimiter = new RateLimiter(10, 60);
 
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage('Rate limiting key cannot be empty');
+        $this->expectExceptionMessage(TestConstants::ERROR_RATE_LIMIT_KEY_EMPTY);
 
         $rateLimiter->getStats('');
     }
@@ -182,7 +183,7 @@ class RateLimiterValidationTest extends TestCase
         $rateLimiter = new RateLimiter(10, 60);
 
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage('Rate limiting key cannot be empty');
+        $this->expectExceptionMessage(TestConstants::ERROR_RATE_LIMIT_KEY_EMPTY);
 
         $rateLimiter->getRemainingRequests('');
     }
@@ -191,7 +192,7 @@ class RateLimiterValidationTest extends TestCase
     public function clearKeyThrowsExceptionForInvalidKey(): void
     {
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage('Rate limiting key cannot be empty');
+        $this->expectExceptionMessage(TestConstants::ERROR_RATE_LIMIT_KEY_EMPTY);
 
         RateLimiter::clearKey('');
     }

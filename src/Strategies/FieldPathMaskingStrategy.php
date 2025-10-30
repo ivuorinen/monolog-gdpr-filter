@@ -97,36 +97,55 @@ class FieldPathMaskingStrategy extends AbstractMaskingStrategy
 
         // Validate each configuration
         foreach ($this->fieldConfigs as $path => $config) {
-            /** @psalm-suppress DocblockTypeContradiction - Runtime validation for defensive programming */
-            if (!is_string($path) || ($path === '' || $path === '0')) {
+            if (!$this->validateFieldPath($path) || !$this->validateFieldConfig($config)) {
                 return false;
-            }
-
-            /** @psalm-suppress DocblockTypeContradiction - Runtime validation for defensive programming */
-            if (!($config instanceof FieldMaskConfig) && !is_string($config)) {
-                return false;
-            }
-
-            // Validate regex patterns in FieldMaskConfig
-            if ($config instanceof FieldMaskConfig && $config->hasRegexPattern()) {
-                try {
-                    $pattern = $config->getRegexPattern();
-                    if ($pattern === null) {
-                        return false;
-                    }
-
-                    /** @psalm-suppress ArgumentTypeCoercion - Pattern checked for null above */
-                    $testResult = @preg_match($pattern, '');
-                    if ($testResult === false) {
-                        return false;
-                    }
-                } catch (Throwable) {
-                    return false;
-                }
             }
         }
 
         return true;
+    }
+
+    /**
+     * Validate a field path.
+     */
+    private function validateFieldPath(mixed $path): bool
+    {
+        return is_string($path) && $path !== '' && $path !== '0';
+    }
+
+    /**
+     * Validate a field configuration.
+     */
+    private function validateFieldConfig(mixed $config): bool
+    {
+        if (!($config instanceof FieldMaskConfig) && !is_string($config)) {
+            return false;
+        }
+
+        // Validate regex patterns in FieldMaskConfig
+        if ($config instanceof FieldMaskConfig && $config->hasRegexPattern()) {
+            return $this->validateRegexPattern($config->getRegexPattern());
+        }
+
+        return true;
+    }
+
+    /**
+     * Validate a regex pattern.
+     */
+    private function validateRegexPattern(?string $pattern): bool
+    {
+        if ($pattern === null) {
+            return false;
+        }
+
+        try {
+            /** @psalm-suppress ArgumentTypeCoercion - Pattern checked for null above */
+            $testResult = @preg_match($pattern, '');
+            return $testResult !== false;
+        } catch (Throwable) {
+            return false;
+        }
     }
 
     /**
@@ -192,63 +211,80 @@ class FieldPathMaskingStrategy extends AbstractMaskingStrategy
 
         // Handle regex masking
         if ($config->hasRegexPattern()) {
-            try {
-                $stringValue = $this->valueToString($value);
-                $pattern = $config->getRegexPattern();
-
-                if ($pattern === null) {
-                    throw MaskingOperationFailedException::fieldPathMaskingFailed(
-                        $path,
-                        $value,
-                        'Regex pattern is null'
-                    );
-                }
-
-                $replacement = $config->getReplacement() ?? Mask::MASK_MASKED;
-
-                /** @psalm-suppress ArgumentTypeCoercion - Pattern validated during construction */
-                $result = preg_replace($pattern, $replacement, $stringValue);
-                if ($result === null) {
-                    throw MaskingOperationFailedException::fieldPathMaskingFailed(
-                        $path,
-                        $value,
-                        'Regex replacement failed'
-                    );
-                }
-
-                return $this->preserveValueType($value, $result);
-            } catch (MaskingOperationFailedException $e) {
-                throw $e;
-            } catch (Throwable $e) {
-                throw MaskingOperationFailedException::fieldPathMaskingFailed(
-                    $path,
-                    $value,
-                    'Regex processing failed: ' . $e->getMessage(),
-                    $e
-                );
-            }
+            return $this->applyRegexMasking($value, $config, $path);
         }
 
         // Handle static replacement
+        return $this->applyStaticReplacement($value, $config);
+    }
+
+    /**
+     * Apply regex masking to a value.
+     *
+     * @throws MaskingOperationFailedException
+     */
+    private function applyRegexMasking(mixed $value, FieldMaskConfig $config, string $path): mixed
+    {
+        try {
+            $stringValue = $this->valueToString($value);
+            $pattern = $config->getRegexPattern();
+
+            if ($pattern === null) {
+                throw MaskingOperationFailedException::fieldPathMaskingFailed(
+                    $path,
+                    $value,
+                    'Regex pattern is null'
+                );
+            }
+
+            $replacement = $config->getReplacement() ?? Mask::MASK_MASKED;
+
+            /** @psalm-suppress ArgumentTypeCoercion - Pattern validated during construction */
+            $result = preg_replace($pattern, $replacement, $stringValue);
+            if ($result === null) {
+                throw MaskingOperationFailedException::fieldPathMaskingFailed(
+                    $path,
+                    $value,
+                    'Regex replacement failed'
+                );
+            }
+
+            return $this->preserveValueType($value, $result);
+        } catch (MaskingOperationFailedException $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            throw MaskingOperationFailedException::fieldPathMaskingFailed(
+                $path,
+                $value,
+                'Regex processing failed: ' . $e->getMessage(),
+                $e
+            );
+        }
+    }
+
+    /**
+     * Apply static replacement to a value, preserving type when possible.
+     */
+    private function applyStaticReplacement(mixed $value, FieldMaskConfig $config): mixed
+    {
         $replacement = $config->getReplacement();
-        if ($replacement !== null) {
-            // Try to preserve type if the replacement can be converted
-            if (is_int($value) && is_numeric($replacement)) {
-                return (int) $replacement;
-            }
-
-            if (is_float($value) && is_numeric($replacement)) {
-                return (float) $replacement;
-            }
-
-            if (is_bool($value)) {
-                return filter_var($replacement, FILTER_VALIDATE_BOOLEAN);
-            }
-
-            return $replacement;
+        if ($replacement === null) {
+            return $value;
         }
 
-        // If no specific action, return original value
-        return $value;
+        // Try to preserve type if the replacement can be converted
+        if (is_int($value) && is_numeric($replacement)) {
+            return (int) $replacement;
+        }
+
+        if (is_float($value) && is_numeric($replacement)) {
+            return (float) $replacement;
+        }
+
+        if (is_bool($value)) {
+            return filter_var($replacement, FILTER_VALIDATE_BOOLEAN);
+        }
+
+        return $replacement;
     }
 }

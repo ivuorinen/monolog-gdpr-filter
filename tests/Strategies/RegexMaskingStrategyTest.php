@@ -179,7 +179,7 @@ final class RegexMaskingStrategyTest extends TestCase
             excludePaths: ['excluded.field']
         );
 
-        $this->assertFalse($strategy->shouldApply('12345', 'excluded.field', $this->logRecord));
+        $this->assertFalse($strategy->shouldApply(TestConstants::DATA_NUMBER_STRING, 'excluded.field', $this->logRecord));
     }
 
     #[Test]
@@ -190,7 +190,7 @@ final class RegexMaskingStrategyTest extends TestCase
             excludePaths: ['excluded.field']
         );
 
-        $this->assertTrue($strategy->shouldApply('12345', 'included.field', $this->logRecord));
+        $this->assertTrue($strategy->shouldApply(TestConstants::DATA_NUMBER_STRING, 'included.field', $this->logRecord));
     }
 
     #[Test]
@@ -201,9 +201,9 @@ final class RegexMaskingStrategyTest extends TestCase
             includePaths: ['user.ssn', 'user.phone']
         );
 
-        $this->assertTrue($strategy->shouldApply('12345', 'user.ssn', $this->logRecord));
-        $this->assertTrue($strategy->shouldApply('12345', 'user.phone', $this->logRecord));
-        $this->assertFalse($strategy->shouldApply('12345', 'user.email', $this->logRecord));
+        $this->assertTrue($strategy->shouldApply(TestConstants::DATA_NUMBER_STRING, 'user.ssn', $this->logRecord));
+        $this->assertTrue($strategy->shouldApply(TestConstants::DATA_NUMBER_STRING, 'user.phone', $this->logRecord));
+        $this->assertFalse($strategy->shouldApply(TestConstants::DATA_NUMBER_STRING, 'user.email', $this->logRecord));
     }
 
     #[Test]
@@ -214,9 +214,9 @@ final class RegexMaskingStrategyTest extends TestCase
             includePaths: ['user.*']
         );
 
-        $this->assertTrue($strategy->shouldApply('12345', 'user.ssn', $this->logRecord));
-        $this->assertTrue($strategy->shouldApply('12345', 'user.phone', $this->logRecord));
-        $this->assertFalse($strategy->shouldApply('12345', 'admin.id', $this->logRecord));
+        $this->assertTrue($strategy->shouldApply(TestConstants::DATA_NUMBER_STRING, 'user.ssn', $this->logRecord));
+        $this->assertTrue($strategy->shouldApply(TestConstants::DATA_NUMBER_STRING, 'user.phone', $this->logRecord));
+        $this->assertFalse($strategy->shouldApply(TestConstants::DATA_NUMBER_STRING, 'admin.id', $this->logRecord));
     }
 
     #[Test]
@@ -227,9 +227,9 @@ final class RegexMaskingStrategyTest extends TestCase
             excludePaths: ['debug.*']
         );
 
-        $this->assertFalse($strategy->shouldApply('12345', 'debug.info', $this->logRecord));
-        $this->assertFalse($strategy->shouldApply('12345', 'debug.data', $this->logRecord));
-        $this->assertTrue($strategy->shouldApply('12345', 'user.id', $this->logRecord));
+        $this->assertFalse($strategy->shouldApply(TestConstants::DATA_NUMBER_STRING, 'debug.info', $this->logRecord));
+        $this->assertFalse($strategy->shouldApply(TestConstants::DATA_NUMBER_STRING, 'debug.data', $this->logRecord));
+        $this->assertTrue($strategy->shouldApply(TestConstants::DATA_NUMBER_STRING, 'user.id', $this->logRecord));
     }
 
     #[Test]
@@ -323,7 +323,7 @@ final class RegexMaskingStrategyTest extends TestCase
             '/\d+/' => '',
         ]);
 
-        $result = $strategy->mask('User ID: 12345', 'field', $this->logRecord);
+        $result = $strategy->mask(TestConstants::MESSAGE_USER_ID, 'field', $this->logRecord);
 
         $this->assertSame('User ID: ', $result);
     }

@@ -70,12 +70,12 @@ final class JsonMasker
         for ($i = $startPos; $i < $length; $i++) {
             $char = $message[$i];
 
-            if ($escaped) {
+            if ($this->isEscapedCharacter($escaped)) {
                 $escaped = false;
                 continue;
             }
 
-            if ($char === '\\' && $inString) {
+            if ($this->isEscapeStart($char, $inString)) {
                 $escaped = true;
                 continue;
             }
@@ -85,21 +85,61 @@ final class JsonMasker
                 continue;
             }
 
-            if (!$inString) {
-                if ($char === $startChar) {
-                    $level++;
-                } elseif ($char === $endChar) {
-                    $level--;
+            if ($inString) {
+                continue;
+            }
 
-                    if ($level === 0) {
-                        // Found complete balanced structure
-                        return substr($message, $startPos, $i - $startPos + 1);
-                    }
-                }
+            $balancedEnd = $this->processStructureChar($char, $startChar, $endChar, $level, $message, $startPos, $i);
+            if ($balancedEnd !== null) {
+                return $balancedEnd;
             }
         }
 
         // No balanced structure found
+        return null;
+    }
+
+    /**
+     * Check if current character is escaped.
+     */
+    private function isEscapedCharacter(bool $escaped): bool
+    {
+        return $escaped;
+    }
+
+    /**
+     * Check if current character starts an escape sequence.
+     */
+    private function isEscapeStart(string $char, bool $inString): bool
+    {
+        return $char === '\\' && $inString;
+    }
+
+    /**
+     * Process a structure character (bracket or brace) and update nesting level.
+     *
+     * @return string|null Returns the extracted structure if complete, null otherwise
+     */
+    private function processStructureChar(
+        string $char,
+        string $startChar,
+        string $endChar,
+        int &$level,
+        string $message,
+        int $startPos,
+        int $currentPos
+    ): ?string {
+        if ($char === $startChar) {
+            $level++;
+        } elseif ($char === $endChar) {
+            $level--;
+
+            if ($level === 0) {
+                // Found complete balanced structure
+                return substr($message, $startPos, $currentPos - $startPos + 1);
+            }
+        }
+
         return null;
     }
 

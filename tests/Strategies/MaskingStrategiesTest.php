@@ -71,7 +71,7 @@ class MaskingStrategiesTest extends TestCase
         $this->expectException(InvalidRegexPatternException::class);
         $strategy = new RegexMaskingStrategy([TestConstants::PATTERN_INVALID_UNCLOSED_BRACKET => 'masked']);
         unset($strategy); // Satisfy SonarQube - this line won't be reached if exception is thrown
-        $this->fail('Expected exception was not thrown');
+        $this->fail(TestConstants::ERROR_EXCEPTION_NOT_THROWN);
     }
 
     public function testRegexMaskingStrategyWithReDoSPattern(): void
@@ -79,7 +79,7 @@ class MaskingStrategiesTest extends TestCase
         $this->expectException(InvalidRegexPatternException::class);
         $strategy = new RegexMaskingStrategy(['/(a+)+$/' => 'masked']);
         unset($strategy); // Satisfy SonarQube - this line won't be reached if exception is thrown
-        $this->fail('Expected exception was not thrown');
+        $this->fail(TestConstants::ERROR_EXCEPTION_NOT_THROWN);
     }
 
     public function testRegexMaskingStrategyWithIncludeExcludePaths(): void
@@ -531,6 +531,6 @@ class MaskingStrategiesTest extends TestCase
         $this->expectException(InvalidRegexPatternException::class);
         $strategy = new RegexMaskingStrategy(['/[/' => 'invalid']); // Invalid pattern should throw exception
         unset($strategy); // Satisfy SonarQube - this line won't be reached if exception is thrown
-        $this->fail('Expected exception was not thrown');
+        $this->fail(TestConstants::ERROR_EXCEPTION_NOT_THROWN);
     }
 }

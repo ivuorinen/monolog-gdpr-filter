@@ -24,6 +24,8 @@ use Ivuorinen\MonologGdprFilter\GdprProcessor;
  */
 class GdprLogMiddleware
 {
+    private const LOG_MESSAGE_HTTP_RESPONSE = 'HTTP Response';
+
     protected GdprProcessor $processor;
 
     public function __construct(GdprProcessor $processor)
@@ -103,15 +105,15 @@ class GdprLogMiddleware
         $level = $response->getStatusCode() >= 500 ? 'error' : ($response->getStatusCode() >= 400 ? 'warning' : 'info');
 
         match ($level) {
-            'error' => Log::error('HTTP Response', array_merge(
+            'error' => Log::error(self::LOG_MESSAGE_HTTP_RESPONSE, array_merge(
                 ['method' => $request->method(), 'url' => $request->fullUrl()],
                 $filteredData
             )),
-            'warning' => Log::warning('HTTP Response', array_merge(
+            'warning' => Log::warning(self::LOG_MESSAGE_HTTP_RESPONSE, array_merge(
                 ['method' => $request->method(), 'url' => $request->fullUrl()],
                 $filteredData
             )),
-            default => Log::info('HTTP Response', array_merge(
+            default => Log::info(self::LOG_MESSAGE_HTTP_RESPONSE, array_merge(
                 ['method' => $request->method(), 'url' => $request->fullUrl()],
                 $filteredData
             ))

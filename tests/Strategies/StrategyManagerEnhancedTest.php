@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Strategies;
 
 use PHPUnit\Framework\TestCase;
+use Tests\TestConstants;
 use Tests\TestHelpers;
 use Ivuorinen\MonologGdprFilter\Strategies\StrategyManager;
 use Ivuorinen\MonologGdprFilter\MaskConstants;
@@ -80,7 +81,7 @@ final class StrategyManagerEnhancedTest extends TestCase
         $logRecord = $this->createLogRecord();
 
         // Value doesn't match pattern
-        $applicable = $manager->getApplicableStrategies('public data', 'message', $logRecord);
+        $applicable = $manager->getApplicableStrategies(TestConstants::DATA_PUBLIC, 'message', $logRecord);
 
         $this->assertEmpty($applicable);
     }
@@ -144,9 +145,9 @@ final class StrategyManagerEnhancedTest extends TestCase
         $logRecord = $this->createLogRecord();
 
         // Value doesn't match any pattern
-        $result = $manager->maskValue('public data', 'message', $logRecord);
+        $result = $manager->maskValue(TestConstants::DATA_PUBLIC, 'message', $logRecord);
 
-        $this->assertEquals('public data', $result);
+        $this->assertEquals(TestConstants::DATA_PUBLIC, $result);
     }
 
     public function testGetStatisticsClassNameWithoutNamespace(): void

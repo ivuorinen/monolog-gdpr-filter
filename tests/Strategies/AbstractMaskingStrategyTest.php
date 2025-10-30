@@ -11,6 +11,7 @@ use Monolog\LogRecord;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Tests\TestConstants;
 use Tests\TestHelpers;
 
 #[CoversClass(AbstractMaskingStrategy::class)]
@@ -233,7 +234,7 @@ final class AbstractMaskingStrategyTest extends TestCase
     public function recordMatchesReturnsTrueWhenAllConditionsMet(): void
     {
         $logRecord = $this->createLogRecord(
-            'test message',
+            TestConstants::MESSAGE_TEST_LOWERCASE,
             ['user_id' => 123],
             Level::Error,
             'test-channel'
@@ -253,7 +254,7 @@ final class AbstractMaskingStrategyTest extends TestCase
     public function recordMatchesReturnsFalseWhenLevelDoesNotMatch(): void
     {
         $logRecord = $this->createLogRecord(
-            'test message',
+            TestConstants::MESSAGE_TEST_LOWERCASE,
             [],
             Level::Error,
             'test-channel'
@@ -266,7 +267,7 @@ final class AbstractMaskingStrategyTest extends TestCase
     public function recordMatchesReturnsFalseWhenChannelDoesNotMatch(): void
     {
         $logRecord = $this->createLogRecord(
-            'test message',
+            TestConstants::MESSAGE_TEST_LOWERCASE,
             [],
             Level::Error,
             'test-channel'
@@ -279,7 +280,7 @@ final class AbstractMaskingStrategyTest extends TestCase
     public function recordMatchesReturnsFalseWhenContextFieldMissing(): void
     {
         $logRecord = $this->createLogRecord(
-            'test message',
+            TestConstants::MESSAGE_TEST_LOWERCASE,
             [],
             Level::Error,
             'test-channel'
