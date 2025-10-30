@@ -130,7 +130,6 @@ final class StrategyManagerEnhancedTest extends TestCase
         $strategies = $manager->getAllStrategies();
 
         // Might have 0 strategies or might create empty strategy instances - either is acceptable
-        /** @psalm-suppress RedundantCondition */
         $this->assertIsArray($strategies);
     }
 

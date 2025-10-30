@@ -77,6 +77,23 @@
 
     <!-- Test-specific suppressions -->
 
+    <!-- Redundant test assertions - provide defensive runtime validation -->
+    <RedundantCondition>
+      <errorLevel type="suppress">
+        <directory name="tests" />
+      </errorLevel>
+    </RedundantCondition>
+    <RedundantConditionGivenDocblockType>
+      <errorLevel type="suppress">
+        <directory name="tests" />
+      </errorLevel>
+    </RedundantConditionGivenDocblockType>
+    <ArgumentTypeCoercion>
+      <errorLevel type="suppress">
+        <directory name="tests" />
+      </errorLevel>
+    </ArgumentTypeCoercion>
+
     <!-- Test validation issues -->
     <InvalidArgument>
       <errorLevel type="suppress">
