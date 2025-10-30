@@ -259,9 +259,11 @@ final class FieldPathMaskingStrategyTest extends TestCase
     {
         $this->expectException(InvalidRegexPatternException::class);
 
-        new FieldPathMaskingStrategy([
+        $strategy = new FieldPathMaskingStrategy([
             'user.field' => FieldMaskConfig::regexMask('/[invalid/', MaskConstants::MASK_GENERIC),
         ]);
+        unset($strategy); // Satisfy SonarQube - this line won't be reached if exception is thrown
+        $this->fail('Expected exception was not thrown');
     }
 
     #[Test]
