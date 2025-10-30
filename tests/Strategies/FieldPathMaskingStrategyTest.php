@@ -193,6 +193,7 @@ final class FieldPathMaskingStrategyTest extends TestCase
 
         // Create a resource which cannot be converted to string
         $resource = fopen('php://memory', 'r');
+        $this->assertIsResource($resource, 'Failed to open php://memory');
 
         $this->expectException(MaskingOperationFailedException::class);
         $this->expectExceptionMessage('user.field');

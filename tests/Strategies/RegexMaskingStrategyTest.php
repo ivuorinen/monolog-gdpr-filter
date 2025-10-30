@@ -141,6 +141,7 @@ final class RegexMaskingStrategyTest extends TestCase
         ]);
 
         $resource = fopen('php://memory', 'r');
+        $this->assertIsResource($resource, 'Failed to open php://memory');
 
         $this->expectException(MaskingOperationFailedException::class);
 
@@ -240,6 +241,7 @@ final class RegexMaskingStrategyTest extends TestCase
         ]);
 
         $resource = fopen('php://memory', 'r');
+        $this->assertIsResource($resource, 'Failed to open php://memory');
 
         try {
             $result = $strategy->shouldApply($resource, 'field', $this->logRecord);

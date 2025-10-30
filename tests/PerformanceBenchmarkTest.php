@@ -77,10 +77,10 @@ class PerformanceBenchmarkTest extends TestCase
         $endTime = microtime(true);
         $endMemory = memory_get_usage();
 
-        $duration = ($endTime - $startTime) * 1000; // Convert to milliseconds
+        $duration = (($endTime - $startTime) * 1000.0); // Convert to milliseconds
         $memoryUsed = ($endMemory - $startMemory) / 1024; // Convert to KB
 
-        $avgTimePerOperation = $duration / $iterations;
+        $avgTimePerOperation = $duration / (float) $iterations;
 
         // Performance assertions - these should pass with optimizations
         $this->assertLessThan(5.0, $avgTimePerOperation, 'Average time per regex operation should be under 5ms');
@@ -119,7 +119,7 @@ class PerformanceBenchmarkTest extends TestCase
             $result = $processor($logRecord);
             $endTime = microtime(true);
 
-            $duration = ($endTime - $startTime) * 1000;
+            $duration = (($endTime - $startTime) * 1000.0);
 
             // Should complete quickly even with deep nesting due to depth limiting
             $this->assertLessThan(
@@ -164,7 +164,7 @@ class PerformanceBenchmarkTest extends TestCase
 
             $endTime = microtime(true);
 
-            $duration = ($endTime - $startTime) * 1000;
+            $duration = (($endTime - $startTime) * 1000.0);
             // MB
 
             // Verify processing worked
@@ -173,7 +173,7 @@ class PerformanceBenchmarkTest extends TestCase
             $this->assertStringContainsString(MaskConstants::MASK_EMAIL, (string) $result->context['item_0']['email']);
 
             // Performance should scale reasonably
-            $timePerItem = $duration / $size;
+            $timePerItem = $duration / (float) $size;
             $this->assertLessThan(1.0, $timePerItem, 'Time per item should be under 1ms for array size ' . $size);
 
             // Performance: Array size {$size}: {$duration}ms ({$timePerItem}ms per item), Memory: {$memoryUsed}MB
@@ -202,7 +202,7 @@ class PerformanceBenchmarkTest extends TestCase
             $processor->regExpMessage($testMessage);
         }
 
-        $secondRunTime = (microtime(true) - $startTime) * 1000;
+        $secondRunTime = ((microtime(true) - $startTime) * 1000.0);
 
         // Third run - should be similar to second
         $startTime = microtime(true);
@@ -210,7 +210,7 @@ class PerformanceBenchmarkTest extends TestCase
             $processor->regExpMessage($testMessage);
         }
 
-        $thirdRunTime = (microtime(true) - $startTime) * 1000;
+        $thirdRunTime = ((microtime(true) - $startTime) * 1000.0);
 
         // Pattern Caching Performance:
         // - First run (cache building): {$firstRunTime}ms
@@ -219,7 +219,7 @@ class PerformanceBenchmarkTest extends TestCase
         // - Improvement: {$improvementPercent}%
 
         // Performance should be consistent after caching
-        $variationPercent = abs(($thirdRunTime - $secondRunTime) / $secondRunTime) * 100;
+        $variationPercent = (abs(($thirdRunTime - $secondRunTime) / $secondRunTime) * 100.0);
         $this->assertLessThan(
             20,
             $variationPercent,
@@ -315,7 +315,7 @@ class PerformanceBenchmarkTest extends TestCase
             }
 
             $endTime = microtime(true);
-            $times[] = ($endTime - $startTime) * 1000;
+            $times[] = (($endTime - $startTime) * 1000.0);
 
             // Performance: Concurrency {$concurrency}: {$times[$concurrency - 1]}ms
         }
@@ -333,9 +333,9 @@ class PerformanceBenchmarkTest extends TestCase
 
             // Should scale better than linear due to optimizations
             $this->assertLessThan(
-                $expectedRatio * 1.5,
+                ((float) $expectedRatio * 1.5),
                 $scalingRatio,
-                "Scaling should be reasonable for concurrency level " . ($i + 1)
+                "Scaling should be reasonable for concurrency level " . ((string) ($i + 1))
             );
         }
     }
@@ -358,13 +358,16 @@ class PerformanceBenchmarkTest extends TestCase
             $optimizedProcessor->regExpMessage($testMessage);
         }
 
-        $optimizedTime = (microtime(true) - $startTime) * 1000;
+        $optimizedTime = ((microtime(true) - $startTime) * 1000.0);
 
         // Simple benchmark without optimization features
         // (We can't easily disable optimizations, so we just measure the current performance)
         microtime(true);
         for ($i = 0; $i < $iterations; $i++) {
             foreach ($patterns as $pattern => $replacement) {
+                if ($pattern === '') {
+                    continue;
+                }
                 $testMessage = preg_replace(
                     $pattern,
                     $replacement,
@@ -381,7 +384,7 @@ class PerformanceBenchmarkTest extends TestCase
         // - Improvement: {(($simpleTime - $optimizedTime) / $simpleTime) * 100}%
 
         // The optimized version should perform reasonably well
-        $avgOptimizedTime = $optimizedTime / $iterations;
+        $avgOptimizedTime = $optimizedTime / (float) $iterations;
         $this->assertLessThan(1.0, $avgOptimizedTime, 'Optimized processing should average under 1ms per operation');
     }
 }

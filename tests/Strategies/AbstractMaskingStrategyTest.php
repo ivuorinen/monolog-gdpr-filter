@@ -181,6 +181,7 @@ final class AbstractMaskingStrategyTest extends TestCase
     public function valueToStringThrowsForResource(): void
     {
         $resource = fopen('php://memory', 'r');
+        $this->assertIsResource($resource, 'Failed to open php://memory');
 
         $this->expectException(MaskingOperationFailedException::class);
         $this->expectExceptionMessage('resource');
@@ -317,6 +318,7 @@ final class AbstractMaskingStrategyTest extends TestCase
     public function generateValuePreviewHandlesResourceType(): void
     {
         $resource = fopen('php://memory', 'r');
+        $this->assertIsResource($resource, 'Failed to open php://memory');
 
         try {
             $preview = $this->strategy->testGenerateValuePreview($resource);

@@ -115,6 +115,8 @@ class FieldPathMaskingStrategy extends AbstractMaskingStrategy
 
     /**
      * Validate a field configuration.
+     *
+     * @param mixed $config
      */
     private function validateFieldConfig(mixed $config): bool
     {

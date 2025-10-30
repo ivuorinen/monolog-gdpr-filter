@@ -245,6 +245,8 @@ final class GdprProcessorExtendedTest extends TestCase
             ],
         ]);
 
+        $this->assertIsString($message, 'JSON encoding should succeed');
+
         $result = $processor->maskMessage($message);
 
         $this->assertStringNotContainsString(TestConstants::EMAIL_TEST, $result);

@@ -55,6 +55,9 @@
     <!-- Override attributes - suppress for now to avoid breaking changes -->
     <MissingOverrideAttribute errorLevel="suppress" />
 
+    <!-- Class finalization - suppress to avoid API breaking changes -->
+    <ClassMustBeFinal errorLevel="suppress" />
+
     <!-- Mixed types - necessary for flexible APIs -->
     <MixedArgument errorLevel="suppress" />
     <MixedAssignment errorLevel="suppress" />

@@ -273,8 +273,8 @@ trait TestHelpers
         $endMemory = memory_get_usage(true);
 
         return [
-            'duration_ms' => ($endTime - $startTime) * 1000,
-            'memory_kb' => ($endMemory - $startMemory) / 1024,
+            'duration_ms' => ($endTime - $startTime) * 1000.0,
+            'memory_kb' => ((float) $endMemory - (float) $startMemory) / 1024.0,
             'result' => $result,
         ];
     }
