@@ -101,7 +101,7 @@ All static analysis tools are properly configured and working harmoniously. Issu
 - **All critical and high-priority functionality is complete**
 - **Project is production-ready** with comprehensive test coverage
 - **Remaining items focus on code quality and developer experience**
-- **Use `./scripts/safe-analyze.sh` for comprehensive static analysis workflows**
+- **Use `composer lint:fix` for automated code quality improvements**
 - **Follow linting policy: fix issues, don't suppress unless absolutely necessary**
 
 ---

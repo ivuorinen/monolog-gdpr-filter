@@ -107,6 +107,10 @@ class FieldPathMaskingStrategy extends AbstractMaskingStrategy
 
     /**
      * Validate a field path.
+     *
+     * Intentionally accepts mixed type to validate any input during configuration validation.
+     *
+     * @param mixed $path
      */
     private function validateFieldPath(mixed $path): bool
     {
@@ -275,18 +279,16 @@ class FieldPathMaskingStrategy extends AbstractMaskingStrategy
         }
 
         // Try to preserve type if the replacement can be converted
+        $result = $replacement;
+
         if (is_int($value) && is_numeric($replacement)) {
-            return (int) $replacement;
+            $result = (int) $replacement;
+        } elseif (is_float($value) && is_numeric($replacement)) {
+            $result = (float) $replacement;
+        } elseif (is_bool($value)) {
+            $result = filter_var($replacement, FILTER_VALIDATE_BOOLEAN);
         }
 
-        if (is_float($value) && is_numeric($replacement)) {
-            return (float) $replacement;
-        }
-
-        if (is_bool($value)) {
-            return filter_var($replacement, FILTER_VALIDATE_BOOLEAN);
-        }
-
-        return $replacement;
+        return $result;
     }
 }

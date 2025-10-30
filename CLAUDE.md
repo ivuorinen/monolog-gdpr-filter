@@ -27,10 +27,9 @@ composer lint:tool:psalm     # Static analysis
 composer lint:tool:psalm:fix # Auto-fix Psalm issues
 composer lint:tool:rector    # Code refactoring
 
-# Safe analysis script (recommended for comprehensive analysis)
-./scripts/safe-analyze.sh           # Interactive analysis workflow
-./scripts/safe-analyze.sh --all --dry-run    # Run all tools safely (dry-run)
-./scripts/safe-analyze.sh --all --apply      # Apply safe changes with backup
+# Preview changes before applying (dry-run)
+composer lint:tool:rector -- --dry-run
+composer lint:tool:psalm -- --alter --dry-run
 ```
 
 ### Testing
@@ -99,19 +98,17 @@ The library can be integrated with Laravel in two ways:
 **Issue Resolution Priority:**
 1. **Fix the underlying issue** (preferred approach)
 2. **Refactor code** to avoid the issue pattern
-3. **Use safe automated fixes** via `composer lint:fix` or `./scripts/safe-analyze.sh`
+3. **Use safe automated fixes** via `composer lint:fix`
 4. **Ask before suppressing** - Suppression should be used only as an absolute last resort and requires
    explicit discussion
 
-**Use the safe analysis script** (`./scripts/safe-analyze.sh`) for comprehensive analysis workflows
-with backup/restore capabilities.
+**Tip:** Use `git stash` before running `composer lint:fix` to easily revert changes if needed.
 
 ## Important Notes
 
-- **Always run `composer lint:fix` or `./scripts/safe-analyze.sh` before manual fixes**
+- **Always run `composer lint:fix` before manual fixes**
 - **Fix all linting issues** - suppression requires explicit approval
 - The library focuses on GDPR compliance - be careful when modifying masking logic
 - Default patterns include Finnish SSN, US SSN, IBAN, credit cards, emails, phones, and IPs
 - Audit logging feature can track when sensitive data was masked for compliance
-- Use the safe analysis script for comprehensive static analysis workflows
 - All static analysis tools are configured to work harmoniously without conflicts

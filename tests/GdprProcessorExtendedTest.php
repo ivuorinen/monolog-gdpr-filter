@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests;
 
 use Tests\TestConstants;
+use Tests\TestException;
 use Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger;
 use Ivuorinen\MonologGdprFilter\MaskConstants;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
@@ -186,11 +187,12 @@ final class GdprProcessorExtendedTest extends TestCase
             auditLogger: $auditLogger,
             conditionalRules: [
                 /**
-                 * @param \Monolog\LogRecord $_record Intentionally unused parameter
+                 * @param \Monolog\LogRecord $_record
                  * @return never
                  */
                 'throws_exception' => function ($_record): never {
-                    throw new \RuntimeException('Rule failed');
+                    unset($_record); // Required by callback signature, not used
+                    throw new TestException('Rule failed');
                 },
             ]
         );

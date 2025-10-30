@@ -6,6 +6,7 @@ namespace Tests\Strategies;
 
 use PHPUnit\Framework\TestCase;
 use Tests\TestConstants;
+use Tests\TestException;
 use Tests\TestHelpers;
 use Monolog\LogRecord;
 use Monolog\Level;
@@ -68,11 +69,12 @@ final class ConditionalMaskingStrategyEnhancedTest extends TestCase
             fn(LogRecord $record): bool => true,
             'throws_exception' =>
             /**
-             * @param \Monolog\LogRecord $_record Intentionally unused parameter
+             * @param \Monolog\LogRecord $_record
              * @return never
              */
             function (LogRecord $_record): never {
-                throw new \RuntimeException('Condition failed');
+                unset($_record); // Required by callback signature, not used
+                throw new TestException('Condition failed');
             },
         ];
 
@@ -92,11 +94,12 @@ final class ConditionalMaskingStrategyEnhancedTest extends TestCase
         $conditions = [
             'throws_exception' =>
             /**
-             * @param \Monolog\LogRecord $_record Intentionally unused parameter
+             * @param \Monolog\LogRecord $_record
              * @return never
              */
             function (LogRecord $_record): never {
-                throw new \RuntimeException('Condition failed');
+                unset($_record); // Required by callback signature, not used
+                throw new TestException('Condition failed');
             },
             'always_true' =>
             /**
