@@ -1,0 +1,114 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ["8.2", "8.3", "8.4"]
+
+    name: PHP ${{ matrix.php-version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@ccf2c627fe61b1b4d924adfcbd19d661a18133a0 # 2.35.2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: mbstring, xml, ctype, iconv, intl, json
+          tools: composer:v2
+          coverage: xdebug
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache composer dependencies
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-suggest
+
+      - name: Run PHPUnit tests
+        run: composer test
+
+      - name: Run Psalm static analysis
+        run: ./vendor/bin/psalm --show-info=true
+
+      - name: Run PHPStan static analysis
+        run: ./vendor/bin/phpstan analyse --memory-limit=1G --no-progress
+
+      - name: Run PHP_CodeSniffer
+        run: ./vendor/bin/phpcs src/ tests/ rector.php --warning-severity=0
+
+      - name: Run Rector (dry-run)
+        run: ./vendor/bin/rector --dry-run --no-progress-bar
+
+  coverage:
+    runs-on: ubuntu-latest
+    name: Coverage
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@ccf2c627fe61b1b4d924adfcbd19d661a18133a0 # 2.35.2
+        with:
+          php-version: "8.2"
+          extensions: mbstring, xml, ctype, iconv, intl, json
+          tools: composer:v2
+          coverage: xdebug
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-suggest
+
+      - name: Run tests with coverage
+        run: composer test:coverage
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5.4.3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          fail_ci_if_error: false
+
+  security:
+    runs-on: ubuntu-latest
+    name: Security Analysis
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@ccf2c627fe61b1b4d924adfcbd19d661a18133a0 # 2.35.2
+        with:
+          php-version: "8.2"
+          extensions: mbstring, xml, ctype, iconv, intl, json
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-suggest
+
+      - name: Run security audit
+        run: composer audit
+
+      - name: Check for known security vulnerabilities
+        uses: symfonycorp/security-checker-action@258311ef7ac571f1310780ef3d79fc5abef642b5 # v5

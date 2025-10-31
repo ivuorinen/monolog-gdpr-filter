@@ -18,3 +18,5 @@
 # Ignore test coverage reports
 /coverage/
 coverage.xml
+coverage*
+*.bak

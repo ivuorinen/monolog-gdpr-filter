@@ -1,0 +1,431 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests;
+
+use DateTimeImmutable;
+use Ivuorinen\MonologGdprFilter\ConditionalRuleFactory;
+use Ivuorinen\MonologGdprFilter\MaskConstants;
+use Monolog\Level;
+use Monolog\LogRecord;
+use PHPUnit\Framework\TestCase;
+use Tests\TestHelpers;
+use Tests\TestConstants;
+
+/**
+ * Test JSON string masking functionality within log messages.
+ *
+ * @api
+ */
+class JsonMaskingTest extends TestCase
+{
+    use TestHelpers;
+
+    public function testSimpleJsonObjectMasking(): void
+    {
+        $processor = $this->createProcessor([
+            TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL
+        ]);
+
+        $message = 'User data: {"email": "user@example.com", "name": "John Doe"}';
+        $result = $processor->regExpMessage($message);
+
+        $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
+        $this->assertStringNotContainsString(TestConstants::EMAIL_USER, $result);
+
+        // Verify it's still valid JSON
+        $extractedJson = $this->extractJsonFromMessage($result);
+        $this->assertNotNull($extractedJson);
+        $this->assertEquals(MaskConstants::MASK_EMAIL, $extractedJson[TestConstants::CONTEXT_EMAIL]);
+        $this->assertEquals(TestConstants::NAME_FULL, $extractedJson['name']);
+    }
+
+    public function testJsonArrayMasking(): void
+    {
+        $processor = $this->createProcessor([
+            TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL
+        ]);
+
+        $message = 'Users: [{"email": "admin@example.com"}, {"email": "user@test.com"}]';
+        $result = $processor->regExpMessage($message);
+
+        $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
+        $this->assertStringNotContainsString(TestConstants::EMAIL_ADMIN, $result);
+        $this->assertStringNotContainsString('user@test.com', $result);
+
+        // Verify it's still valid JSON
+        $extractedJson = $this->extractJsonArrayFromMessage($result);
+        $this->assertNotNull($extractedJson);
+        $this->assertEquals(MaskConstants::MASK_EMAIL, $extractedJson[0][TestConstants::CONTEXT_EMAIL]);
+        $this->assertEquals(MaskConstants::MASK_EMAIL, $extractedJson[1][TestConstants::CONTEXT_EMAIL]);
+    }
+
+    public function testNestedJsonMasking(): void
+    {
+        $processor = $this->createProcessor([
+            TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL,
+            '/\b\d{3}-\d{2}-\d{4}\b/' => MaskConstants::MASK_USSSN
+        ]);
+
+        $message = 'Complex data: {"user": {"contact": '
+            . '{"email": "nested@example.com", "ssn": "' . TestConstants::SSN_US . '"}, "id": 42}}';
+        $result = $processor->regExpMessage($message);
+
+        $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
+        $this->assertStringContainsString(MaskConstants::MASK_USSSN, $result);
+        $this->assertStringNotContainsString('nested@example.com', $result);
+        $this->assertStringNotContainsString(TestConstants::SSN_US, $result);
+
+        // Verify nested structure is maintained
+        $extractedJson = $this->extractJsonFromMessage($result);
+        $this->assertNotNull($extractedJson);
+        $this->assertEquals(MaskConstants::MASK_EMAIL, $extractedJson['user']['contact'][TestConstants::CONTEXT_EMAIL]);
+        $this->assertEquals(MaskConstants::MASK_USSSN, $extractedJson['user']['contact']['ssn']);
+        $this->assertEquals(42, $extractedJson['user']['id']);
+    }
+
+    public function testMultipleJsonStringsInMessage(): void
+    {
+        $processor = $this->createProcessor([
+            TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL
+        ]);
+
+        $message = 'Request: {"email": "req@example.com"} Response: {"email": "resp@test.com", "status": "ok"}';
+        $result = $processor->regExpMessage($message);
+
+        $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
+        $this->assertStringNotContainsString('req@example.com', $result);
+        $this->assertStringNotContainsString('resp@test.com', $result);
+
+        // Both JSON objects should be masked
+        preg_match_all('/\{[^}]+\}/', $result, $matches);
+        $this->assertCount(2, $matches[0]);
+
+        foreach ($matches[0] as $jsonStr) {
+            $decoded = json_decode($jsonStr, true);
+            $this->assertNotNull($decoded);
+            if (isset($decoded[TestConstants::CONTEXT_EMAIL])) {
+                $this->assertEquals(MaskConstants::MASK_EMAIL, $decoded[TestConstants::CONTEXT_EMAIL]);
+            }
+        }
+    }
+
+    public function testInvalidJsonStillGetsMasked(): void
+    {
+        $processor = $this->createProcessor([
+            TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL
+        ]);
+
+        $message = 'Invalid JSON: {email: "invalid@example.com", missing quotes} and email@test.com';
+        $result = $processor->regExpMessage($message);
+
+        // Since it's not valid JSON, regular patterns should apply to everything
+        $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
+        $this->assertStringNotContainsString('invalid@example.com', $result);
+        $this->assertStringNotContainsString('email@test.com', $result);
+
+        // The structure should still be there, just with masked emails
+        $this->assertStringContainsString('{email: "' . MaskConstants::MASK_EMAIL . '", missing quotes}', $result);
+    }
+
+    public function testJsonWithSpecialCharacters(): void
+    {
+        $processor = $this->createProcessor([
+            TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL
+        ]);
+
+        $message = 'Data: {"email": "user@example.com", "message": "Hello \"world\"", "unicode": "café ñoño"}';
+        $result = $processor->regExpMessage($message);
+
+        $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
+        $this->assertStringNotContainsString(TestConstants::EMAIL_USER, $result);
+
+        $extractedJson = $this->extractJsonFromMessage($result);
+        $this->assertNotNull($extractedJson);
+        $this->assertEquals(MaskConstants::MASK_EMAIL, $extractedJson[TestConstants::CONTEXT_EMAIL]);
+        $this->assertEquals('Hello "world"', $extractedJson[TestConstants::FIELD_MESSAGE]);
+        $this->assertEquals('café ñoño', $extractedJson['unicode']);
+    }
+
+    public function testJsonMaskingWithDataTypeMasks(): void
+    {
+        $processor = $this->createProcessor(
+            [TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL],
+            [],
+            [],
+            null,
+            100,
+            ['integer' => MaskConstants::MASK_INT, 'string' => MaskConstants::MASK_STRING]
+        );
+
+        $message = 'Data: {"email": "user@example.com", "id": 12345, "active": true}';
+        $result = $processor->regExpMessage($message);
+
+        $extractedJson = $this->extractJsonFromMessage($result);
+        $this->assertNotNull($extractedJson);
+
+        // Email should be masked by regex pattern (takes precedence over data type masking)
+        $this->assertEquals(MaskConstants::MASK_EMAIL, $extractedJson[TestConstants::CONTEXT_EMAIL]);
+        // Integer should be masked by data type rule
+        $this->assertEquals(MaskConstants::MASK_INT, $extractedJson['id']);
+        // Boolean should remain unchanged (no data type mask configured)
+        $this->assertTrue($extractedJson['active']);
+    }
+
+    public function testJsonMaskingWithAuditLogger(): void
+    {
+        $auditLogs = [];
+        $auditLogger = function (string $path, mixed $original, mixed $masked) use (&$auditLogs): void {
+            $auditLogs[] = ['path' => $path, 'original' => $original, TestConstants::DATA_MASKED => $masked];
+        };
+
+        $processor = $this->createProcessor(
+            [TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL],
+            [],
+            [],
+            $auditLogger
+        );
+
+        $message = 'User: {"email": "test@example.com", "name": "Test User"}';
+        $result = $processor->regExpMessage($message);
+
+        $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
+
+        // Should have logged the JSON masking operation
+        $jsonMaskingLogs = array_filter(
+            $auditLogs,
+            fn(array $log): bool => $log['path'] === 'json_masked'
+        );
+        $this->assertNotEmpty($jsonMaskingLogs);
+
+        $jsonLog = reset($jsonMaskingLogs);
+        if (!is_array($jsonLog)) {
+            $this->fail('No json_masked audit log found');
+        }
+
+        $this->assertStringContainsString(TestConstants::EMAIL_TEST, (string) $jsonLog['original']);
+        $this->assertStringContainsString(MaskConstants::MASK_EMAIL, (string) $jsonLog[TestConstants::DATA_MASKED]);
+    }
+
+    public function testJsonMaskingInLogRecord(): void
+    {
+        $processor = $this->createProcessor([
+            TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL
+        ]);
+
+        $logRecord = new LogRecord(
+            new DateTimeImmutable(),
+            'test',
+            Level::Info,
+            'API Response: {"user": {"email": "api@example.com"}, "status": "success"}',
+            []
+        );
+
+        $result = $processor($logRecord);
+
+        $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result->message);
+        $this->assertStringNotContainsString('api@example.com', $result->message);
+
+        // Verify JSON structure is maintained
+        $extractedJson = $this->extractJsonFromMessage($result->message);
+        $this->assertNotNull($extractedJson);
+        $this->assertEquals(MaskConstants::MASK_EMAIL, $extractedJson['user'][TestConstants::CONTEXT_EMAIL]);
+        $this->assertEquals('success', $extractedJson['status']);
+    }
+
+    public function testJsonMaskingWithConditionalRules(): void
+    {
+        $processor = $this->createProcessor(
+            [TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL],
+            [],
+            [],
+            null,
+            100,
+            [],
+            [
+                'error_level' => ConditionalRuleFactory::createLevelBasedRule(['Error'])
+            ]
+        );
+
+        // ERROR level - should mask JSON
+        $errorRecord = new LogRecord(
+            new DateTimeImmutable(),
+            'test',
+            Level::Error,
+            'Error data: {"email": "error@example.com"}',
+            []
+        );
+
+        $result = $processor($errorRecord);
+        $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result->message);
+        $this->assertStringNotContainsString('error@example.com', $result->message);
+
+        // INFO level - should NOT mask JSON
+        $infoRecord = new LogRecord(
+            new DateTimeImmutable(),
+            'test',
+            Level::Info,
+            'Info data: {"email": "info@example.com"}',
+            []
+        );
+
+        $result = $processor($infoRecord);
+        $this->assertStringNotContainsString(MaskConstants::MASK_EMAIL, $result->message);
+        $this->assertStringContainsString('info@example.com', $result->message);
+    }
+
+    public function testComplexJsonWithArraysAndObjects(): void
+    {
+        $processor = $this->createProcessor([
+            TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL,
+            '/\+1-\d{3}-\d{3}-\d{4}/' => MaskConstants::MASK_PHONE
+        ]);
+
+        $complexJson = '{
+            "users": [
+                {
+                    "id": 1,
+                    "email": "john@example.com",
+                    "contacts": {
+                        "phone": "' . TestConstants::PHONE_US . '",
+                        "emergency": {
+                            "email": "emergency@example.com",
+                            "phone": "' . TestConstants::PHONE_US_ALT . '"
+                        }
+                    }
+                },
+                {
+                    "id": 2,
+                    "email": "jane@test.com",
+                    "contacts": {
+                        "phone": "+1-555-456-7890"
+                    }
+                }
+            ]
+        }';
+
+        $message = 'Complex data: ' . $complexJson;
+        $result = $processor->regExpMessage($message);
+
+        $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
+        $this->assertStringContainsString(MaskConstants::MASK_PHONE, $result);
+        $this->assertStringNotContainsString('john@example.com', $result);
+        $this->assertStringNotContainsString('jane@test.com', $result);
+        $this->assertStringNotContainsString('emergency@example.com', $result);
+        $this->assertStringNotContainsString(TestConstants::PHONE_US, $result);
+
+        // Verify complex structure is maintained
+        $extractedJson = $this->extractJsonFromMessage($result);
+        $this->assertNotNull($extractedJson);
+        $this->assertCount(2, $extractedJson['users']);
+        $this->assertEquals(MaskConstants::MASK_EMAIL, $extractedJson['users'][0][TestConstants::CONTEXT_EMAIL]);
+        $this->assertEquals(MaskConstants::MASK_PHONE, $extractedJson['users'][0]['contacts']['phone']);
+        $this->assertEquals(MaskConstants::MASK_EMAIL, $extractedJson['users'][0]['contacts']['emergency'][TestConstants::CONTEXT_EMAIL]);
+    }
+
+    public function testJsonMaskingErrorHandling(): void
+    {
+        $auditLogs = [];
+        $auditLogger = function (string $path, mixed $original, mixed $masked) use (&$auditLogs): void {
+            $auditLogs[] = ['path' => $path, 'original' => $original, TestConstants::DATA_MASKED => $masked];
+        };
+
+        $processor = $this->createProcessor(
+            [TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL],
+            [],
+            [],
+            $auditLogger
+        );
+
+        // Test with JSON that becomes invalid after processing (edge case)
+        $message = 'Malformed after processing: {"valid": true}';
+        $result = $processor->regExpMessage($message);
+
+        // Should process normally
+        $this->assertStringContainsString('{"valid":true}', $result);
+
+        // No error logs should be generated for valid JSON
+        $errorLogs = array_filter($auditLogs, fn(array $log): bool => str_contains($log['path'], 'error'));
+        $this->assertEmpty($errorLogs);
+    }
+
+    /**
+     * Helper method to extract JSON object from a message string.
+     */
+    private function extractJsonFromMessage(string $message): ?array
+    {
+        // Find the first opening brace
+        $startPos = strpos($message, '{');
+        if ($startPos === false) {
+            return null;
+        }
+
+        // Count braces to find the matching closing brace
+        $braceCount = 0;
+        $length = strlen($message);
+        $endPos = -1;
+
+        for ($i = $startPos; $i < $length; $i++) {
+            if ($message[$i] === '{') {
+                $braceCount++;
+            } elseif ($message[$i] === '}') {
+                $braceCount--;
+                if ($braceCount === 0) {
+                    $endPos = $i;
+                    break;
+                }
+            }
+        }
+
+        if ($endPos === -1) {
+            return null;
+        }
+
+        $jsonString = substr($message, $startPos, $endPos - $startPos + 1);
+        return json_decode($jsonString, true);
+    }
+
+    /**
+     * Helper method to extract JSON array from a message string.
+     */
+    private function extractJsonArrayFromMessage(string $message): ?array
+    {
+        if (preg_match('/\[[^\]]+\]/', $message, $matches)) {
+            return json_decode($matches[0], true);
+        }
+
+        return null;
+    }
+
+    public function testEmptyJsonHandling(): void
+    {
+        $processor = $this->createProcessor([
+            TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL
+        ]);
+
+        $message = 'Empty objects: {} [] {"empty": {}}';
+        $result = $processor->regExpMessage($message);
+
+        // Empty JSON structures should remain as-is
+        $this->assertStringContainsString('{}', $result);
+        $this->assertStringContainsString('[]', $result);
+        $this->assertStringContainsString('{"empty":{}}', $result);
+    }
+
+    public function testJsonWithNullValues(): void
+    {
+        $processor = $this->createProcessor([
+            TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL
+        ]);
+
+        $message = 'Data: {"email": "user@example.com", "optional": null, "empty": ""}';
+        $result = $processor->regExpMessage($message);
+
+        $extractedJson = $this->extractJsonFromMessage($result);
+        $this->assertNotNull($extractedJson);
+        $this->assertEquals(MaskConstants::MASK_EMAIL, $extractedJson[TestConstants::CONTEXT_EMAIL]);
+        $this->assertNull($extractedJson['optional']);
+        $this->assertEquals('', $extractedJson['empty']);
+    }
+}

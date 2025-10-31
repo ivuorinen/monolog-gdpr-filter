@@ -1,0 +1,346 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests;
+
+use Ivuorinen\MonologGdprFilter\Exceptions\InvalidConfigurationException;
+use Ivuorinen\MonologGdprFilter\Exceptions\InvalidRegexPatternException;
+use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
+use Ivuorinen\MonologGdprFilter\InputValidator;
+use Ivuorinen\MonologGdprFilter\MaskConstants;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use Tests\TestConstants;
+
+#[CoversClass(InputValidator::class)]
+final class InputValidatorTest extends TestCase
+{
+    #[Test]
+    public function validateAllPassesWithValidInputs(): void
+    {
+        $patterns = [TestConstants::PATTERN_SSN_FORMAT => MaskConstants::MASK_GENERIC];
+        $fieldPaths = [TestConstants::FIELD_USER_EMAIL => MaskConstants::MASK_GENERIC];
+        $customCallbacks = ['user.id' => fn($value): string => (string) $value];
+        $auditLogger = fn($field, $old, $new): null => null;
+        $maxDepth = 10;
+        $dataTypeMasks = ['string' => MaskConstants::MASK_GENERIC];
+        $conditionalRules = ['rule1' => fn($value): true => true];
+
+        InputValidator::validateAll(
+            $patterns,
+            $fieldPaths,
+            $customCallbacks,
+            $auditLogger,
+            $maxDepth,
+            $dataTypeMasks,
+            $conditionalRules
+        );
+
+        $this->assertTrue(true); // If we get here, validation passed
+    }
+
+    #[Test]
+    public function validatePatternsThrowsForNonStringPattern(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('pattern');
+        $this->expectExceptionMessage('string');
+
+        InputValidator::validatePatterns([123 => MaskConstants::MASK_GENERIC]);
+    }
+
+    #[Test]
+    public function validatePatternsThrowsForEmptyPattern(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('pattern');
+        $this->expectExceptionMessage('empty');
+
+        InputValidator::validatePatterns(['' => MaskConstants::MASK_GENERIC]);
+    }
+
+    #[Test]
+    public function validatePatternsThrowsForNonStringReplacement(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('replacement');
+        $this->expectExceptionMessage('string');
+
+        InputValidator::validatePatterns([TestConstants::PATTERN_TEST => 123]);
+    }
+
+    #[Test]
+    public function validatePatternsThrowsForInvalidRegex(): void
+    {
+        $this->expectException(InvalidRegexPatternException::class);
+
+        InputValidator::validatePatterns(['/[invalid/' => MaskConstants::MASK_GENERIC]);
+    }
+
+    #[Test]
+    public function validatePatternsPassesForValidPatterns(): void
+    {
+        InputValidator::validatePatterns([
+            TestConstants::PATTERN_SSN_FORMAT => MaskConstants::MASK_SSN_PATTERN,
+            '/[a-z]+/' => 'REDACTED',
+        ]);
+
+        $this->assertTrue(true);
+    }
+
+    #[Test]
+    public function validateFieldPathsThrowsForNonStringPath(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('field path');
+        $this->expectExceptionMessage('string');
+
+        InputValidator::validateFieldPaths([123 => MaskConstants::MASK_GENERIC]);
+    }
+
+    #[Test]
+    public function validateFieldPathsThrowsForEmptyPath(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('field path');
+        $this->expectExceptionMessage('empty');
+
+        InputValidator::validateFieldPaths(['' => MaskConstants::MASK_GENERIC]);
+    }
+
+    #[Test]
+    public function validateFieldPathsThrowsForInvalidConfigType(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('field path value');
+
+        InputValidator::validateFieldPaths([TestConstants::FIELD_USER_EMAIL => 123]);
+    }
+
+    #[Test]
+    public function validateFieldPathsThrowsForEmptyStringValue(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage(TestConstants::FIELD_USER_EMAIL);
+        $this->expectExceptionMessage('empty string');
+
+        InputValidator::validateFieldPaths([TestConstants::FIELD_USER_EMAIL => '']);
+    }
+
+    #[Test]
+    public function validateFieldPathsPassesForValidPaths(): void
+    {
+        InputValidator::validateFieldPaths([
+            TestConstants::FIELD_USER_EMAIL => MaskConstants::MASK_EMAIL_PATTERN,
+            TestConstants::FIELD_USER_PASSWORD => FieldMaskConfig::remove(),
+            'user.ssn' => FieldMaskConfig::regexMask(TestConstants::PATTERN_SSN_FORMAT, MaskConstants::MASK_SSN_PATTERN),
+        ]);
+
+        $this->assertTrue(true);
+    }
+
+    #[Test]
+    public function validateCustomCallbacksThrowsForNonStringPath(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('custom callback path');
+        $this->expectExceptionMessage('string');
+
+        InputValidator::validateCustomCallbacks([123 => fn($v): string => (string) $v]);
+    }
+
+    #[Test]
+    public function validateCustomCallbacksThrowsForEmptyPath(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('custom callback path');
+        $this->expectExceptionMessage('empty');
+
+        InputValidator::validateCustomCallbacks(['' => fn($v): string => (string) $v]);
+    }
+
+    #[Test]
+    public function validateCustomCallbacksThrowsForNonCallable(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('custom callback');
+        $this->expectExceptionMessage('callable');
+
+        InputValidator::validateCustomCallbacks(['user.id' => 'not-a-callback']);
+    }
+
+    #[Test]
+    public function validateCustomCallbacksPassesForValidCallbacks(): void
+    {
+        InputValidator::validateCustomCallbacks([
+            'user.id' => fn($value): string => (string) $value,
+            TestConstants::FIELD_USER_NAME => fn($value) => strtoupper((string) $value),
+        ]);
+
+        $this->assertTrue(true);
+    }
+
+    #[Test]
+    public function validateAuditLoggerThrowsForNonCallable(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('audit logger');
+        $this->expectExceptionMessage('callable');
+
+        InputValidator::validateAuditLogger('not-a-callback');
+    }
+
+    #[Test]
+    public function validateAuditLoggerPassesForNull(): void
+    {
+        InputValidator::validateAuditLogger(null);
+        $this->assertTrue(true);
+    }
+
+    #[Test]
+    public function validateAuditLoggerPassesForCallable(): void
+    {
+        InputValidator::validateAuditLogger(fn($field, $old, $new): null => null);
+        $this->assertTrue(true);
+    }
+
+    #[Test]
+    public function validateMaxDepthThrowsForZero(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('max_depth');
+        $this->expectExceptionMessage('positive integer');
+
+        InputValidator::validateMaxDepth(0);
+    }
+
+    #[Test]
+    public function validateMaxDepthThrowsForNegative(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('max_depth');
+        $this->expectExceptionMessage('positive integer');
+
+        InputValidator::validateMaxDepth(-1);
+    }
+
+    #[Test]
+    public function validateMaxDepthThrowsForTooLarge(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('max_depth');
+        $this->expectExceptionMessage('1,000');
+
+        InputValidator::validateMaxDepth(1001);
+    }
+
+    #[Test]
+    public function validateMaxDepthPassesForValidValue(): void
+    {
+        InputValidator::validateMaxDepth(10);
+        InputValidator::validateMaxDepth(1);
+        InputValidator::validateMaxDepth(1000);
+
+        $this->assertTrue(true);
+    }
+
+    #[Test]
+    public function validateDataTypeMasksThrowsForNonStringType(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('data type mask key');
+        $this->expectExceptionMessage('string');
+
+        InputValidator::validateDataTypeMasks([123 => MaskConstants::MASK_GENERIC]);
+    }
+
+    #[Test]
+    public function validateDataTypeMasksThrowsForInvalidType(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('invalid_type');
+        $this->expectExceptionMessage('integer, double, string, boolean');
+
+        InputValidator::validateDataTypeMasks(['invalid_type' => MaskConstants::MASK_GENERIC]);
+    }
+
+    #[Test]
+    public function validateDataTypeMasksThrowsForNonStringMask(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('data type mask value');
+        $this->expectExceptionMessage('string');
+
+        InputValidator::validateDataTypeMasks(['string' => 123]);
+    }
+
+    #[Test]
+    public function validateDataTypeMasksThrowsForEmptyMask(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('string');
+        $this->expectExceptionMessage('empty');
+
+        InputValidator::validateDataTypeMasks(['string' => '']);
+    }
+
+    #[Test]
+    public function validateDataTypeMasksPassesForValidTypes(): void
+    {
+        InputValidator::validateDataTypeMasks([
+            'integer' => MaskConstants::MASK_GENERIC,
+            'double' => MaskConstants::MASK_GENERIC,
+            'string' => 'REDACTED',
+            'boolean' => MaskConstants::MASK_GENERIC,
+            'NULL' => 'null',
+            'array' => '[]',
+            'object' => '{}',
+            'resource' => 'RESOURCE',
+        ]);
+
+        $this->assertTrue(true);
+    }
+
+    #[Test]
+    public function validateConditionalRulesThrowsForNonStringRuleName(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('conditional rule name');
+        $this->expectExceptionMessage('string');
+
+        InputValidator::validateConditionalRules([123 => fn($v): true => true]);
+    }
+
+    #[Test]
+    public function validateConditionalRulesThrowsForEmptyRuleName(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('conditional rule name');
+        $this->expectExceptionMessage('empty');
+
+        InputValidator::validateConditionalRules(['' => fn($v): true => true]);
+    }
+
+    #[Test]
+    public function validateConditionalRulesThrowsForNonCallable(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('rule1');
+        $this->expectExceptionMessage('callable');
+
+        InputValidator::validateConditionalRules(['rule1' => 'not-a-callback']);
+    }
+
+    #[Test]
+    public function validateConditionalRulesPassesForValidRules(): void
+    {
+        InputValidator::validateConditionalRules([
+            'rule1' => fn($value): bool => $value > 100,
+            'rule2' => fn($value): bool => is_string($value),
+        ]);
+
+        $this->assertTrue(true);
+    }
+}

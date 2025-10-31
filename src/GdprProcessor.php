@@ -2,6 +2,11 @@
 
 namespace Ivuorinen\MonologGdprFilter;
 
+use Ivuorinen\MonologGdprFilter\Exceptions\PatternValidationException;
+use Ivuorinen\MonologGdprFilter\Exceptions\InvalidRegexPatternException;
+use Closure;
+use Throwable;
+use Error;
 use Adbar\Dot;
 use Monolog\LogRecord;
 use Monolog\Processor\ProcessorInterface;
@@ -14,232 +19,278 @@ use Monolog\Processor\ProcessorInterface;
  */
 class GdprProcessor implements ProcessorInterface
 {
+    private readonly DataTypeMasker $dataTypeMasker;
+    private readonly JsonMasker $jsonMasker;
+    private readonly ContextProcessor $contextProcessor;
+    private readonly RecursiveProcessor $recursiveProcessor;
+
     /**
      * @param array<string,string> $patterns Regex pattern => replacement
-     * @param array<string,FieldMaskConfig>|string[] $fieldPaths Dot-notation path => FieldMaskConfig
-     * @param array<string,?callable> $customCallbacks Dot-notation path => callback(value): string
-     * @param callable|null $auditLogger Opt. audit logger callback:
+     * @param array<string,FieldMaskConfig|string> $fieldPaths Dot-notation path => FieldMaskConfig
+     * @param array<string,callable(mixed):string> $customCallbacks Dot-notation path => callback(value): string
+     * @param callable(string,mixed,mixed):void|null $auditLogger Opt. audit logger callback:
      *                                   fn(string $path, mixed $original, mixed $masked)
+     * @param int $maxDepth Maximum recursion depth for nested structures (default: 100)
+     * @param array<string,string> $dataTypeMasks Type-based masking: type => mask pattern
+     * @param array<string,callable(LogRecord):bool> $conditionalRules Conditional masking rules:
+     *                                   rule_name => condition_callback
+     *
+     * @throws \InvalidArgumentException When any parameter is invalid
      */
     public function __construct(
         private readonly array $patterns,
         private readonly array $fieldPaths = [],
         private readonly array $customCallbacks = [],
-        private $auditLogger = null
+        private $auditLogger = null,
+        int $maxDepth = 100,
+        array $dataTypeMasks = [],
+        private readonly array $conditionalRules = []
     ) {
+        // Validate all constructor parameters using InputValidator
+        InputValidator::validateAll(
+            $patterns,
+            $fieldPaths,
+            $customCallbacks,
+            $auditLogger,
+            $maxDepth,
+            $dataTypeMasks,
+            $conditionalRules
+        );
+
+        // Pre-validate and cache patterns for better performance
+        PatternValidator::cachePatterns($patterns);
+
+        // Initialize data type masker
+        $this->dataTypeMasker = new DataTypeMasker($dataTypeMasks, $auditLogger);
+
+        // Initialize recursive processor for data structure processing
+        $this->recursiveProcessor = new RecursiveProcessor(
+            $this->regExpMessage(...),
+            $this->dataTypeMasker,
+            $auditLogger,
+            $maxDepth
+        );
+
+        // Initialize JSON masker with recursive mask callback
+        /** @psalm-suppress InvalidArgument - recursiveMask is intentionally impure due to audit logging */
+        $this->jsonMasker = new JsonMasker(
+            $this->recursiveProcessor->recursiveMask(...),
+            $auditLogger
+        );
+
+        // Initialize context processor for field-level operations
+        $this->contextProcessor = new ContextProcessor(
+            $fieldPaths,
+            $customCallbacks,
+            $auditLogger,
+            $this->regExpMessage(...)
+        );
     }
 
-    /**
-     * FieldMaskConfig: config for masking/removal per field path using regex.
-     */
-    public static function maskWithRegex(): FieldMaskConfig
-    {
-        return new FieldMaskConfig(FieldMaskConfig::MASK_REGEX);
-    }
+
 
     /**
-     * FieldMaskConfig: Remove field from context.
-     */
-    public static function removeField(): FieldMaskConfig
-    {
-        return new FieldMaskConfig(FieldMaskConfig::REMOVE);
-    }
-
-    /**
-     * FieldMaskConfig: Replace field value with a static string.
-     */
-    public static function replaceWith(string $replacement): FieldMaskConfig
-    {
-        return new FieldMaskConfig(FieldMaskConfig::REPLACE, $replacement);
-    }
-
-    /**
-     * Default GDPR regex patterns. Non-exhaustive, should be extended with your own.
+     * Create a rate-limited audit logger wrapper.
      *
-     * @return array<array-key, string>
+     * @param callable(string,mixed,mixed):void $auditLogger The underlying audit logger
+     * @param string $profile Rate limiting profile: 'strict', 'default', 'relaxed', or 'testing'
      */
-    public static function getDefaultPatterns(): array
-    {
-        return [
-            // Finnish SSN (HETU)
-            '/\b\d{6}[-+A]?\d{3}[A-Z]\b/u' => '***HETU***',
-            // US Social Security Number (strict: 3-2-4 digits)
-            '/^\d{3}-\d{2}-\d{4}$/' => '***USSSN***',
-            // IBAN (strictly match Finnish IBAN with or without spaces, only valid groupings)
-            '/^FI\d{2}(?: ?\d{4}){3} ?\d{2}$/u' => '***IBAN***',
-            // Also match fully compact Finnish IBAN (no spaces)
-            '/^FI\d{16}$/u' => '***IBAN***',
-            // International phone numbers (E.164, +countrycode...)
-            '/^\+\d{1,3}[\s-]?\d{1,4}[\s-]?\d{1,4}[\s-]?\d{1,9}$/' => '***PHONE***',
-            // Email address
-            '/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/' => '***EMAIL***',
-            // Date of birth (YYYY-MM-DD)
-            '/^(19|20)\d{2}-[01]\d\-[0-3]\d$/' => '***DOB***',
-            // Date of birth (DD/MM/YYYY)
-            '/^[0-3]\d\/[01]\d\/(19|20)\d{2}$/' => '***DOB***',
-            // Passport numbers (A followed by 6 digits)
-            '/^A\d{6}$/' => '***PASSPORT***',
-            // Credit card numbers (Visa, MC, Amex, Discover test numbers)
-            '/^(4111 1111 1111 1111|5500-0000-0000-0004|340000000000009|6011000000000004)$/' => '***CC***',
-            // Generic 16-digit credit card (for test compatibility)
-            '/\b[0-9]{16}\b/u' => '***CC***',
-            // Bearer tokens (JWT, at least 10 chars after Bearer)
-            '/^Bearer [A-Za-z0-9\-\._~\+\/]{10,}$/' => '***TOKEN***',
-            // API keys (Stripe-like, 20+ chars, or sk_live|sk_test)
-            '/^(sk_(live|test)_[A-Za-z0-9]{16,}|[A-Za-z0-9\-_]{20,})$/' => '***APIKEY***',
-            // MAC addresses
-            '/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/' => '***MAC***',
-        ];
+    public static function createRateLimitedAuditLogger(
+        callable $auditLogger,
+        string $profile = 'default'
+    ): RateLimitedAuditLogger {
+        return RateLimitedAuditLogger::create($auditLogger, $profile);
     }
+
+    /**
+     * Create a simple audit logger that logs to an array (useful for testing).
+     *
+     * @param array<array-key, mixed> $logStorage Reference to array for storing logs
+     * @psalm-param array<array{path: string, original: mixed, masked: mixed}> $logStorage
+     * @psalm-param-out array<array{path: string, original: mixed, masked: mixed, timestamp: int<1, max>}> $logStorage
+     * @phpstan-param-out array<array-key, mixed> $logStorage
+     * @param bool $rateLimited Whether to apply rate limiting (default: false for testing)
+     *
+     *
+     * @psalm-return RateLimitedAuditLogger|Closure(string, mixed, mixed):void
+     * @psalm-suppress ReferenceConstraintViolation - The closure always sets timestamp, but Psalm can't infer this through RateLimitedAuditLogger wrapper
+     */
+    public static function createArrayAuditLogger(
+        array &$logStorage,
+        bool $rateLimited = false
+    ): Closure|RateLimitedAuditLogger {
+        $baseLogger = function (string $path, mixed $original, mixed $masked) use (&$logStorage): void {
+            $logStorage[] = [
+                'path' => $path,
+                'original' => $original,
+                'masked' => $masked,
+                'timestamp' => time()
+            ];
+        };
+
+        return $rateLimited
+            ? self::createRateLimitedAuditLogger($baseLogger, 'testing')
+            : $baseLogger;
+    }
+
+
 
     /**
      * Process a log record to mask sensitive information.
      *
      * @param LogRecord $record The log record to process
      * @return LogRecord The processed log record with masked message and context
-     *
-     * @psalm-suppress MissingOverrideAttribute Override is available from PHP 8.3
      */
+    #[\Override]
     public function __invoke(LogRecord $record): LogRecord
     {
+        // Check conditional rules first - if any rule returns false, skip masking
+        if (!$this->shouldApplyMasking($record)) {
+            return $record;
+        }
+
         $message = $this->regExpMessage($record->message);
         $context = $record->context;
         $accessor = new Dot($context);
+        $processedFields = [];
 
         if ($this->fieldPaths !== []) {
-            $this->maskFieldPaths($accessor);
+            $processedFields = array_merge($processedFields, $this->contextProcessor->maskFieldPaths($accessor));
+        }
+
+        if ($this->customCallbacks !== []) {
+            $processedFields = array_merge(
+                $processedFields,
+                $this->contextProcessor->processCustomCallbacks($accessor)
+            );
+        }
+
+        if ($this->fieldPaths !== [] || $this->customCallbacks !== []) {
             $context = $accessor->all();
+            // Apply data type masking to the entire context after field/callback processing
+            $context = $this->dataTypeMasker->applyToContext(
+                $context,
+                $processedFields,
+                '',
+                $this->recursiveProcessor->recursiveMask(...)
+            );
         } else {
-            $context = $this->recursiveMask($context);
+            $context = $this->recursiveProcessor->recursiveMask($context, 0);
         }
 
         return $record->with(message: $message, context: $context);
     }
 
     /**
-     * Mask a string using all regex patterns sequentially.
+     * Check if masking should be applied based on conditional rules.
      */
-    public function regExpMessage(string $message = ''): string
+    private function shouldApplyMasking(LogRecord $record): bool
     {
-        foreach ($this->patterns as $regex => $replacement) {
-            /**
-             * @var array<array-key, non-empty-string> $regex
-             */
-            $result = @preg_replace($regex, $replacement, $message);
-            if ($result === null) {
-                if (is_callable($this->auditLogger)) {
-                    call_user_func($this->auditLogger, 'preg_replace_error', $message, $message);
+        // If no conditional rules are defined, always apply masking
+        if ($this->conditionalRules === []) {
+            return true;
+        }
+
+        // All conditional rules must return true for masking to be applied
+        foreach ($this->conditionalRules as $ruleName => $ruleCallback) {
+            try {
+                if (!$ruleCallback($record)) {
+                    // Log which rule prevented masking
+                    if ($this->auditLogger !== null) {
+                        ($this->auditLogger)(
+                            'conditional_skip',
+                            $ruleName,
+                            'Masking skipped due to conditional rule'
+                        );
+                    }
+
+                    return false;
+                }
+            } catch (Throwable $e) {
+                // If a rule throws an exception, log it and default to applying masking
+                if ($this->auditLogger !== null) {
+                    $sanitized = SecuritySanitizer::sanitizeErrorMessage($e->getMessage());
+                    $errorMsg = 'Rule error: ' . $sanitized;
+                    ($this->auditLogger)('conditional_error', $ruleName, $errorMsg);
                 }
 
                 continue;
             }
-
-            if ($result === '' || $result === '0') {
-                // If the result is empty, we can skip further processing
-                return $message;
-            }
-
-            $message = $result;
         }
 
-        return $message;
+        return true;
     }
 
     /**
-     * Mask only specified paths in context (fieldPaths)
+     * Mask a string using all regex patterns with optimized caching and batch processing.
+     * Also handles JSON strings within the message.
      */
-    private function maskFieldPaths(Dot $accessor): void
+    public function regExpMessage(string $message = ''): string
     {
-        foreach ($this->fieldPaths as $path => $config) {
-            if (!$accessor->has($path)) {
-                continue;
-            }
-
-            $value = $accessor->get($path, "");
-            $action = $this->maskValue($path, $value, $config);
-            if ($action['remove'] ?? false) {
-                $accessor->delete($path);
-                $this->logAudit($path, $value, null);
-                continue;
-            }
-
-            $masked = $action['masked'];
-            if ($masked !== null && $masked !== $value) {
-                $accessor->set($path, $masked);
-                $this->logAudit($path, $value, $masked);
-            }
+        // Early return for empty messages
+        if ($message === '') {
+            return $message;
         }
+
+        // Track original message for empty result protection
+        $originalMessage = $message;
+
+        // Handle JSON strings and regular patterns in a coordinated way
+        $message = $this->maskMessageWithJsonSupport($message);
+
+        return $message === '' || $message === '0' ? $originalMessage : $message;
     }
 
     /**
-     * Mask a single value according to config or callback
-     * Returns an array: ['masked' => value|null, 'remove' => bool]
-     *
-     * @psalm-return array{masked: string|null, remove: bool}
+     * Mask message content, handling both JSON structures and regular patterns.
      */
-    private function maskValue(string $path, mixed $value, null|FieldMaskConfig|string $config): array
+    private function maskMessageWithJsonSupport(string $message): string
     {
-        /** @noinspection PhpArrayIndexImmediatelyRewrittenInspection */
-        $result = ['masked' => null, 'remove' => false];
-        if (array_key_exists($path, $this->customCallbacks) &&  $this->customCallbacks[$path] !== null) {
-            $result['masked'] = call_user_func($this->customCallbacks[$path], $value);
-            return $result;
-        }
+        // Use JsonMasker to process JSON structures
+        $result = $this->jsonMasker->processMessage($message);
 
-        if ($config instanceof FieldMaskConfig) {
-            switch ($config->type) {
-                case FieldMaskConfig::MASK_REGEX:
-                    $result['masked'] = $this->regExpMessage($value);
-                    break;
-                case FieldMaskConfig::REMOVE:
-                    $result['masked'] = null;
-                    $result['remove'] = true;
-                    break;
-                case FieldMaskConfig::REPLACE:
-                    $result['masked'] = $config->replacement;
-                    break;
-                default:
-                    // Return the type as string for unknown types
-                    $result['masked'] = $config->type;
-                    break;
+        // Now apply regular patterns to the entire result
+        foreach ($this->patterns as $regex => $replacement) {
+            try {
+                /** @psalm-suppress ArgumentTypeCoercion */
+                $newResult = preg_replace($regex, $replacement, $result, -1, $count);
+
+                if ($newResult === null) {
+                    $error = preg_last_error_msg();
+
+                    if ($this->auditLogger !== null) {
+                        ($this->auditLogger)('preg_replace_error', $result, 'Error: ' . $error);
+                    }
+
+                    continue;
+                }
+
+                if ($count > 0) {
+                    $result = $newResult;
+                }
+            } catch (Error $e) {
+                if ($this->auditLogger !== null) {
+                    ($this->auditLogger)('regex_error', $regex, $e->getMessage());
+                }
+
+                continue;
             }
-        } else {
-            // Backward compatibility: treat string as replacement
-            $result['masked'] = $config;
         }
 
         return $result;
     }
 
     /**
-     * Audit logger helper
+     * Recursively mask all string values in an array using regex patterns with depth limiting
+     * and memory-efficient processing for large nested structures.
      *
-     * @param string      $path     Dot-notation path of the field
-     * @param mixed       $original Original value before masking
-     * @param null|string $masked   Masked value after processing, or null if removed
+     * @param array<mixed>|string $data
+     * @param int $currentDepth Current recursion depth
+     * @return array<mixed>|string
      */
-    private function logAudit(string $path, mixed $original, string|null $masked): void
+    public function recursiveMask(array|string $data, int $currentDepth = 0): array|string
     {
-        if (is_callable($this->auditLogger) && $original !== $masked) {
-            // Only log if the value was actually changed
-            call_user_func($this->auditLogger, $path, $original, $masked);
-        }
-    }
-
-    /**
-     * Recursively mask all string values in an array using regex patterns.
-     */
-    protected function recursiveMask(string|array $data): string|array
-    {
-        if (is_string($data)) {
-            return $this->regExpMessage($data);
-        }
-
-        foreach ($data as $key => $value) {
-            $data[$key] = $this->recursiveMask($value);
-        }
-
-        return $data;
+        return $this->recursiveProcessor->recursiveMask($data, $currentDepth);
     }
 
     /**
@@ -247,26 +298,71 @@ class GdprProcessor implements ProcessorInterface
      */
     public function maskMessage(string $value = ''): string
     {
-        /** @var array<array-key, non-empty-string> $keys */
         $keys = array_keys($this->patterns);
         $values = array_values($this->patterns);
-        $result = @preg_replace($keys, $values, $value);
-        if ($result === null) {
-            if (is_callable($this->auditLogger)) {
-                call_user_func($this->auditLogger, 'preg_replace_error', $value, $value);
+
+        try {
+            /** @psalm-suppress ArgumentTypeCoercion */
+            $result = preg_replace($keys, $values, $value);
+            if ($result === null) {
+                $error = preg_last_error_msg();
+                if ($this->auditLogger !== null) {
+                    ($this->auditLogger)('preg_replace_batch_error', $value, 'Error: ' . $error);
+                }
+
+                return $value;
+            }
+
+            return $result;
+        } catch (Error $error) {
+            if ($this->auditLogger !== null) {
+                ($this->auditLogger)('regex_batch_error', implode(', ', $keys), $error->getMessage());
             }
 
             return $value;
         }
-
-        return $result;
     }
 
     /**
      * Set the audit logger callable.
+     *
+     * @param callable(string,mixed,mixed):void|null $auditLogger
      */
     public function setAuditLogger(?callable $auditLogger): void
     {
         $this->auditLogger = $auditLogger;
+
+        // Propagate to child processors
+        $this->contextProcessor->setAuditLogger($auditLogger);
+        $this->recursiveProcessor->setAuditLogger($auditLogger);
+    }
+
+    /**
+     * Validate an array of patterns for security and syntax.
+     *
+     * @param array<string, string> $patterns Array of regex pattern => replacement
+     *
+     * @throws \Ivuorinen\MonologGdprFilter\Exceptions\PatternValidationException When patterns are invalid
+     */
+    public static function validatePatternsArray(array $patterns): void
+    {
+        try {
+            PatternValidator::validateAll($patterns);
+        } catch (InvalidRegexPatternException $e) {
+            throw PatternValidationException::forMultiplePatterns(
+                ['validation_error' => $e->getMessage()],
+                $e
+            );
+        }
+    }
+
+    /**
+     * Get default GDPR regex patterns for common sensitive data types.
+     *
+     * @return array<string, string>
+     */
+    public static function getDefaultPatterns(): array
+    {
+        return DefaultPatterns::get();
     }
 }
