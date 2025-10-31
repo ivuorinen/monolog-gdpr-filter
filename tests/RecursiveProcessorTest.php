@@ -11,6 +11,10 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Tests\TestConstants;
 
+/**
+ * @psalm-suppress InternalClass - Testing internal RecursiveProcessor class
+ * @psalm-suppress InternalMethod - Testing internal methods
+ */
 #[CoversClass(RecursiveProcessor::class)]
 final class RecursiveProcessorTest extends TestCase
 {

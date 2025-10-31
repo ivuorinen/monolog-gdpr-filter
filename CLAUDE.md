@@ -108,6 +108,17 @@ The library can be integrated with Laravel in two ways:
 4. **Ask before suppressing** - Suppression should be used only as an absolute last resort and requires
    explicit discussion
 
+**Zero-Tolerance Policy:**
+
+- **ALL issues must be addressed** - this includes ERROR, WARNING, and INFO level issues
+- **INFO-level issues are NOT acceptable** - they indicate potential problems that should be resolved
+- **Never ignore or suppress issues** without explicit approval and documented justification
+- **Psalm INFO messages** should be addressed by:
+  - Refactoring code to avoid the pattern
+  - Adding proper type hints and assertions
+  - Using `@psalm-suppress` ONLY when absolutely necessary and with clear comments explaining why
+- **Exit code must be 0** - any non-zero exit from linting tools is a failure
+
 **Tip:** Use `git stash` before running `composer lint:fix` to easily revert changes if needed.
 
 ### SonarQube-Specific Guidelines

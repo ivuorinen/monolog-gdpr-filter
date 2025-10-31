@@ -13,6 +13,10 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Tests\TestConstants;
 
+/**
+ * @psalm-suppress InternalClass - Testing internal ContextProcessor class
+ * @psalm-suppress InternalMethod - Testing internal methods
+ */
 #[CoversClass(ContextProcessor::class)]
 final class ContextProcessorTest extends TestCase
 {
@@ -260,7 +264,10 @@ final class ContextProcessorTest extends TestCase
         $processor = new ContextProcessor([], [], null, $regexProcessor);
 
         // Create a config with an unknown type by using reflection
-        $config = new FieldMaskConfig('unknown_type', null, null);
+        $reflection = new \ReflectionClass(FieldMaskConfig::class);
+        $config = $reflection->newInstanceWithoutConstructor();
+        $typeProp = $reflection->getProperty('type');
+        $typeProp->setValue($config, 'unknown_type');
 
         $result = $processor->maskValue('path', 'value', $config);
 

@@ -34,6 +34,8 @@ final class FieldMaskConfigEdgeCasesTest extends TestCase
         $config = FieldMaskConfig::regexMask('/[a-zA-Z0-9]+@[a-z]+\.[a-z]{2,}/', 'EMAIL');
 
         $this->assertTrue($config->hasRegexPattern());
-        $this->assertStringContainsString('@', $config->getRegexPattern());
+        $pattern = $config->getRegexPattern();
+        $this->assertNotNull($pattern);
+        $this->assertStringContainsString('@', $pattern);
     }
 }

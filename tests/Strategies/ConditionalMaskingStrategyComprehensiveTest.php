@@ -167,6 +167,7 @@ final class ConditionalMaskingStrategyComprehensiveTest extends TestCase
     {
         $wrappedStrategy = new RegexMaskingStrategy([TestConstants::PATTERN_TEST => Mask::MASK_MASKED]);
 
+        /** @phpstan-ignore argument.type */
         $strategy = new ConditionalMaskingStrategy($wrappedStrategy, [
             'invalid' => 'not a callable',
         ]);

@@ -57,7 +57,9 @@ final class GdprLogMiddlewareTest extends TestCase
         $middleware = new GdprLogMiddleware($this->processor);
 
         $data = ['key' => 'value', TestConstants::CONTEXT_PASSWORD => 'secret'];
-        $request = Request::create(TestConstants::PATH_TEST, 'POST', [], [], [], [], json_encode($data));
+        $jsonData = json_encode($data);
+        $this->assertIsString($jsonData);
+        $request = Request::create(TestConstants::PATH_TEST, 'POST', [], [], [], [], $jsonData);
         $request->headers->set('Content-Type', TestConstants::CONTENT_TYPE_JSON);
 
         $reflection = new \ReflectionClass($middleware);

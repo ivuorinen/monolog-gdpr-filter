@@ -59,7 +59,9 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
             // Array containing a resource should fail to encode
             $strategy->testValueToString(['key' => $resource]);
         } finally {
-            fclose($resource);
+            if (is_resource($resource)) {
+                fclose($resource);
+            }
         }
     }
 

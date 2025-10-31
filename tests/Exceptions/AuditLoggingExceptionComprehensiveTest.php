@@ -233,6 +233,7 @@ final class AuditLoggingExceptionComprehensiveTest extends TestCase
     {
         // Create a resource which cannot be JSON encoded
         $resource = fopen('php://memory', 'r');
+        $this->assertIsResource($resource);
 
         $exception = AuditLoggingException::callbackFailed(
             'field',
@@ -241,7 +242,9 @@ final class AuditLoggingExceptionComprehensiveTest extends TestCase
             'error'
         );
 
-        fclose($resource);
+        if (is_resource($resource)) {
+            fclose($resource);
+        }
 
         $message = $exception->getMessage();
         // Resource should be converted to string representation

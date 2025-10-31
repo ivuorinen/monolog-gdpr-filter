@@ -92,6 +92,8 @@ final class GdprProcessorConditionalRulesTest extends TestCase
 
         // Check that error message was sanitized
         $errorEntry = reset($errorEntry);
+        $this->assertIsArray($errorEntry);
+        $this->assertArrayHasKey(TestConstants::DATA_MASKED, $errorEntry);
         $this->assertStringContainsString('Rule error:', $errorEntry[TestConstants::DATA_MASKED]);
     }
 
@@ -152,6 +154,8 @@ final class GdprProcessorConditionalRulesTest extends TestCase
         $this->assertNotEmpty($errorEntry);
 
         $errorEntry = reset($errorEntry);
+        $this->assertIsArray($errorEntry);
+        $this->assertArrayHasKey(TestConstants::DATA_MASKED, $errorEntry);
         $errorMessage = $errorEntry[TestConstants::DATA_MASKED];
 
         // Password should be sanitized to ***

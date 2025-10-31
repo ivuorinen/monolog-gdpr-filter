@@ -108,7 +108,7 @@ final class JsonMaskerEnhancedTest extends TestCase
 
     public function testProcessCandidateWithEncodingFailure(): void
     {
-        $recursiveCallback = function ($val) {
+        $recursiveCallback = function (array|string $val): array|string {
             // Return something that can't be re-encoded
             if (is_array($val)) {
                 $resource = fopen('php://memory', 'r');

@@ -90,6 +90,7 @@ final class MaskingOperationFailedExceptionTest extends TestCase
     {
         // Test with resource
         $resource = fopen('php://memory', 'r');
+        $this->assertIsResource($resource);
 
         $exception = MaskingOperationFailedException::customCallbackFailed(
             'field',
@@ -97,7 +98,9 @@ final class MaskingOperationFailedExceptionTest extends TestCase
             'Callback error'
         );
 
-        fclose($resource);
+        if (is_resource($resource)) {
+            fclose($resource);
+        }
 
         $message = $exception->getMessage();
         $this->assertStringContainsString('Custom callback masking failed', $message);
