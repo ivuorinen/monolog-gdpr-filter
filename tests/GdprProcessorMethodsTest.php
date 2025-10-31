@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Tests\TestConstants;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
@@ -31,13 +32,13 @@ class GdprProcessorMethodsTest extends TestCase
             '/john.doe/' => 'bar',
         ];
         $fieldPaths = [
-            'user.email' => FieldMaskConfig::useProcessorPatterns(),
+            TestConstants::FIELD_USER_EMAIL => FieldMaskConfig::useProcessorPatterns(),
             'user.ssn' => FieldMaskConfig::remove(),
             'user.card' => FieldMaskConfig::replace('MASKED'),
         ];
         $context = [
             'user' => [
-                'email' => self::TEST_EMAIL,
+                TestConstants::CONTEXT_EMAIL => self::TEST_EMAIL,
                 'ssn' => self::TEST_HETU,
                 'card' => self::TEST_CC,
             ],
@@ -47,7 +48,7 @@ class GdprProcessorMethodsTest extends TestCase
         $record = $this->createLogRecord(context: $context);
         $result = $processor($record);
 
-        $this->assertSame('bar@example.com', $result->context['user']['email']);
+        $this->assertSame('bar@example.com', $result->context['user'][TestConstants::CONTEXT_EMAIL]);
         $this->assertSame('MASKED', $result->context['user']['card']);
         $this->assertArrayNotHasKey('ssn', $result->context['user']);
     }
@@ -56,10 +57,10 @@ class GdprProcessorMethodsTest extends TestCase
     {
         $patterns = [];
         $fieldPaths = [
-            'user.name' => FieldMaskConfig::useProcessorPatterns(),
+            TestConstants::FIELD_USER_NAME => FieldMaskConfig::useProcessorPatterns(),
         ];
         $customCallbacks = [
-            'user.name' => fn($value): string => strtoupper((string) $value),
+            TestConstants::FIELD_USER_NAME => fn($value): string => strtoupper((string) $value),
         ];
         $context = ['user' => ['name' => 'john']];
 
@@ -103,19 +104,19 @@ class GdprProcessorMethodsTest extends TestCase
     public function testLogAuditIsCalled(): void
     {
         $patterns = [];
-        $fieldPaths = ['user.email' => FieldMaskConfig::replace('MASKED')];
+        $fieldPaths = [TestConstants::FIELD_USER_EMAIL => FieldMaskConfig::replace('MASKED')];
         $calls = [];
         $auditLogger = function ($path, $original, $masked) use (&$calls): void {
             $calls[] = [$path, $original, $masked];
         };
-        $context = ['user' => ['email' => self::TEST_EMAIL]];
+        $context = ['user' => [TestConstants::CONTEXT_EMAIL => self::TEST_EMAIL]];
 
         $processor = new GdprProcessor($patterns, $fieldPaths, [], $auditLogger);
         $record = $this->createLogRecord(context: $context);
         $processor($record);
 
         $this->assertNotEmpty($calls);
-        $this->assertSame(['user.email', self::TEST_EMAIL, 'MASKED'], $calls[0]);
+        $this->assertSame([TestConstants::FIELD_USER_EMAIL, self::TEST_EMAIL, 'MASKED'], $calls[0]);
     }
 
     public function testMaskValueWithDefaultCase(): void

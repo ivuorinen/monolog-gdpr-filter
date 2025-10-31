@@ -22,20 +22,20 @@ class CustomExceptionsTest extends TestCase
 {
     public function testGdprProcessorExceptionBasicUsage(): void
     {
-        $exception = new GdprProcessorException('Test message', 123);
+        $exception = new GdprProcessorException(TestConstants::MESSAGE_DEFAULT, 123);
 
-        $this->assertSame('Test message', $exception->getMessage());
+        $this->assertSame(TestConstants::MESSAGE_DEFAULT, $exception->getMessage());
         $this->assertEquals(123, $exception->getCode());
     }
 
     public function testGdprProcessorExceptionWithContext(): void
     {
-        $context = ['field' => 'email', 'value' => TestConstants::EMAIL_TEST];
+        $context = ['field' => TestConstants::CONTEXT_EMAIL, 'value' => TestConstants::EMAIL_TEST];
         $exception = GdprProcessorException::withContext(TestConstants::MESSAGE_BASE, $context);
 
         $this->assertStringContainsString(TestConstants::MESSAGE_BASE, $exception->getMessage());
-        $this->assertStringContainsString('field: "email"', $exception->getMessage());
-        $this->assertStringContainsString('value: "test@example.com"', $exception->getMessage());
+        $this->assertStringContainsString('field: "' . TestConstants::CONTEXT_EMAIL . '"', $exception->getMessage());
+        $this->assertStringContainsString('value: "' . TestConstants::EMAIL_TEST . '"', $exception->getMessage());
     }
 
     public function testGdprProcessorExceptionWithEmptyContext(): void
@@ -137,12 +137,12 @@ class CustomExceptionsTest extends TestCase
     public function testMaskingOperationFailedExceptionFieldPathMasking(): void
     {
         $exception = MaskingOperationFailedException::fieldPathMaskingFailed(
-            'user.email',
+            TestConstants::FIELD_USER_EMAIL,
             TestConstants::EMAIL_TEST,
             'Invalid configuration'
         );
 
-        $this->assertStringContainsString("Field path masking failed for path 'user.email'", $exception->getMessage());
+        $this->assertStringContainsString("Field path masking failed for path '" . TestConstants::FIELD_USER_EMAIL . "'", $exception->getMessage());
         $this->assertStringContainsString('Invalid configuration', $exception->getMessage());
         $this->assertStringContainsString('operation_type: "field_path_masking"', $exception->getMessage());
         $this->assertStringContainsString('value_type: "string"', $exception->getMessage());
@@ -151,13 +151,13 @@ class CustomExceptionsTest extends TestCase
     public function testMaskingOperationFailedExceptionCustomCallback(): void
     {
         $exception = MaskingOperationFailedException::customCallbackFailed(
-            'user.name',
-            ['John', 'Doe'],
+            TestConstants::FIELD_USER_NAME,
+            [TestConstants::NAME_FIRST, TestConstants::NAME_LAST],
             'Callback threw exception'
         );
 
         $this->assertStringContainsString(
-            "Custom callback masking failed for path 'user.name'",
+            "Custom callback masking failed for path '" . TestConstants::FIELD_USER_NAME . "'",
             $exception->getMessage()
         );
         $this->assertStringContainsString('Callback threw exception', $exception->getMessage());
@@ -208,14 +208,14 @@ class CustomExceptionsTest extends TestCase
     public function testAuditLoggingExceptionCallbackFailed(): void
     {
         $exception = AuditLoggingException::callbackFailed(
-            'user.email',
+            TestConstants::FIELD_USER_EMAIL,
             'original@example.com',
             'masked@example.com',
             'Logger unavailable'
         );
 
         $this->assertStringContainsString(
-            "Audit logging callback failed for path 'user.email'",
+            "Audit logging callback failed for path '" . TestConstants::FIELD_USER_EMAIL . "'",
             $exception->getMessage()
         );
         $this->assertStringContainsString('Logger unavailable', $exception->getMessage());
@@ -356,7 +356,7 @@ class CustomExceptionsTest extends TestCase
             'input',
             'Failed'
         );
-        $auditException = AuditLoggingException::callbackFailed('path', 'original', 'masked', 'Failed');
+        $auditException = AuditLoggingException::callbackFailed('path', 'original', TestConstants::DATA_MASKED, 'Failed');
         $depthException = RecursionDepthExceededException::depthExceeded(10, 5, 'path');
 
         // All should inherit from GdprProcessorException

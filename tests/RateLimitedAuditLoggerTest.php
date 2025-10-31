@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Tests\TestConstants;
 use Closure;
 use PHPUnit\Framework\TestCase;
 use Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger;
@@ -43,7 +44,7 @@ class RateLimitedAuditLoggerTest extends TestCase
             $this->logStorage[] = [
                 'path' => $path,
                 'original' => $original,
-                'masked' => $masked
+                TestConstants::DATA_MASKED => $masked
             ];
         };
     }
@@ -141,7 +142,7 @@ class RateLimitedAuditLoggerTest extends TestCase
 
         // Should allow 50 operations before rate limiting
         for ($i = 0; $i < 55; $i++) {
-            $strictLogger("test_operation", 'original' . $i, 'masked' . $i);
+            $strictLogger("test_operation", 'original' . $i, TestConstants::DATA_MASKED . $i);
         }
 
         // Should have 50 successful logs + some rate limit warnings
@@ -159,7 +160,7 @@ class RateLimitedAuditLoggerTest extends TestCase
 
         // Should allow more operations
         for ($i = 0; $i < 150; $i++) {
-            $relaxedLogger("test_operation", 'original' . $i, 'masked' . $i);
+            $relaxedLogger("test_operation", 'original' . $i, TestConstants::DATA_MASKED . $i);
         }
 
         // All 150 should go through with relaxed profile
@@ -234,22 +235,22 @@ class RateLimitedAuditLoggerTest extends TestCase
         $rateLimitedLogger = new RateLimitedAuditLogger($baseLogger, 1, 60); // Very restrictive
 
         // Test that different paths are classified correctly
-        $rateLimitedLogger('json_masked', 'original', 'masked');
-        $rateLimitedLogger('json_encode_error', 'original', 'masked'); // Should be blocked (same type)
+        $rateLimitedLogger('json_masked', 'original', TestConstants::DATA_MASKED);
+        $rateLimitedLogger('json_encode_error', 'original', TestConstants::DATA_MASKED); // Should be blocked (same type)
 
         $this->assertCount(2, $this->logStorage); // 1 successful + 1 rate limit warning
 
         $this->logStorage = []; // Reset
 
-        $rateLimitedLogger('conditional_skip', 'original', 'masked');
-        $rateLimitedLogger('conditional_error', 'original', 'masked'); // Should be blocked (same type)
+        $rateLimitedLogger('conditional_skip', 'original', TestConstants::DATA_MASKED);
+        $rateLimitedLogger('conditional_error', 'original', TestConstants::DATA_MASKED); // Should be blocked (same type)
 
         $this->assertCount(2, $this->logStorage); // 1 successful + 1 rate limit warning
 
         $this->logStorage = []; // Reset
 
-        $rateLimitedLogger('regex_error', 'original', 'masked');
-        $rateLimitedLogger('preg_replace_error', 'original', 'masked'); // Should be blocked (same type)
+        $rateLimitedLogger('regex_error', 'original', TestConstants::DATA_MASKED);
+        $rateLimitedLogger('preg_replace_error', 'original', TestConstants::DATA_MASKED); // Should be blocked (same type)
 
         $this->assertCount(2, $this->logStorage); // 1 successful + 1 rate limit warning
     }
@@ -260,7 +261,7 @@ class RateLimitedAuditLoggerTest extends TestCase
         $rateLimitedLogger = new RateLimitedAuditLogger('not_callable', 10, 60);
 
         // Should not throw an error, just silently handle the non-callable
-        $rateLimitedLogger('test_operation', 'original', 'masked');
+        $rateLimitedLogger('test_operation', 'original', TestConstants::DATA_MASKED);
 
         // No logs should be created since the base logger is not callable
         $this->assertCount(0, $this->logStorage);

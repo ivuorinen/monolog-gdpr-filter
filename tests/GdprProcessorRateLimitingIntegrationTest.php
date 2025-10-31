@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Tests\TestConstants;
 use Ivuorinen\MonologGdprFilter\MaskConstants;
 use DateTimeImmutable;
 use Ivuorinen\MonologGdprFilter\ConditionalRuleFactory;
@@ -52,7 +53,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
 
         $processor = $this->createProcessor(
             [TestConstants::PATTERN_EMAIL_TEST => MaskConstants::MASK_EMAIL],
-            ['user.email' => 'masked@example.com'], // Add field path masking to generate audit logs
+            [TestConstants::FIELD_USER_EMAIL => 'masked@example.com'], // Add field path masking to generate audit logs
             [],
             $rateLimitedLogger
         );
@@ -64,12 +65,12 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
                 'test',
                 Level::Info,
                 sprintf(TestConstants::TEMPLATE_MESSAGE_EMAIL, $i),
-                ['user' => ['email' => sprintf('user%d@example.com', $i)]] // Add context data to be masked
+                ['user' => [TestConstants::CONTEXT_EMAIL => sprintf(TestConstants::TEMPLATE_USER_EMAIL, $i)]] // Add context data to be masked
             );
 
             $result = $processor($logRecord);
             $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result->message);
-            $this->assertEquals('masked@example.com', $result->context['user']['email']);
+            $this->assertEquals('masked@example.com', $result->context['user'][TestConstants::CONTEXT_EMAIL]);
         }
 
         // With testing profile (1000 per minute), all should go through
@@ -120,7 +121,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
 
         $processor = $this->createProcessor(
             [TestConstants::PATTERN_EMAIL_TEST => MaskConstants::MASK_EMAIL],
-            ['user.email' => 'user@masked.com'],
+            [TestConstants::FIELD_USER_EMAIL => 'user@masked.com'],
             [],
             $rateLimitedLogger
         );
@@ -130,8 +131,8 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
             new DateTimeImmutable(),
             'test',
             Level::Info,
-            'Message with test@example.com',
-            ['user' => ['email' => TestConstants::EMAIL_USER]]
+            TestConstants::MESSAGE_WITH_EMAIL,
+            ['user' => [TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_USER]]
         );
 
         // Process the same record multiple times
@@ -265,7 +266,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
                 throw AuditLoggingException::callbackFailed($path, $original, $masked, 'Audit logging failed');
             }
 
-            $this->auditLogs[] = ['path' => $path, 'original' => $original, 'masked' => $masked, 'timestamp' => time()];
+            $this->auditLogs[] = ['path' => $path, 'original' => $original, TestConstants::DATA_MASKED => $masked, 'timestamp' => time()];
         };
 
         $rateLimitedLogger = new RateLimitedAuditLogger($failingAuditLogger, 2, 60);
@@ -278,7 +279,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
         );
 
         // This should not fail even if audit logging has issues
-        $logRecord = $this->createLogRecord('Message with test@example.com');
+        $logRecord = $this->createLogRecord(TestConstants::MESSAGE_WITH_EMAIL);
 
         // Processing should succeed regardless of audit logger issues
         $result = $processor($logRecord);
@@ -292,7 +293,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
 
         $processor = $this->createProcessor(
             [TestConstants::PATTERN_EMAIL_TEST => MaskConstants::MASK_EMAIL],
-            ['user.email' => 'user@masked.com'], // Add field path masking to generate more audit logs
+            [TestConstants::FIELD_USER_EMAIL => 'user@masked.com'], // Add field path masking to generate more audit logs
             [],
             $rateLimitedLogger
         );
@@ -304,7 +305,7 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
                 'test',
                 Level::Info,
                 sprintf(TestConstants::TEMPLATE_MESSAGE_EMAIL, $i),
-                ['user' => ['email' => 'original@example.com']]
+                ['user' => [TestConstants::CONTEXT_EMAIL => 'original@example.com']]
             );
 
             $processor($logRecord);

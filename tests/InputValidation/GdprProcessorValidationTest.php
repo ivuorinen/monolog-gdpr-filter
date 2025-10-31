@@ -15,6 +15,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Ivuorinen\MonologGdprFilter\PatternValidator;
+use Tests\TestConstants;
 
 /**
  * Tests for the GdprProcessor class.
@@ -65,7 +66,7 @@ class GdprProcessorValidationTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage('Pattern replacement must be of type string, got integer');
 
-        new GdprProcessor(['/test/' => 123]);
+        new GdprProcessor([TestConstants::PATTERN_TEST => 123]);
     }
 
     #[Test]
@@ -81,8 +82,8 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorAcceptsValidPatterns(): void
     {
         $processor = new GdprProcessor([
-            '/\d+/' => MaskConstants::MASK_NUMBER,
-            '/test/' => MaskConstants::MASK_MASKED
+            TestConstants::PATTERN_DIGITS => MaskConstants::MASK_NUMBER,
+            TestConstants::PATTERN_TEST => MaskConstants::MASK_MASKED
         ]);
 
         $this->assertInstanceOf(GdprProcessor::class, $processor);
@@ -121,7 +122,7 @@ class GdprProcessorValidationTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage('Field path value must be of type FieldMaskConfig or string, got integer');
 
-        new GdprProcessor([], ['user.email' => 123]);
+        new GdprProcessor([], [TestConstants::FIELD_USER_EMAIL => 123]);
     }
 
     #[Test]
@@ -130,15 +131,15 @@ class GdprProcessorValidationTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage("Cannot have empty string value");
 
-        new GdprProcessor([], ['user.email' => '']);
+        new GdprProcessor([], [TestConstants::FIELD_USER_EMAIL => '']);
     }
 
     #[Test]
     public function constructorAcceptsValidFieldPaths(): void
     {
         $processor = new GdprProcessor([], [
-            'user.email' => FieldMaskConfig::remove(),
-            'user.name' => 'masked_value',
+            TestConstants::FIELD_USER_EMAIL => FieldMaskConfig::remove(),
+            TestConstants::FIELD_USER_NAME => 'masked_value',
             'payment.card' => FieldMaskConfig::replace('[CARD]')
         ]);
 
@@ -186,7 +187,7 @@ class GdprProcessorValidationTest extends TestCase
     {
         $processor = new GdprProcessor([], [], [
             'user.id' => fn($value): string => hash('sha256', (string) $value),
-            'user.name' => fn($value) => strtoupper((string) $value)
+            TestConstants::FIELD_USER_NAME => fn($value) => strtoupper((string) $value)
         ]);
 
         $this->assertInstanceOf(GdprProcessor::class, $processor);
@@ -375,8 +376,8 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorAcceptsAllParametersWithValidValues(): void
     {
         $processor = new GdprProcessor(
-            patterns: ['/\d+/' => MaskConstants::MASK_NUMBER],
-            fieldPaths: ['user.email' => FieldMaskConfig::remove()],
+            patterns: [TestConstants::PATTERN_DIGITS => MaskConstants::MASK_NUMBER],
+            fieldPaths: [TestConstants::FIELD_USER_EMAIL => FieldMaskConfig::remove()],
             customCallbacks: ['user.id' => fn($value): string => hash('sha256', (string) $value)],
             auditLogger: fn($path, $original, $masked): null => null,
             maxDepth: 50,
@@ -406,7 +407,7 @@ class GdprProcessorValidationTest extends TestCase
     {
         $complexPatterns = [
             '/(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/' => MaskConstants::MASK_IP,
-            '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => MaskConstants::MASK_EMAIL,
+            TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL,
             '/\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b/' => MaskConstants::MASK_CARD
         ];
 
@@ -418,8 +419,8 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorHandlesMixedFieldPathConfigTypes(): void
     {
         $processor = new GdprProcessor([], [
-            'user.email' => FieldMaskConfig::remove(),
-            'user.name' => FieldMaskConfig::replace('[REDACTED]'),
+            TestConstants::FIELD_USER_EMAIL => FieldMaskConfig::remove(),
+            TestConstants::FIELD_USER_NAME => FieldMaskConfig::replace('[REDACTED]'),
             'user.phone' => FieldMaskConfig::regexMask('/\d/', '*'),
             'metadata.ip' => 'simple_string_replacement'
         ]);

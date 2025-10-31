@@ -98,7 +98,7 @@ class FieldMaskConfigValidationTest extends TestCase
     #[Test]
     public function regexMaskUsesDefaultReplacementWhenNotProvided(): void
     {
-        $config = FieldMaskConfig::regexMask('/test/');
+        $config = FieldMaskConfig::regexMask(TestConstants::PATTERN_TEST);
 
         $this->assertSame(Mask::MASK_MASKED, $config->getReplacement());
     }

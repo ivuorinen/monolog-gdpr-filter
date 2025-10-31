@@ -98,7 +98,7 @@ class SecurityRegressionTest extends TestCase
 
         foreach ($redosPatterns as $pattern) {
             try {
-                PatternValidator::validateAll([$pattern => 'masked']);
+                PatternValidator::validateAll([$pattern => TestConstants::DATA_MASKED]);
                 // If validation passes, log for future improvement but don't fail
                 error_log('Warning: ReDoS pattern not caught by validation: ' . $pattern);
                 $this->assertTrue(true, 'Pattern validation completed for: ' . $pattern);
@@ -170,7 +170,7 @@ class SecurityRegressionTest extends TestCase
         foreach ($sensitiveErrorMessages as $sensitiveMessage) {
             $auditLog = [];
             $auditLogger = function (string $path, mixed $original, mixed $masked) use (&$auditLog): void {
-                $auditLog[] = ['path' => $path, 'original' => $original, 'masked' => $masked];
+                $auditLog[] = ['path' => $path, 'original' => $original, TestConstants::DATA_MASKED => $masked];
             };
 
             $processor = $this->createProcessor(
@@ -213,7 +213,7 @@ class SecurityRegressionTest extends TestCase
                 $this->fail('Error log entry not found');
             }
 
-            $loggedMessage = $errorLog['masked'];
+            $loggedMessage = $errorLog[TestConstants::DATA_MASKED];
 
             // Test that error message sanitization works (implementation-dependent)
             $sensitiveTerms = [
@@ -352,8 +352,8 @@ class SecurityRegressionTest extends TestCase
     {
         // Test malicious regex patterns that could be injected
         $maliciousPatterns = [
-            '/(?R)/', // Recursive pattern
-            '/(?P>name)/', // Named recursion
+            TestConstants::PATTERN_RECURSIVE, // Recursive pattern
+            TestConstants::PATTERN_NAMED_RECURSION, // Named recursion
             '/\x{10000000}/', // Invalid Unicode
             '/(?#comment).*(?#)/', // Comment injection
             '', // Empty pattern
@@ -363,7 +363,7 @@ class SecurityRegressionTest extends TestCase
         foreach ($maliciousPatterns as $pattern) {
             try {
                 $this->createProcessor(
-                    patterns: [$pattern => 'masked'],
+                    patterns: [$pattern => TestConstants::DATA_MASKED],
                     fieldPaths: [],
                     customCallbacks: [],
                     auditLogger: null,
@@ -567,7 +567,7 @@ class SecurityRegressionTest extends TestCase
             level: Level::Info,
             message: TestConstants::MESSAGE_DEFAULT,
             context: [
-                'safe_field' => 'sensitive_data',
+                'safe_field' => TestConstants::CONTEXT_SENSITIVE_DATA,
             ]
         );
 
@@ -580,7 +580,7 @@ class SecurityRegressionTest extends TestCase
         if (isset($result->context['safe_field'])) {
             $value = $result->context['safe_field'];
             $this->assertTrue(
-                $value === 'masked_14' || $value === 'sensitive_data',
+                $value === 'masked_14' || $value === TestConstants::CONTEXT_SENSITIVE_DATA,
                 'Field should be either processed by callback or left unchanged'
             );
         }

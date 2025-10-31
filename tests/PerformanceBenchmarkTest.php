@@ -38,8 +38,8 @@ class PerformanceBenchmarkTest extends TestCase
     {
         if ($depth <= 0) {
             return [
-                'email' => 'user@example.com',
-                'phone' => '+1234567890',
+                TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_USER,
+                'phone' => TestConstants::PHONE_GENERIC,
                 'ssn' => TestConstants::SSN_US,
                 'id' => random_int(1000, 9999),
             ];
@@ -58,7 +58,7 @@ class PerformanceBenchmarkTest extends TestCase
     public function testRegExpMessagePerformance(): void
     {
         $processor = $this->getTestProcessor();
-        $testMessage = 'john.doe@example.com';
+        $testMessage = TestConstants::EMAIL_JOHN_DOE;
 
         // Warmup
         for ($i = 0; $i < 10; $i++) {
@@ -144,7 +144,7 @@ class PerformanceBenchmarkTest extends TestCase
             $largeArray = [];
             for ($i = 0; $i < $size; $i++) {
                 $largeArray['item_' . $i] = [
-                    'email' => sprintf(TestConstants::TEMPLATE_USER_EMAIL, $i),
+                    TestConstants::CONTEXT_EMAIL => sprintf(TestConstants::TEMPLATE_USER_EMAIL, $i),
                     'data' => 'Some data for item ' . $i,
                     'metadata' => ['timestamp' => time(), 'id' => $i],
                 ];
@@ -170,7 +170,7 @@ class PerformanceBenchmarkTest extends TestCase
             // Verify processing worked
             $this->assertInstanceOf(LogRecord::class, $result);
             $this->assertCount($size, $result->context);
-            $this->assertStringContainsString(MaskConstants::MASK_EMAIL, (string) $result->context['item_0']['email']);
+            $this->assertStringContainsString(MaskConstants::MASK_EMAIL, (string) $result->context['item_0'][TestConstants::CONTEXT_EMAIL]);
 
             // Performance should scale reasonably
             $timePerItem = $duration / (float) $size;
@@ -235,14 +235,14 @@ class PerformanceBenchmarkTest extends TestCase
         $largeArray = [];
         for ($i = 0; $i < 2000; $i++) { // Reduced for test environment
             $largeArray['item_' . $i] = [
-                'email' => sprintf(TestConstants::TEMPLATE_USER_EMAIL, $i),
+                TestConstants::CONTEXT_EMAIL => sprintf(TestConstants::TEMPLATE_USER_EMAIL, $i),
                 'ssn' => TestConstants::SSN_US,
-                'phone' => '+1-555-123-4567',
+                'phone' => TestConstants::PHONE_US,
                 'nested' => [
                     'level1' => [
                         'level2' => [
                             'data' => 'Deep nested data for item ' . $i,
-                            'email' => sprintf('nested%d@example.com', $i),
+                            TestConstants::CONTEXT_EMAIL => sprintf('nested%d@example.com', $i),
                         ],
                     ],
                 ],
@@ -267,7 +267,7 @@ class PerformanceBenchmarkTest extends TestCase
         // Verify processing worked
         $this->assertInstanceOf(LogRecord::class, $result);
         $this->assertCount(2000, $result->context);
-        $this->assertStringContainsString(MaskConstants::MASK_EMAIL, (string) $result->context['item_0']['email']);
+        $this->assertStringContainsString(MaskConstants::MASK_EMAIL, (string) $result->context['item_0'][TestConstants::CONTEXT_EMAIL]);
 
         // Memory usage should be reasonable even for large datasets
         $this->assertLessThan(50, $memoryUsed, 'Memory usage should be under 50MB for dataset');
@@ -290,7 +290,7 @@ class PerformanceBenchmarkTest extends TestCase
             for ($i = 0; $i < $concurrency; $i++) {
                 $testData[] = [
                     'user' => [
-                        'email' => sprintf(TestConstants::TEMPLATE_USER_EMAIL, $i),
+                        TestConstants::CONTEXT_EMAIL => sprintf(TestConstants::TEMPLATE_USER_EMAIL, $i),
                         'ssn' => TestConstants::SSN_US,
                     ],
                     'request' => [

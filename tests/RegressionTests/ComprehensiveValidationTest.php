@@ -65,7 +65,7 @@ class ComprehensiveValidationTest extends TestCase
             $this->auditLog[] = [
                 'path' => $path,
                 'original' => $original,
-                'masked' => $masked,
+                TestConstants::DATA_MASKED => $masked,
                 'timestamp' => microtime(true)
             ];
         };
@@ -230,7 +230,7 @@ class ComprehensiveValidationTest extends TestCase
         // Test definitely dangerous patterns
         foreach ($definitelyDangerousPatterns as $pattern => $description) {
             try {
-                PatternValidator::validateAll([sprintf('/%s/', $pattern) => 'masked']);
+                PatternValidator::validateAll([sprintf('/%s/', $pattern) => TestConstants::DATA_MASKED]);
                 error_log(sprintf(
                     '⚠️  Pattern not caught: %s (%s)',
                     $pattern,
@@ -249,7 +249,7 @@ class ComprehensiveValidationTest extends TestCase
         // Test possibly dangerous patterns (implementation may vary)
         foreach ($possiblyDangerousPatterns as $pattern => $description) {
             try {
-                PatternValidator::validateAll([sprintf('/%s/', $pattern) => 'masked']);
+                PatternValidator::validateAll([sprintf('/%s/', $pattern) => TestConstants::DATA_MASKED]);
                 error_log(sprintf(
                     'ℹ️  Pattern allowed: %s (%s)',
                     $pattern,
@@ -296,7 +296,7 @@ class ComprehensiveValidationTest extends TestCase
                 fieldPaths: [],
                 customCallbacks: [],
                 auditLogger: function (string $path, mixed $original, mixed $masked): void {
-                    $this->auditLog[] = ['path' => $path, 'original' => $original, 'masked' => $masked];
+                    $this->auditLog[] = ['path' => $path, 'original' => $original, TestConstants::DATA_MASKED => $masked];
                 },
                 maxDepth: 100,
                 dataTypeMasks: [],
@@ -334,7 +334,7 @@ class ComprehensiveValidationTest extends TestCase
             );
 
             $errorLog = reset($errorLogs);
-            $loggedMessage = $errorLog['masked'];
+            $loggedMessage = $errorLog[TestConstants::DATA_MASKED];
 
             // Validate that error was logged
             $this->assertStringContainsString(
@@ -512,7 +512,7 @@ class ComprehensiveValidationTest extends TestCase
                 $this->auditLog[] = [
                     'path' => $path,
                     'original' => $original,
-                    'masked' => $masked
+                    TestConstants::DATA_MASKED => $masked
                 ];
             },
             maxRequestsPerMinute: 100,
@@ -527,12 +527,12 @@ class ComprehensiveValidationTest extends TestCase
                 '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/' => MaskConstants::MASK_CC,
             ],
             fieldPaths: [
-                'user.password' => FieldMaskConfig::remove(),
+                TestConstants::FIELD_USER_PASSWORD => FieldMaskConfig::remove(),
                 'payment.card_number' => FieldMaskConfig::replace(MaskConstants::MASK_CC),
                 'personal.ssn' => FieldMaskConfig::regexMask('/\d/', '*'),
             ],
             customCallbacks: [
-                'user.email' => fn(): string => MaskConstants::MASK_EMAIL,
+                TestConstants::FIELD_USER_EMAIL => fn(): string => MaskConstants::MASK_EMAIL,
             ],
             auditLogger: $rateLimitedLogger,
             maxDepth: 100,
@@ -548,14 +548,14 @@ class ComprehensiveValidationTest extends TestCase
         // Test comprehensive log record
         $testRecord = new LogRecord(
             datetime: new DateTimeImmutable(),
-            channel: 'application',
+            channel: TestConstants::CHANNEL_APPLICATION,
             level: Level::Error,
             message: 'Payment failed for user john.doe@example.com with card 4532-1234-5678-9012 and SSN 123-45-6789',
             context: [
                 'user' => [
                     'id' => 12345,
-                    'email' => TestConstants::EMAIL_JOHN_DOE,
-                    'password' => 'secret_password_123',
+                    TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_JOHN_DOE,
+                    TestConstants::CONTEXT_PASSWORD => TestConstants::PASSWORD,
                 ],
                 'payment' => [
                     'amount' => 99.99,
@@ -568,7 +568,7 @@ class ComprehensiveValidationTest extends TestCase
                 ],
                 'metadata' => [
                     'timestamp' => time(),
-                    'session_id' => 'sess_abc123def456',
+                    'session_id' => TestConstants::SESSION_ID,
                     'ip_address' => TestConstants::IP_ADDRESS,
                 ]
             ]
@@ -587,12 +587,12 @@ class ComprehensiveValidationTest extends TestCase
 
         // Context should be processed according to rules
         $this->assertArrayNotHasKey(
-            'password',
+            TestConstants::CONTEXT_PASSWORD,
             $result->context['user']
         ); // Should be removed
         $this->assertSame(
             MaskConstants::MASK_EMAIL,
-            $result->context['user']['email']
+            $result->context['user'][TestConstants::CONTEXT_EMAIL]
         ); // Custom callback
         $this->assertSame(
             MaskConstants::MASK_CC,

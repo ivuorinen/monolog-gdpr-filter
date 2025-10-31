@@ -32,10 +32,10 @@ class SecuritySanitizerTest extends TestCase
     #[Test]
     public function sanitizesApiKeyInErrorMessage(): void
     {
-        $message = 'API request failed: api_key=sk_live_1234567890abcdef';
+        $message = 'API request failed: api_key=' . TestConstants::API_KEY;
         $sanitized = SecuritySanitizer::sanitizeErrorMessage($message);
 
-        $this->assertStringNotContainsString('sk_live_1234567890abcdef', $sanitized);
+        $this->assertStringNotContainsString(TestConstants::API_KEY, $sanitized);
         $this->assertStringContainsString('api_key=***', $sanitized);
     }
 

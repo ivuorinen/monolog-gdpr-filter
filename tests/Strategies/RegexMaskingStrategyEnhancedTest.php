@@ -22,7 +22,7 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
     {
         // Test pattern 1: (x*)+
         try {
-            new RegexMaskingStrategy(['/(a*)+/' => 'masked']);
+            new RegexMaskingStrategy(['/(a*)+/' => TestConstants::DATA_MASKED]);
             $this->fail('Expected InvalidRegexPatternException for (x*)+');
         } catch (InvalidRegexPatternException $e) {
             $this->assertStringContainsString('ReDoS', $e->getMessage());
@@ -30,7 +30,7 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
 
         // Test pattern 2: (x+)+
         try {
-            new RegexMaskingStrategy(['/(b+)+/' => 'masked']);
+            new RegexMaskingStrategy(['/(b+)+/' => TestConstants::DATA_MASKED]);
             $this->fail('Expected InvalidRegexPatternException for (x+)+');
         } catch (InvalidRegexPatternException $e) {
             $this->assertStringContainsString('ReDoS', $e->getMessage());
@@ -38,7 +38,7 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
 
         // Test pattern 3: (x*)*
         try {
-            new RegexMaskingStrategy(['/(c*)*/' => 'masked']);
+            new RegexMaskingStrategy(['/(c*)*/' => TestConstants::DATA_MASKED]);
             $this->fail('Expected InvalidRegexPatternException for (x*)*');
         } catch (InvalidRegexPatternException $e) {
             $this->assertStringContainsString('ReDoS', $e->getMessage());
@@ -46,7 +46,7 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
 
         // Test pattern 4: (x+)*
         try {
-            new RegexMaskingStrategy(['/(d+)*/' => 'masked']);
+            new RegexMaskingStrategy(['/(d+)*/' => TestConstants::DATA_MASKED]);
             $this->fail('Expected InvalidRegexPatternException for (x+)*');
         } catch (InvalidRegexPatternException $e) {
             $this->assertStringContainsString('ReDoS', $e->getMessage());
@@ -57,7 +57,7 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
     {
         // Test (.*|.*)
         try {
-            new RegexMaskingStrategy(['/^(.*|.*)$/' => 'masked']);
+            new RegexMaskingStrategy(['/^(.*|.*)$/' => TestConstants::DATA_MASKED]);
             $this->fail('Expected InvalidRegexPatternException for overlapping alternations');
         } catch (InvalidRegexPatternException $e) {
             $this->assertStringContainsString('ReDoS', $e->getMessage());
@@ -65,7 +65,7 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
 
         // Test (a|ab|abc|abcd)*
         try {
-            new RegexMaskingStrategy(['/^(a|ab|abc|abcd)*$/' => 'masked']);
+            new RegexMaskingStrategy(['/^(a|ab|abc|abcd)*$/' => TestConstants::DATA_MASKED]);
             $this->fail('Expected InvalidRegexPatternException for expanding alternations');
         } catch (InvalidRegexPatternException $e) {
             $this->assertStringContainsString('ReDoS', $e->getMessage());
@@ -83,7 +83,7 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
         $logRecord = $this->createLogRecord();
 
         // Should successfully apply all valid patterns
-        $result = $strategy->mask('SSN: 123-45-6789, Email: emailtest@example.com', 'message', $logRecord);
+        $result = $strategy->mask('SSN: 123-45-6789, Email: emailtest@example.com', TestConstants::FIELD_MESSAGE, $logRecord);
         $this->assertStringContainsString(MaskConstants::MASK_SSN, $result);
         $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
     }
@@ -91,25 +91,25 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
     public function testEmptyPatternIsRejected(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
-        new RegexMaskingStrategy(['' => 'masked']);
+        new RegexMaskingStrategy(['' => TestConstants::DATA_MASKED]);
     }
 
     public function testPatternWithInvalidDelimiter(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
-        new RegexMaskingStrategy(['invalid_pattern' => 'masked']);
+        new RegexMaskingStrategy(['invalid_pattern' => TestConstants::DATA_MASKED]);
     }
 
     public function testPatternWithMismatchedBrackets(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
-        new RegexMaskingStrategy(['/[abc/' => 'masked']);
+        new RegexMaskingStrategy(['/[abc/' => TestConstants::DATA_MASKED]);
     }
 
     public function testPatternWithInvalidEscape(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
-        new RegexMaskingStrategy(['/\k/' => 'masked']);
+        new RegexMaskingStrategy(['/\k/' => TestConstants::DATA_MASKED]);
     }
 
     public function testMaskingValueThatDoesNotMatch(): void
@@ -119,7 +119,7 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
         $logRecord = $this->createLogRecord();
 
         // Value that doesn't match should be returned unchanged
-        $result = $strategy->mask('public information', 'message', $logRecord);
+        $result = $strategy->mask('public information', TestConstants::FIELD_MESSAGE, $logRecord);
         $this->assertEquals('public information', $result);
     }
 
@@ -130,7 +130,7 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
         $logRecord = $this->createLogRecord();
 
         // Should apply to matching content in included paths
-        $this->assertTrue($strategy->shouldApply(TestConstants::DATA_TEST_DATA, 'user.email', $logRecord));
+        $this->assertTrue($strategy->shouldApply(TestConstants::DATA_TEST_DATA, TestConstants::FIELD_USER_EMAIL, $logRecord));
         $this->assertTrue($strategy->shouldApply(TestConstants::DATA_TEST_DATA, 'admin.log', $logRecord));
 
         // Should not apply to non-included paths even if content matches
@@ -144,7 +144,7 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
         $logRecord = $this->createLogRecord();
 
         // Should apply to included but not excluded
-        $this->assertTrue($strategy->shouldApply(TestConstants::DATA_TEST_DATA, 'user.email', $logRecord));
+        $this->assertTrue($strategy->shouldApply(TestConstants::DATA_TEST_DATA, TestConstants::FIELD_USER_EMAIL, $logRecord));
 
         // Should not apply to excluded paths
         $this->assertFalse($strategy->shouldApply(TestConstants::DATA_TEST_DATA, 'user.id', $logRecord));
@@ -158,7 +158,7 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
         $logRecord = $this->createLogRecord();
 
         // Should return false when content doesn't match patterns
-        $this->assertFalse($strategy->shouldApply('public data', 'message', $logRecord));
+        $this->assertFalse($strategy->shouldApply(TestConstants::DATA_PUBLIC, TestConstants::FIELD_MESSAGE, $logRecord));
         $this->assertFalse($strategy->shouldApply('no sensitive info', 'context.field', $logRecord));
     }
 
@@ -248,7 +248,7 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
         $strategy = new RegexMaskingStrategy($patterns);
         $logRecord = $this->createLogRecord();
 
-        $result = $strategy->mask('This is secret data', 'message', $logRecord);
+        $result = $strategy->mask('This is secret data', TestConstants::FIELD_MESSAGE, $logRecord);
         $this->assertStringContainsString(MaskConstants::MASK_MASKED, $result);
     }
 
@@ -258,7 +258,7 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
         $strategy = new RegexMaskingStrategy($patterns);
         $logRecord = $this->createLogRecord();
 
-        $result = $strategy->mask('Email: john@example.com', 'message', $logRecord);
+        $result = $strategy->mask('Email: john@example.com', TestConstants::FIELD_MESSAGE, $logRecord);
         $this->assertEquals('Email: john@***DOMAIN***.com', $result);
     }
 
@@ -268,7 +268,7 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
         $strategy = new RegexMaskingStrategy($patterns);
         $logRecord = $this->createLogRecord();
 
-        $result = $strategy->mask('I went to the café yesterday', 'message', $logRecord);
+        $result = $strategy->mask('I went to the café yesterday', TestConstants::FIELD_MESSAGE, $logRecord);
         $this->assertStringContainsString(MaskConstants::MASK_MASKED, $result);
     }
 
@@ -278,9 +278,9 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
         $strategy = new RegexMaskingStrategy($patterns);
         $logRecord = $this->createLogRecord();
 
-        $result1 = $strategy->mask('This is SECRET data', 'message', $logRecord);
-        $result2 = $strategy->mask('This is secret data', 'message', $logRecord);
-        $result3 = $strategy->mask('This is SeCrEt data', 'message', $logRecord);
+        $result1 = $strategy->mask('This is SECRET data', TestConstants::FIELD_MESSAGE, $logRecord);
+        $result2 = $strategy->mask('This is secret data', TestConstants::FIELD_MESSAGE, $logRecord);
+        $result3 = $strategy->mask('This is SeCrEt data', TestConstants::FIELD_MESSAGE, $logRecord);
 
         $this->assertStringContainsString(MaskConstants::MASK_MASKED, $result1);
         $this->assertStringContainsString(MaskConstants::MASK_MASKED, $result2);

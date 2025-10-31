@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Tests\TestConstants;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 use Ivuorinen\MonologGdprFilter\MaskConstants;
@@ -65,7 +66,7 @@ class AdvancedRegexMaskProcessorTest extends TestCase
             context: [
                 "user" => ["ssn" => self::TEST_HETU],
                 "payment" => ["card" => self::TEST_CC],
-                "contact" => ["email" => self::TEST_EMAIL],
+                "contact" => [TestConstants::CONTEXT_EMAIL => self::TEST_EMAIL],
                 "metadata" => ["session" => "abc123xyz"],
             ],
             extra: [],
@@ -76,7 +77,7 @@ class AdvancedRegexMaskProcessorTest extends TestCase
         $this->assertSame("[GDPR]", $result["context"]["user"]["ssn"]);
         $this->assertSame("[CC]", $result["context"]["payment"]["card"]);
         // empty replacement uses regex-masked value
-        $this->assertSame(MaskConstants::MASK_EMAIL, $result["context"]["contact"]["email"]);
+        $this->assertSame(MaskConstants::MASK_EMAIL, $result["context"]["contact"][TestConstants::CONTEXT_EMAIL]);
         $this->assertSame("[SESSION]", $result["context"]["metadata"]["session"]);
     }
 }

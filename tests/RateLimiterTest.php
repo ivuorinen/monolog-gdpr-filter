@@ -204,7 +204,7 @@ class RateLimiterTest extends TestCase
 
         // Empty string key should throw validation exception
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage('Rate limiting key cannot be empty');
+        $this->expectExceptionMessage(TestConstants::ERROR_RATE_LIMIT_KEY_EMPTY);
 
         $rateLimiter->isAllowed('');
     }

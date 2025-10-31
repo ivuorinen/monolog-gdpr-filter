@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\RegressionTests;
 
+use Tests\TestConstants;
 use DateTimeImmutable;
 use Generator;
 use Ivuorinen\MonologGdprFilter\DataTypeMasker;
@@ -95,7 +96,7 @@ class CriticalBugRegressionTest extends TestCase
                 datetime: new DateTimeImmutable(),
                 channel: 'test',
                 level: Level::Info,
-                message: 'Test message',
+                message: TestConstants::MESSAGE_DEFAULT,
                 context: ['test_value' => $value]
             );
 
@@ -332,7 +333,7 @@ class CriticalBugRegressionTest extends TestCase
             $fullPattern = sprintf('/%s/', $pattern);
 
             try {
-                PatternValidator::validateAll([$fullPattern => 'masked']);
+                PatternValidator::validateAll([$fullPattern => TestConstants::DATA_MASKED]);
                 // If validation passes, the pattern might be considered safe by the implementation
                 $this->assertTrue(true, 'Pattern validation completed for: ' . $fullPattern);
             } catch (InvalidRegexPatternException $e) {
@@ -352,7 +353,7 @@ class CriticalBugRegressionTest extends TestCase
             $fullPattern = sprintf('/%s/', $pattern);
 
             try {
-                PatternValidator::validateAll([$pattern => 'masked']);
+                PatternValidator::validateAll([$pattern => TestConstants::DATA_MASKED]);
                 // These patterns might be allowed by current implementation
                 $this->assertTrue(true, 'Pattern validation completed for: ' . $fullPattern);
             } catch (InvalidRegexPatternException $e) {
@@ -405,7 +406,7 @@ class CriticalBugRegressionTest extends TestCase
     {
         $auditLog = [];
         $auditLogger = function (string $path, mixed $original, mixed $masked) use (&$auditLog): void {
-            $auditLog[] = ['path' => $path, 'original' => $original, 'masked' => $masked];
+            $auditLog[] = ['path' => $path, 'original' => $original, TestConstants::DATA_MASKED => $masked];
         };
 
         // Create processor with conditional rule that throws exception
@@ -434,7 +435,7 @@ class CriticalBugRegressionTest extends TestCase
             datetime: new DateTimeImmutable(),
             channel: 'test',
             level: Level::Info,
-            message: 'Test message',
+            message: TestConstants::MESSAGE_DEFAULT,
             context: []
         );
 
@@ -453,7 +454,7 @@ class CriticalBugRegressionTest extends TestCase
             $this->fail('Error log entry not found');
         }
 
-        $errorMessage = $errorLog['masked'];
+        $errorMessage = $errorLog[TestConstants::DATA_MASKED];
 
         // Should contain generic error info but not sensitive details
         $this->assertStringContainsString('Rule error:', (string) $errorMessage);

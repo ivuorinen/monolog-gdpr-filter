@@ -30,6 +30,10 @@ composer lint:tool:rector    # Code refactoring
 # Preview changes before applying (dry-run)
 composer lint:tool:rector -- --dry-run
 composer lint:tool:psalm -- --alter --dry-run
+
+# Check for hardcoded constant values
+php check_for_constants.php           # Basic scan
+php check_for_constants.php --verbose # Show line context
 ```
 
 ### Testing
@@ -96,6 +100,7 @@ The library can be integrated with Laravel in two ways:
 - **PHPCS**: PSR-12 compliance enforcement
 
 **Issue Resolution Priority:**
+
 1. **Fix the underlying issue** (preferred approach)
 2. **Refactor code** to avoid the issue pattern
 3. **Use safe automated fixes** via `composer lint:fix`
@@ -104,10 +109,39 @@ The library can be integrated with Laravel in two ways:
 
 **Tip:** Use `git stash` before running `composer lint:fix` to easily revert changes if needed.
 
+## Code Quality
+
+### Constant Usage
+
+To reduce code duplication and improve maintainability
+(as required by SonarQube), the project uses centralized constants:
+
+- **MaskConstants** (`src/MaskConstants.php`): Mask replacement values (e.g., `MASK_MASKED`, `MASK_REDACTED`)
+- **TestConstants** (`tests/TestConstants.php`): Test data values, patterns, field paths, messages
+
+**Always use constants instead of hardcoded strings** for values defined in these files.
+Use the constant checker to identify hardcoded values:
+
+```bash
+# Scan for hardcoded constant values
+php check_for_constants.php
+
+# Show line context for each match
+php check_for_constants.php --verbose
+```
+
+The checker intelligently scans all PHP files and reports where constant references should be used:
+
+- **MaskConstants** checked in both `src/` and `tests/` directories
+- **TestConstants** checked only in `tests/` directory (not enforced in production code)
+- Filters out common false positives like array keys and internal identifiers
+- Helps maintain SonarQube code quality standards
+
 ## Important Notes
 
 - **Always run `composer lint:fix` before manual fixes**
 - **Fix all linting issues** - suppression requires explicit approval
+- **Use constants instead of hardcoded values** - run `php check_for_constants.php` to verify
 - The library focuses on GDPR compliance - be careful when modifying masking logic
 - Default patterns include Finnish SSN, US SSN, IBAN, credit cards, emails, phones, and IPs
 - Audit logging feature can track when sensitive data was masked for compliance

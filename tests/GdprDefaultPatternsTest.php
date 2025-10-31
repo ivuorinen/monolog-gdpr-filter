@@ -25,7 +25,7 @@ class GdprDefaultPatternsTest extends TestCase
         $patterns = DefaultPatterns::get();
         $processor = new GdprProcessor($patterns);
         // Finnish IBAN with spaces
-        $iban = 'FI21 1234 5600 0007 85';
+        $iban = TestConstants::IBAN_FI;
         $masked = $processor->maskMessage($iban);
         $this->assertSame(MaskConstants::MASK_IBAN, $masked);
         // Finnish IBAN without spaces

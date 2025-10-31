@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Tests\TestConstants;
 use Ivuorinen\MonologGdprFilter\Exceptions\InvalidRegexPatternException;
 use Ivuorinen\MonologGdprFilter\DefaultPatterns;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
@@ -52,11 +53,11 @@ class RegexMaskProcessorTest extends TestCase
         $processor = new GdprProcessor($patterns, $fieldPaths);
         $record = $this->logEntry()->with(
             message: "Remove SSN",
-            context: ["user" => ["ssn" => self::TEST_HETU, "name" => "John"]],
+            context: ["user" => ["ssn" => self::TEST_HETU, "name" => TestConstants::NAME_FIRST]],
         );
         $result = ($processor)($record)->toArray();
         $this->assertArrayNotHasKey("ssn", $result["context"]["user"]);
-        $this->assertSame("John", $result["context"]["user"]["name"]);
+        $this->assertSame(TestConstants::NAME_FIRST, $result["context"]["user"]["name"]);
     }
 
     public function testReplaceWithFieldReplacesValue(): void
@@ -75,8 +76,8 @@ class RegexMaskProcessorTest extends TestCase
     public function testCustomCallbackIsUsed(): void
     {
         $patterns = DefaultPatterns::get();
-        $fieldPaths = ["user.name" => FieldMaskConfig::useProcessorPatterns()];
-        $customCallbacks = ["user.name" => fn($value): string => strtoupper((string)$value)];
+        $fieldPaths = [TestConstants::FIELD_USER_NAME => FieldMaskConfig::useProcessorPatterns()];
+        $customCallbacks = [TestConstants::FIELD_USER_NAME => fn($value): string => strtoupper((string)$value)];
         $processor = new GdprProcessor($patterns, $fieldPaths, $customCallbacks);
         $record = $this->logEntry()->with(
             message: "Name logged",
@@ -89,7 +90,7 @@ class RegexMaskProcessorTest extends TestCase
     public function testAuditLoggerIsCalled(): void
     {
         $patterns = DefaultPatterns::get();
-        $fieldPaths = ["user.email" => FieldMaskConfig::useProcessorPatterns()];
+        $fieldPaths = [TestConstants::FIELD_USER_EMAIL => FieldMaskConfig::useProcessorPatterns()];
         $auditCalls = [];
         $auditLogger = function ($path, $original, $masked) use (&$auditCalls): void {
             $auditCalls[] = [$path, $original, $masked];
@@ -97,11 +98,11 @@ class RegexMaskProcessorTest extends TestCase
         $processor = new GdprProcessor($patterns, $fieldPaths, [], $auditLogger);
         $record = $this->logEntry()->with(
             message: self::USER_REGISTERED,
-            context: ["user" => ["email" => self::TEST_EMAIL]],
+            context: ["user" => [TestConstants::CONTEXT_EMAIL => self::TEST_EMAIL]],
         );
         $processor($record);
         $this->assertNotEmpty($auditCalls);
-        $this->assertSame(["user.email", "john.doe@example.com", Mask::MASK_EMAIL], $auditCalls[0]);
+        $this->assertSame([TestConstants::FIELD_USER_EMAIL, TestConstants::EMAIL_JOHN_DOE, Mask::MASK_EMAIL], $auditCalls[0]);
     }
 
     public function testInvalidRegexPatternThrowsExceptionOnConstruction(): void
@@ -117,8 +118,8 @@ class RegexMaskProcessorTest extends TestCase
     {
         // Test that valid regex patterns work correctly
         $validPatterns = [
-            '/test/' => 'REPLACED',
-            '/\d+/' => 'NUMBER',
+            TestConstants::PATTERN_TEST => 'REPLACED',
+            TestConstants::PATTERN_DIGITS => 'NUMBER',
         ];
 
         $processor = new GdprProcessor($validPatterns);
@@ -133,14 +134,14 @@ class RegexMaskProcessorTest extends TestCase
     public function testStringReplacementBackwardCompatibility(): void
     {
         $patterns = DefaultPatterns::get();
-        $fieldPaths = ["user.email" => Mask::MASK_BRACKETS];
+        $fieldPaths = [TestConstants::FIELD_USER_EMAIL => Mask::MASK_BRACKETS];
         $processor = new GdprProcessor($patterns, $fieldPaths);
         $record = $this->logEntry()->with(
             message: self::USER_REGISTERED,
-            context: ["user" => ["email" => self::TEST_EMAIL]],
+            context: ["user" => [TestConstants::CONTEXT_EMAIL => self::TEST_EMAIL]],
         );
         $result = ($processor)($record)->toArray();
-        $this->assertSame(Mask::MASK_BRACKETS, $result["context"]["user"]["email"]);
+        $this->assertSame(Mask::MASK_BRACKETS, $result["context"]["user"][TestConstants::CONTEXT_EMAIL]);
     }
 
     public function testNonStringValueInContextIsUnchanged(): void
@@ -153,7 +154,7 @@ class RegexMaskProcessorTest extends TestCase
             context: ["user" => ["id" => 12345]],
         );
         $result = ($processor)($record)->toArray();
-        $this->assertSame('12345', $result["context"]["user"]["id"]);
+        $this->assertSame(TestConstants::DATA_NUMBER_STRING, $result["context"]["user"]["id"]);
     }
 
     public function testMissingFieldInContextIsIgnored(): void
@@ -163,7 +164,7 @@ class RegexMaskProcessorTest extends TestCase
         $processor = new GdprProcessor($patterns, $fieldPaths);
         $record = $this->logEntry()->with(
             message: self::USER_REGISTERED,
-            context: ["user" => ["email" => self::TEST_EMAIL]],
+            context: ["user" => [TestConstants::CONTEXT_EMAIL => self::TEST_EMAIL]],
         );
         $result = ($processor)($record)->toArray();
         $this->assertArrayNotHasKey('missing', $result["context"]["user"]);
@@ -214,7 +215,7 @@ class RegexMaskProcessorTest extends TestCase
     {
         $record = $this->logEntry()->with(
             message: "Missing field",
-            context: ["user" => ["name" => "John"]],
+            context: ["user" => ["name" => TestConstants::NAME_FIRST]],
         );
         $result = ($this->processor)($record)->toArray();
         $this->assertArrayNotHasKey("ssn", $result["context"]["user"]);
@@ -234,7 +235,7 @@ class RegexMaskProcessorTest extends TestCase
     public function testRecursiveMaskDirect(): void
     {
         $patterns = [
-            '/secret/' => 'MASKED',
+            TestConstants::PATTERN_SECRET => 'MASKED',
         ];
         $processor = new class ($patterns) extends GdprProcessor {
             public function callRecursiveMask(mixed $data): array|string

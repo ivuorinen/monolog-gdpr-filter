@@ -32,7 +32,7 @@ class MaskingStrategiesTest extends TestCase
     public function testRegexMaskingStrategy(): void
     {
         $patterns = [
-            '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => MaskConstants::MASK_EMAIL,
+            TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL,
             '/\b\d{4}-\d{4}-\d{4}-\d{4}\b/' => MaskConstants::MASK_CC,
         ];
 
@@ -69,7 +69,7 @@ class MaskingStrategiesTest extends TestCase
     public function testRegexMaskingStrategyWithInvalidPattern(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
-        $strategy = new RegexMaskingStrategy([TestConstants::PATTERN_INVALID_UNCLOSED_BRACKET => 'masked']);
+        $strategy = new RegexMaskingStrategy([TestConstants::PATTERN_INVALID_UNCLOSED_BRACKET => TestConstants::DATA_MASKED]);
         unset($strategy); // Satisfy SonarQube - this line won't be reached if exception is thrown
         $this->fail(TestConstants::ERROR_EXCEPTION_NOT_THROWN);
     }
@@ -77,7 +77,7 @@ class MaskingStrategiesTest extends TestCase
     public function testRegexMaskingStrategyWithReDoSPattern(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
-        $strategy = new RegexMaskingStrategy(['/(a+)+$/' => 'masked']);
+        $strategy = new RegexMaskingStrategy(['/(a+)+$/' => TestConstants::DATA_MASKED]);
         unset($strategy); // Satisfy SonarQube - this line won't be reached if exception is thrown
         $this->fail(TestConstants::ERROR_EXCEPTION_NOT_THROWN);
     }
@@ -136,7 +136,7 @@ class MaskingStrategiesTest extends TestCase
         $this->assertNull($masked);
 
         // Test regex replacement
-        $masked = $strategy->mask('John Doe', TestConstants::FIELD_USER_NAME, $logRecord);
+        $masked = $strategy->mask(TestConstants::NAME_FULL, TestConstants::FIELD_USER_NAME, $logRecord);
         $this->assertEquals('*** ***', $masked);
 
         // Test validation
@@ -158,7 +158,7 @@ class MaskingStrategiesTest extends TestCase
         $baseStrategy = new RegexMaskingStrategy([TestConstants::PATTERN_TEST => MaskConstants::MASK_MASKED]);
         $conditions = [
             'level' => fn(LogRecord $r): bool => $r->level === Level::Error,
-            'channel' => fn(LogRecord $r): bool => $r->channel === 'security',
+            'channel' => fn(LogRecord $r): bool => $r->channel === TestConstants::CHANNEL_SECURITY,
         ];
 
         $strategy = new ConditionalMaskingStrategy($baseStrategy, $conditions);
@@ -390,7 +390,7 @@ class MaskingStrategiesTest extends TestCase
         $this->assertFalse($strategy->testRecordMatches($logRecord, ['level' => 'Info']));
 
         // Test preserveValueType
-        $this->assertEquals('masked', $strategy->testPreserveValueType('original', 'masked'));
+        $this->assertEquals(TestConstants::DATA_MASKED, $strategy->testPreserveValueType('original', TestConstants::DATA_MASKED));
         $this->assertEquals(123, $strategy->testPreserveValueType(456, '123'));
         $this->assertEqualsWithDelta(12.5, $strategy->testPreserveValueType(45.6, '12.5'), PHP_FLOAT_EPSILON);
         $this->assertTrue($strategy->testPreserveValueType(false, 'true'));

@@ -109,7 +109,7 @@ final class DataTypeMaskingStrategyEnhancedTest extends TestCase
         $logRecord = $this->createLogRecord();
         $result = $strategy->mask($obj, 'test.path', $logRecord);
 
-        // Simple strings get converted to object with 'masked' property
+        // Simple strings get converted to object with TestConstants::DATA_MASKED property
         $this->assertIsObject($result);
         $this->assertEquals(MaskConstants::MASK_OBJECT, $result->masked);
     }
@@ -226,12 +226,12 @@ final class DataTypeMaskingStrategyEnhancedTest extends TestCase
         $logRecord = $this->createLogRecord();
 
         // Should apply to included paths
-        $this->assertTrue($strategy->shouldApply('test', 'user.email', $logRecord));
-        $this->assertTrue($strategy->shouldApply('test', 'user.name', $logRecord));
+        $this->assertTrue($strategy->shouldApply('test', TestConstants::FIELD_USER_EMAIL, $logRecord));
+        $this->assertTrue($strategy->shouldApply('test', TestConstants::FIELD_USER_NAME, $logRecord));
         $this->assertTrue($strategy->shouldApply('test', 'account.details', $logRecord));
 
         // Should not apply to non-included paths
-        $this->assertFalse($strategy->shouldApply('test', 'system.log', $logRecord));
+        $this->assertFalse($strategy->shouldApply('test', TestConstants::FIELD_SYSTEM_LOG, $logRecord));
         $this->assertFalse($strategy->shouldApply('test', 'other.field', $logRecord));
     }
 
@@ -240,16 +240,16 @@ final class DataTypeMaskingStrategyEnhancedTest extends TestCase
         $strategy = new DataTypeMaskingStrategy(
             ['string' => MaskConstants::MASK_MASKED],
             [TestConstants::PATH_USER_WILDCARD],
-            ['user.public', 'user.id']
+            [TestConstants::FIELD_USER_PUBLIC, 'user.id']
         );
 
         $logRecord = $this->createLogRecord();
 
         // Should apply to included paths not in exclude list
-        $this->assertTrue($strategy->shouldApply('test', 'user.email', $logRecord));
+        $this->assertTrue($strategy->shouldApply('test', TestConstants::FIELD_USER_EMAIL, $logRecord));
 
         // Should not apply to excluded paths
-        $this->assertFalse($strategy->shouldApply('test', 'user.public', $logRecord));
+        $this->assertFalse($strategy->shouldApply('test', TestConstants::FIELD_USER_PUBLIC, $logRecord));
         $this->assertFalse($strategy->shouldApply('test', 'user.id', $logRecord));
     }
 
@@ -263,7 +263,7 @@ final class DataTypeMaskingStrategyEnhancedTest extends TestCase
         $logRecord = $this->createLogRecord();
 
         // Test wildcard matching
-        $this->assertTrue($strategy->shouldApply('test', 'user.email', $logRecord));
+        $this->assertTrue($strategy->shouldApply('test', TestConstants::FIELD_USER_EMAIL, $logRecord));
         $this->assertTrue($strategy->shouldApply('test', 'admin.email', $logRecord));
         $this->assertTrue($strategy->shouldApply('test', 'data.user.sensitive', $logRecord));
         $this->assertTrue($strategy->shouldApply('test', 'data.admin.sensitive', $logRecord));
@@ -312,8 +312,8 @@ final class DataTypeMaskingStrategyEnhancedTest extends TestCase
     public function testGetConfiguration(): void
     {
         $typeMasks = ['string' => MaskConstants::MASK_MASKED];
-        $includePaths = ['user.*'];
-        $excludePaths = ['user.public'];
+        $includePaths = [TestConstants::PATH_USER_WILDCARD];
+        $excludePaths = [TestConstants::FIELD_USER_PUBLIC];
 
         $strategy = new DataTypeMaskingStrategy($typeMasks, $includePaths, $excludePaths);
 

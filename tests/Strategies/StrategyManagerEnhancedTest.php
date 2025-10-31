@@ -75,13 +75,13 @@ final class StrategyManagerEnhancedTest extends TestCase
         $manager = new StrategyManager();
 
         // Add strategy that doesn't apply to this value
-        $regex = new RegexMaskingStrategy(['/secret/' => MaskConstants::MASK_MASKED]);
+        $regex = new RegexMaskingStrategy([TestConstants::PATTERN_SECRET => MaskConstants::MASK_MASKED]);
         $manager->addStrategy($regex);
 
         $logRecord = $this->createLogRecord();
 
         // Value doesn't match pattern
-        $applicable = $manager->getApplicableStrategies(TestConstants::DATA_PUBLIC, 'message', $logRecord);
+        $applicable = $manager->getApplicableStrategies(TestConstants::DATA_PUBLIC, TestConstants::FIELD_MESSAGE, $logRecord);
 
         $this->assertEmpty($applicable);
     }
@@ -91,18 +91,18 @@ final class StrategyManagerEnhancedTest extends TestCase
         $manager = new StrategyManager();
 
         // Add strategies with edge priority values
-        $manager->addStrategy(new RegexMaskingStrategy(['/test/' => MaskConstants::MASK_GENERIC], [], [], 0));   // Lowest
-        $manager->addStrategy(new RegexMaskingStrategy(['/test/' => MaskConstants::MASK_GENERIC], [], [], 19));  // High edge
-        $manager->addStrategy(new RegexMaskingStrategy(['/test/' => MaskConstants::MASK_GENERIC], [], [], 20));  // Medium-high boundary
-        $manager->addStrategy(new RegexMaskingStrategy(['/test/' => MaskConstants::MASK_GENERIC], [], [], 39));  // Medium-high edge
-        $manager->addStrategy(new RegexMaskingStrategy(['/test/' => MaskConstants::MASK_GENERIC], [], [], 40));  // Medium boundary
-        $manager->addStrategy(new RegexMaskingStrategy(['/test/' => MaskConstants::MASK_GENERIC], [], [], 59));  // Medium edge
-        $manager->addStrategy(new RegexMaskingStrategy(['/test/' => MaskConstants::MASK_GENERIC], [], [], 60));  // Medium-low boundary
-        $manager->addStrategy(new RegexMaskingStrategy(['/test/' => MaskConstants::MASK_GENERIC], [], [], 79));  // Medium-low edge
-        $manager->addStrategy(new RegexMaskingStrategy(['/test/' => MaskConstants::MASK_GENERIC], [], [], 80));  // Low boundary
-        $manager->addStrategy(new RegexMaskingStrategy(['/test/' => MaskConstants::MASK_GENERIC], [], [], 89));  // Low edge
-        $manager->addStrategy(new RegexMaskingStrategy(['/test/' => MaskConstants::MASK_GENERIC], [], [], 90));  // Lowest boundary
-        $manager->addStrategy(new RegexMaskingStrategy(['/test/' => MaskConstants::MASK_GENERIC], [], [], 100)); // Highest
+        $manager->addStrategy(new RegexMaskingStrategy([TestConstants::PATTERN_TEST => MaskConstants::MASK_GENERIC], [], [], 0));   // Lowest
+        $manager->addStrategy(new RegexMaskingStrategy([TestConstants::PATTERN_TEST => MaskConstants::MASK_GENERIC], [], [], 19));  // High edge
+        $manager->addStrategy(new RegexMaskingStrategy([TestConstants::PATTERN_TEST => MaskConstants::MASK_GENERIC], [], [], 20));  // Medium-high boundary
+        $manager->addStrategy(new RegexMaskingStrategy([TestConstants::PATTERN_TEST => MaskConstants::MASK_GENERIC], [], [], 39));  // Medium-high edge
+        $manager->addStrategy(new RegexMaskingStrategy([TestConstants::PATTERN_TEST => MaskConstants::MASK_GENERIC], [], [], 40));  // Medium boundary
+        $manager->addStrategy(new RegexMaskingStrategy([TestConstants::PATTERN_TEST => MaskConstants::MASK_GENERIC], [], [], 59));  // Medium edge
+        $manager->addStrategy(new RegexMaskingStrategy([TestConstants::PATTERN_TEST => MaskConstants::MASK_GENERIC], [], [], 60));  // Medium-low boundary
+        $manager->addStrategy(new RegexMaskingStrategy([TestConstants::PATTERN_TEST => MaskConstants::MASK_GENERIC], [], [], 79));  // Medium-low edge
+        $manager->addStrategy(new RegexMaskingStrategy([TestConstants::PATTERN_TEST => MaskConstants::MASK_GENERIC], [], [], 80));  // Low boundary
+        $manager->addStrategy(new RegexMaskingStrategy([TestConstants::PATTERN_TEST => MaskConstants::MASK_GENERIC], [], [], 89));  // Low edge
+        $manager->addStrategy(new RegexMaskingStrategy([TestConstants::PATTERN_TEST => MaskConstants::MASK_GENERIC], [], [], 90));  // Lowest boundary
+        $manager->addStrategy(new RegexMaskingStrategy([TestConstants::PATTERN_TEST => MaskConstants::MASK_GENERIC], [], [], 100)); // Highest
 
         $stats = $manager->getStatistics();
 
@@ -138,13 +138,13 @@ final class StrategyManagerEnhancedTest extends TestCase
         $manager = new StrategyManager();
 
         // Add strategy that doesn't apply
-        $regex = new RegexMaskingStrategy(['/secret/' => MaskConstants::MASK_MASKED]);
+        $regex = new RegexMaskingStrategy([TestConstants::PATTERN_SECRET => MaskConstants::MASK_MASKED]);
         $manager->addStrategy($regex);
 
         $logRecord = $this->createLogRecord();
 
         // Value doesn't match any pattern
-        $result = $manager->maskValue(TestConstants::DATA_PUBLIC, 'message', $logRecord);
+        $result = $manager->maskValue(TestConstants::DATA_PUBLIC, TestConstants::FIELD_MESSAGE, $logRecord);
 
         $this->assertEquals(TestConstants::DATA_PUBLIC, $result);
     }
@@ -153,7 +153,7 @@ final class StrategyManagerEnhancedTest extends TestCase
     {
         $manager = new StrategyManager();
 
-        $manager->addStrategy(new RegexMaskingStrategy(['/test/' => MaskConstants::MASK_GENERIC]));
+        $manager->addStrategy(new RegexMaskingStrategy([TestConstants::PATTERN_TEST => MaskConstants::MASK_GENERIC]));
         $manager->addStrategy(new DataTypeMaskingStrategy(['string' => MaskConstants::MASK_GENERIC]));
         $manager->addStrategy(new FieldPathMaskingStrategy(['field' => FieldMaskConfig::remove()]));
 

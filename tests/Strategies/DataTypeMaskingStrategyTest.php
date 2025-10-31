@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Strategies;
 
+use Tests\TestConstants;
 use Ivuorinen\MonologGdprFilter\Strategies\DataTypeMaskingStrategy;
 use Ivuorinen\MonologGdprFilter\MaskConstants;
 use Monolog\LogRecord;
@@ -96,10 +97,10 @@ final class DataTypeMaskingStrategyTest extends TestCase
     {
         $strategy = new DataTypeMaskingStrategy(
             typeMasks: ['string' => MaskConstants::MASK_GENERIC],
-            includePaths: ['user.*']
+            includePaths: [TestConstants::PATH_USER_WILDCARD]
         );
 
-        $this->assertTrue($strategy->shouldApply('test', 'user.name', $this->logRecord));
+        $this->assertTrue($strategy->shouldApply('test', TestConstants::FIELD_USER_NAME, $this->logRecord));
         $this->assertFalse($strategy->shouldApply('test', 'admin.name', $this->logRecord));
     }
 
@@ -180,7 +181,7 @@ final class DataTypeMaskingStrategyTest extends TestCase
 
         $result = $strategy->mask(['original'], 'field', $this->logRecord);
 
-        $this->assertSame(['masked'], $result);
+        $this->assertSame([TestConstants::DATA_MASKED], $result);
     }
 
     #[Test]
@@ -361,7 +362,7 @@ final class DataTypeMaskingStrategyTest extends TestCase
     public function getConfigurationReturnsFullConfiguration(): void
     {
         $typeMasks = ['string' => MaskConstants::MASK_GENERIC];
-        $includePaths = ['user.*'];
+        $includePaths = [TestConstants::PATH_USER_WILDCARD];
         $excludePaths = ['debug.*'];
 
         $strategy = new DataTypeMaskingStrategy(

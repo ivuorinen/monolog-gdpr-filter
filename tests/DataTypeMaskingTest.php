@@ -204,7 +204,7 @@ class DataTypeMaskingTest extends TestCase
 
         $logRecord = $this->createLogRecord(context: [
             'age' => 30,
-            'name' => 'John Doe',
+            'name' => TestConstants::NAME_FULL,
             'active' => true,
             'deleted_at' => null,
             'score' => 98.5, // This won't be masked (no 'double' rule)
@@ -285,7 +285,7 @@ class DataTypeMaskingTest extends TestCase
     {
         // Test that string masking and regex masking work together
         $processor = $this->createProcessor(
-            ['/test@example\.com/' => MaskConstants::MASK_EMAIL],
+            [TestConstants::PATTERN_EMAIL_TEST => MaskConstants::MASK_EMAIL],
             [],
             [],
             null,
@@ -294,13 +294,13 @@ class DataTypeMaskingTest extends TestCase
         );
 
         $logRecord = $this->createLogRecord(context: [
-            'email' => TestConstants::EMAIL_TEST,
-            'user_id' => 12345,
+            TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_TEST,
+            TestConstants::CONTEXT_USER_ID => 12345,
         ]);
 
         $result = $processor($logRecord);
 
-        $this->assertEquals(MaskConstants::MASK_EMAIL, $result->context['email']);
-        $this->assertEquals(MaskConstants::MASK_INT, $result->context['user_id']);
+        $this->assertEquals(MaskConstants::MASK_EMAIL, $result->context[TestConstants::CONTEXT_EMAIL]);
+        $this->assertEquals(MaskConstants::MASK_INT, $result->context[TestConstants::CONTEXT_USER_ID]);
     }
 }

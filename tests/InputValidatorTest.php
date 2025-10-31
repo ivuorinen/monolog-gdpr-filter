@@ -12,6 +12,7 @@ use Ivuorinen\MonologGdprFilter\MaskConstants;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Tests\TestConstants;
 
 #[CoversClass(InputValidator::class)]
 final class InputValidatorTest extends TestCase
@@ -19,8 +20,8 @@ final class InputValidatorTest extends TestCase
     #[Test]
     public function validateAllPassesWithValidInputs(): void
     {
-        $patterns = ['/\d{3}-\d{2}-\d{4}/' => MaskConstants::MASK_GENERIC];
-        $fieldPaths = ['user.email' => MaskConstants::MASK_GENERIC];
+        $patterns = [TestConstants::PATTERN_SSN_FORMAT => MaskConstants::MASK_GENERIC];
+        $fieldPaths = [TestConstants::FIELD_USER_EMAIL => MaskConstants::MASK_GENERIC];
         $customCallbacks = ['user.id' => fn($value): string => (string) $value];
         $auditLogger = fn($field, $old, $new): null => null;
         $maxDepth = 10;
@@ -67,7 +68,7 @@ final class InputValidatorTest extends TestCase
         $this->expectExceptionMessage('replacement');
         $this->expectExceptionMessage('string');
 
-        InputValidator::validatePatterns(['/test/' => 123]);
+        InputValidator::validatePatterns([TestConstants::PATTERN_TEST => 123]);
     }
 
     #[Test]
@@ -82,7 +83,7 @@ final class InputValidatorTest extends TestCase
     public function validatePatternsPassesForValidPatterns(): void
     {
         InputValidator::validatePatterns([
-            '/\d{3}-\d{2}-\d{4}/' => MaskConstants::MASK_SSN_PATTERN,
+            TestConstants::PATTERN_SSN_FORMAT => MaskConstants::MASK_SSN_PATTERN,
             '/[a-z]+/' => 'REDACTED',
         ]);
 
@@ -115,26 +116,26 @@ final class InputValidatorTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage('field path value');
 
-        InputValidator::validateFieldPaths(['user.email' => 123]);
+        InputValidator::validateFieldPaths([TestConstants::FIELD_USER_EMAIL => 123]);
     }
 
     #[Test]
     public function validateFieldPathsThrowsForEmptyStringValue(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('user.email');
+        $this->expectExceptionMessage(TestConstants::FIELD_USER_EMAIL);
         $this->expectExceptionMessage('empty string');
 
-        InputValidator::validateFieldPaths(['user.email' => '']);
+        InputValidator::validateFieldPaths([TestConstants::FIELD_USER_EMAIL => '']);
     }
 
     #[Test]
     public function validateFieldPathsPassesForValidPaths(): void
     {
         InputValidator::validateFieldPaths([
-            'user.email' => MaskConstants::MASK_EMAIL_PATTERN,
-            'user.password' => FieldMaskConfig::remove(),
-            'user.ssn' => FieldMaskConfig::regexMask('/\d{3}-\d{2}-\d{4}/', MaskConstants::MASK_SSN_PATTERN),
+            TestConstants::FIELD_USER_EMAIL => MaskConstants::MASK_EMAIL_PATTERN,
+            TestConstants::FIELD_USER_PASSWORD => FieldMaskConfig::remove(),
+            'user.ssn' => FieldMaskConfig::regexMask(TestConstants::PATTERN_SSN_FORMAT, MaskConstants::MASK_SSN_PATTERN),
         ]);
 
         $this->assertTrue(true);
@@ -175,7 +176,7 @@ final class InputValidatorTest extends TestCase
     {
         InputValidator::validateCustomCallbacks([
             'user.id' => fn($value): string => (string) $value,
-            'user.name' => fn($value) => strtoupper((string) $value),
+            TestConstants::FIELD_USER_NAME => fn($value) => strtoupper((string) $value),
         ]);
 
         $this->assertTrue(true);

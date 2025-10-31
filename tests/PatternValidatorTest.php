@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Tests\TestConstants;
 use Ivuorinen\MonologGdprFilter\Exceptions\InvalidRegexPatternException;
 use Ivuorinen\MonologGdprFilter\PatternValidator;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -80,7 +81,7 @@ class PatternValidatorTest extends TestCase
     public function isValidAcceptsSafePatterns(): void
     {
         // hasDangerousPattern is private, test via isValid
-        $this->assertTrue(PatternValidator::isValid('/\d{3}-\d{2}-\d{4}/'));
+        $this->assertTrue(PatternValidator::isValid(TestConstants::PATTERN_SSN_FORMAT));
         $this->assertTrue(PatternValidator::isValid('/[a-z]+/'));
         $this->assertTrue(PatternValidator::isValid('/^test$/'));
     }
@@ -132,7 +133,7 @@ class PatternValidatorTest extends TestCase
     public function validateAllPassesForValidPatterns(): void
     {
         $patterns = [
-            '/\d{3}-\d{2}-\d{4}/' => 'SSN',
+            TestConstants::PATTERN_SSN_FORMAT => 'SSN',
             '/[a-z]+@[a-z]+\.[a-z]+/' => 'Email',
         ];
 
@@ -194,7 +195,7 @@ class PatternValidatorTest extends TestCase
     /**
      * @return string[][]
      *
-     * @psalm-return array{'simple digits': array{pattern: TestConstants::PATTERN_DIGITS}, 'email pattern': array{pattern: '/[a-z]+@[a-z]+\.[a-z]+/'}, 'phone pattern': array{pattern: '/\+?\d{1,3}[\s-]?\d{3}[\s-]?\d{4}/'}, 'ssn pattern': array{pattern: '/\d{3}-\d{2}-\d{4}/'}, 'word boundary': array{pattern: '/\b\w+\b/'}, 'case insensitive': array{pattern: '/test/i'}, multiline: array{pattern: '/^test$/m'}, unicode: array{pattern: '/\p{L}+/u'}}
+     * @psalm-return array{'simple digits': array{pattern: TestConstants::PATTERN_DIGITS}, 'email pattern': array{pattern: '/[a-z]+@[a-z]+\.[a-z]+/'}, 'phone pattern': array{pattern: '/\+?\d{1,3}[\s-]?\d{3}[\s-]?\d{4}/'}, 'ssn pattern': array{pattern: TestConstants::PATTERN_SSN_FORMAT}, 'word boundary': array{pattern: '/\b\w+\b/'}, 'case insensitive': array{pattern: '/test/i'}, multiline: array{pattern: '/^test$/m'}, unicode: array{pattern: '/\p{L}+/u'}}
      */
     public static function validPatternProvider(): array
     {
@@ -202,7 +203,7 @@ class PatternValidatorTest extends TestCase
             'simple digits' => ['pattern' => TestConstants::PATTERN_DIGITS],
             'email pattern' => ['pattern' => '/[a-z]+@[a-z]+\.[a-z]+/'],
             'phone pattern' => ['pattern' => '/\+?\d{1,3}[\s-]?\d{3}[\s-]?\d{4}/'],
-            'ssn pattern' => ['pattern' => '/\d{3}-\d{2}-\d{4}/'],
+            'ssn pattern' => ['pattern' => TestConstants::PATTERN_SSN_FORMAT],
             'word boundary' => ['pattern' => '/\b\w+\b/'],
             'case insensitive' => ['pattern' => '/test/i'],
             'multiline' => ['pattern' => '/^test$/m'],

@@ -196,26 +196,26 @@ final class AbstractMaskingStrategyTest extends TestCase
     #[Test]
     public function pathMatchesReturnsTrueForExactMatch(): void
     {
-        $this->assertTrue($this->strategy->testPathMatches('user.email', 'user.email'));
+        $this->assertTrue($this->strategy->testPathMatches(TestConstants::FIELD_USER_EMAIL, TestConstants::FIELD_USER_EMAIL));
     }
 
     #[Test]
     public function pathMatchesReturnsFalseForNonMatch(): void
     {
-        $this->assertFalse($this->strategy->testPathMatches('user.email', 'user.password'));
+        $this->assertFalse($this->strategy->testPathMatches(TestConstants::FIELD_USER_EMAIL, TestConstants::FIELD_USER_PASSWORD));
     }
 
     #[Test]
     public function pathMatchesSupportsWildcardAtEnd(): void
     {
-        $this->assertTrue($this->strategy->testPathMatches('user.email', 'user.*'));
-        $this->assertTrue($this->strategy->testPathMatches('user.password', 'user.*'));
+        $this->assertTrue($this->strategy->testPathMatches(TestConstants::FIELD_USER_EMAIL, TestConstants::PATH_USER_WILDCARD));
+        $this->assertTrue($this->strategy->testPathMatches(TestConstants::FIELD_USER_PASSWORD, TestConstants::PATH_USER_WILDCARD));
     }
 
     #[Test]
     public function pathMatchesSupportsWildcardAtStart(): void
     {
-        $this->assertTrue($this->strategy->testPathMatches('user.email', '*.email'));
+        $this->assertTrue($this->strategy->testPathMatches(TestConstants::FIELD_USER_EMAIL, '*.email'));
         $this->assertTrue($this->strategy->testPathMatches('admin.email', '*.email'));
     }
 
@@ -236,7 +236,7 @@ final class AbstractMaskingStrategyTest extends TestCase
     {
         $logRecord = $this->createLogRecord(
             TestConstants::MESSAGE_TEST_LOWERCASE,
-            ['user_id' => 123],
+            [TestConstants::CONTEXT_USER_ID => 123],
             Level::Error,
             'test-channel'
         );
@@ -244,8 +244,8 @@ final class AbstractMaskingStrategyTest extends TestCase
         $conditions = [
             'level' => 'Error',
             'channel' => 'test-channel',
-            'message' => 'test message',
-            'user_id' => 123,
+            'message' => TestConstants::MESSAGE_TEST_LOWERCASE,
+            TestConstants::CONTEXT_USER_ID => 123,
         ];
 
         $this->assertTrue($this->strategy->testRecordMatches($logRecord, $conditions));
@@ -287,7 +287,7 @@ final class AbstractMaskingStrategyTest extends TestCase
             'test-channel'
         );
 
-        $this->assertFalse($this->strategy->testRecordMatches($logRecord, ['user_id' => 123]));
+        $this->assertFalse($this->strategy->testRecordMatches($logRecord, [TestConstants::CONTEXT_USER_ID => 123]));
     }
 
     #[Test]
@@ -331,8 +331,8 @@ final class AbstractMaskingStrategyTest extends TestCase
     #[Test]
     public function preserveValueTypeReturnsStringForStringInput(): void
     {
-        $result = $this->strategy->testPreserveValueType('original', 'masked');
-        $this->assertSame('masked', $result);
+        $result = $this->strategy->testPreserveValueType('original', TestConstants::DATA_MASKED);
+        $this->assertSame(TestConstants::DATA_MASKED, $result);
         $this->assertIsString($result);
     }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Tests\TestConstants;
 use Ivuorinen\MonologGdprFilter\Exceptions\InvalidRegexPatternException;
 use Ivuorinen\MonologGdprFilter\DefaultPatterns;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
@@ -35,7 +36,7 @@ class GdprProcessorTest extends TestCase
     {
         $patterns = DefaultPatterns::get();
         $fieldPaths = [
-            'user.email' => FieldMaskConfig::useProcessorPatterns(),
+            TestConstants::FIELD_USER_EMAIL => FieldMaskConfig::useProcessorPatterns(),
         ];
         $processor = $this->createProcessor($patterns, $fieldPaths);
         $record = new LogRecord(
@@ -43,11 +44,11 @@ class GdprProcessorTest extends TestCase
             channel: 'test',
             level: Level::Info,
             message: static::USER_REGISTERED,
-            context: ['user' => ['email' => self::TEST_EMAIL]],
+            context: ['user' => [TestConstants::CONTEXT_EMAIL => self::TEST_EMAIL]],
             extra: []
         );
         $processed = $processor($record);
-        $this->assertSame(self::MASKED_EMAIL, $processed->context['user']['email']);
+        $this->assertSame(self::MASKED_EMAIL, $processed->context['user'][TestConstants::CONTEXT_EMAIL]);
     }
 
     public function testRemoveField(): void
@@ -62,12 +63,12 @@ class GdprProcessorTest extends TestCase
             channel: 'test',
             level: Level::Info,
             message: 'Sensitive info',
-            context: ['user' => ['ssn' => '123456-789A', 'name' => 'John']],
+            context: ['user' => ['ssn' => '123456-789A', 'name' => TestConstants::NAME_FIRST]],
             extra: []
         );
         $processed = $processor($record);
         $this->assertArrayNotHasKey('ssn', $processed->context['user']);
-        $this->assertSame('John', $processed->context['user']['name']);
+        $this->assertSame(TestConstants::NAME_FIRST, $processed->context['user']['name']);
     }
 
     public function testReplaceWithField(): void
@@ -93,10 +94,10 @@ class GdprProcessorTest extends TestCase
     {
         $patterns = DefaultPatterns::get();
         $fieldPaths = [
-            'user.name' => FieldMaskConfig::useProcessorPatterns(),
+            TestConstants::FIELD_USER_NAME => FieldMaskConfig::useProcessorPatterns(),
         ];
         $customCallbacks = [
-            'user.name' => fn($value): string => strtoupper((string) $value),
+            TestConstants::FIELD_USER_NAME => fn($value): string => strtoupper((string) $value),
         ];
         $processor = $this->createProcessor($patterns, $fieldPaths, $customCallbacks);
         $record = new LogRecord(
@@ -115,7 +116,7 @@ class GdprProcessorTest extends TestCase
     {
         $patterns = DefaultPatterns::get();
         $fieldPaths = [
-            'user.email' => FieldMaskConfig::useProcessorPatterns(),
+            TestConstants::FIELD_USER_EMAIL => FieldMaskConfig::useProcessorPatterns(),
         ];
         $auditCalls = [];
         $auditLogger = function ($path, $original, $masked) use (&$auditCalls): void {
@@ -127,12 +128,12 @@ class GdprProcessorTest extends TestCase
             channel: 'test',
             level: Level::Info,
             message: static::USER_REGISTERED,
-            context: ['user' => ['email' => static::TEST_EMAIL]],
+            context: ['user' => [TestConstants::CONTEXT_EMAIL => static::TEST_EMAIL]],
             extra: []
         );
         $processor($record);
         $this->assertNotEmpty($auditCalls);
-        $this->assertSame(['user.email', 'john.doe@example.com', Mask::MASK_EMAIL], $auditCalls[0]);
+        $this->assertSame([TestConstants::FIELD_USER_EMAIL, TestConstants::EMAIL_JOHN_DOE, Mask::MASK_EMAIL], $auditCalls[0]);
     }
 
     public function testMaskMessage(): void
@@ -149,7 +150,7 @@ class GdprProcessorTest extends TestCase
     public function testRecursiveMask(): void
     {
         $patterns = [
-            '/secret/' => self::MASKED_SECRET,
+            TestConstants::PATTERN_SECRET => self::MASKED_SECRET,
         ];
         $processor = new class ($patterns) extends GdprProcessor {
             public function callRecursiveMask(mixed $data): array|string
@@ -192,7 +193,7 @@ class GdprProcessorTest extends TestCase
             message: 'Sensitive info',
             context: [
                 'user' => [
-                    'email' => self::TEST_EMAIL,
+                    TestConstants::CONTEXT_EMAIL => self::TEST_EMAIL,
                     'ssn' => self::TEST_HETU,
                     'card' => self::TEST_CC,
                 ],
@@ -201,7 +202,7 @@ class GdprProcessorTest extends TestCase
             extra: []
         );
         $processed = $processor($record);
-        $this->assertSame(self::MASKED_EMAIL, $processed->context['user']['email']);
+        $this->assertSame(self::MASKED_EMAIL, $processed->context['user'][TestConstants::CONTEXT_EMAIL]);
         $this->assertSame(Mask::MASK_HETU, $processed->context['user']['ssn']);
         $this->assertSame(Mask::MASK_CC, $processed->context['user']['card']);
     }
@@ -210,7 +211,7 @@ class GdprProcessorTest extends TestCase
     {
         $patterns = DefaultPatterns::get();
         $fieldPaths = [
-            'user.email' => Mask::MASK_BRACKETS, // string, not FieldMaskConfig
+            TestConstants::FIELD_USER_EMAIL => Mask::MASK_BRACKETS, // string, not FieldMaskConfig
         ];
         $processor = $this->createProcessor($patterns, $fieldPaths);
         $record = new LogRecord(
@@ -218,11 +219,11 @@ class GdprProcessorTest extends TestCase
             channel: 'test',
             level: Level::Info,
             message: static::USER_REGISTERED,
-            context: ['user' => ['email' => self::TEST_EMAIL]],
+            context: ['user' => [TestConstants::CONTEXT_EMAIL => self::TEST_EMAIL]],
             extra: []
         );
         $processed = $processor($record);
-        $this->assertSame(Mask::MASK_BRACKETS, $processed->context['user']['email']);
+        $this->assertSame(Mask::MASK_BRACKETS, $processed->context['user'][TestConstants::CONTEXT_EMAIL]);
     }
 
     public function testNonStringValueInContext(): void
@@ -241,7 +242,7 @@ class GdprProcessorTest extends TestCase
             extra: []
         );
         $processed = $processor($record);
-        $this->assertSame('12345', $processed->context['user']['id']);
+        $this->assertSame(TestConstants::DATA_NUMBER_STRING, $processed->context['user']['id']);
     }
 
     public function testMissingFieldInContext(): void
@@ -256,7 +257,7 @@ class GdprProcessorTest extends TestCase
             channel: 'test',
             level: Level::Info,
             message: static::USER_REGISTERED,
-            context: ['user' => ['email' => self::TEST_EMAIL]],
+            context: ['user' => [TestConstants::CONTEXT_EMAIL => self::TEST_EMAIL]],
             extra: []
         );
         $processed = $processor($record);
@@ -277,8 +278,8 @@ class GdprProcessorTest extends TestCase
     {
         // Test that valid regex patterns work correctly
         $validPatterns = [
-            '/test/' => 'REPLACED',
-            '/\d+/' => 'NUMBER',
+            TestConstants::PATTERN_TEST => 'REPLACED',
+            TestConstants::PATTERN_DIGITS => 'NUMBER',
             '/[a-z]+/' => 'LETTERS'
         ];
 

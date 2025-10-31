@@ -8,6 +8,7 @@ use Ivuorinen\MonologGdprFilter\Exceptions\InvalidRateLimitConfigurationExceptio
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Tests\TestConstants;
 
 /**
  * Test InvalidRateLimitConfigurationException factory methods.
@@ -73,7 +74,7 @@ class InvalidRateLimitConfigurationExceptionTest extends TestCase
         $exception = InvalidRateLimitConfigurationException::emptyKey();
 
         $this->assertInstanceOf(InvalidRateLimitConfigurationException::class, $exception);
-        $this->assertStringContainsString('Rate limiting key cannot be empty', $exception->getMessage());
+        $this->assertStringContainsString(TestConstants::ERROR_RATE_LIMIT_KEY_EMPTY, $exception->getMessage());
         $this->assertStringContainsString('key', $exception->getMessage());
     }
 

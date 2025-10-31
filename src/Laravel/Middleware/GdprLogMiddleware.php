@@ -13,6 +13,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
+use Ivuorinen\MonologGdprFilter\MaskConstants;
 
 /**
  * Middleware for GDPR-compliant request/response logging.
@@ -198,7 +199,7 @@ class GdprLogMiddleware
 
         $filtered = [];
         foreach ($headers as $name => $value) {
-            $filtered[$name] = in_array(strtolower($name), $sensitiveHeaders) ? ['***FILTERED***'] : $value;
+            $filtered[$name] = in_array(strtolower($name), $sensitiveHeaders) ? [MaskConstants::MASK_FILTERED] : $value;
         }
 
         return $filtered;

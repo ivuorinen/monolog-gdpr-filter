@@ -124,6 +124,10 @@ class RecursiveProcessor
 
     /**
      * Process a single value (string, array, or other type).
+     *
+     * @param mixed $value
+     *
+     * @psalm-param mixed $value
      */
     public function processValue(mixed $value, int $currentDepth): mixed
     {
