@@ -275,7 +275,7 @@ final class GdprProcessorComprehensiveTest extends TestCase
             ]
         );
 
-        $record = $this->createLogRecord('Test with 123');
+        $record = $this->createLogRecord(TestConstants::MESSAGE_TEST_WITH_DIGITS);
 
         $result = $processor($record);
 
@@ -292,14 +292,14 @@ final class GdprProcessorComprehensiveTest extends TestCase
             patterns: [TestConstants::PATTERN_DIGITS => 'NUM'],
             auditLogger: $auditLogger,
             conditionalRules: [
-                'failing_rule' => function ($record): never {
+                'failing_rule' => function (): never {
                     throw new TestException('Rule failed');
                 },
                 'passing_rule' => fn($record): bool => true,
             ]
         );
 
-        $record = $this->createLogRecord('Test with 123');
+        $record = $this->createLogRecord(TestConstants::MESSAGE_TEST_WITH_DIGITS);
 
         $result = $processor($record);
 
@@ -322,7 +322,7 @@ final class GdprProcessorComprehensiveTest extends TestCase
             conditionalRules: []
         );
 
-        $record = $this->createLogRecord('Test with 123');
+        $record = $this->createLogRecord(TestConstants::MESSAGE_TEST_WITH_DIGITS);
 
         $result = $processor($record);
 

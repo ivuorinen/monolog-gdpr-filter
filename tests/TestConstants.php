@@ -101,8 +101,15 @@ final class TestConstants
     // Test Messages and Data
     public const MESSAGE_TEST_LOWERCASE = 'test message';
     public const MESSAGE_USER_ID = 'User ID: 12345';
+    public const MESSAGE_TEST_WITH_DIGITS = 'Test with 123';
+    public const MESSAGE_SECRET_DATA = 'secret data';
+    public const MESSAGE_TEST_STRING = 'test string';
     public const DATA_PUBLIC = 'public data';
     public const DATA_NUMBER_STRING = '12345';
+    public const JSON_KEY_VALUE = '{"key":"value"}';
+    public const PATH_TEST = '/test';
+    public const CONTENT_TYPE_JSON = 'application/json';
+    public const STRATEGY_TEST = 'Test Strategy';
 
     // Template Messages
     public const TEMPLATE_ENV_VALUE_RESULT = "Environment value '%s' should result in ";

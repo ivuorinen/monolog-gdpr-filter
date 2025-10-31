@@ -9,6 +9,7 @@ use Ivuorinen\MonologGdprFilter\Strategies\AbstractMaskingStrategy;
 use Monolog\LogRecord;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Tests\TestConstants;
 use Tests\TestHelpers;
 
 #[CoversClass(AbstractMaskingStrategy::class)]
@@ -32,7 +33,7 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
 
             public function getName(): string
             {
-                return 'Test Strategy';
+                return TestConstants::STRATEGY_TEST;
             }
 
             // Expose valueToString for testing
@@ -77,7 +78,7 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
 
             public function getName(): string
             {
-                return 'Test Strategy';
+                return TestConstants::STRATEGY_TEST;
             }
 
             public function testPreserveValueType(mixed $originalValue, string $maskedString): mixed
@@ -109,7 +110,7 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
 
             public function getName(): string
             {
-                return 'Test Strategy';
+                return TestConstants::STRATEGY_TEST;
             }
 
             public function testPreserveValueType(mixed $originalValue, string $maskedString): mixed
@@ -141,7 +142,7 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
 
             public function getName(): string
             {
-                return 'Test Strategy';
+                return TestConstants::STRATEGY_TEST;
             }
 
             public function testPreserveValueType(mixed $originalValue, string $maskedString): mixed
@@ -173,7 +174,7 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
 
             public function getName(): string
             {
-                return 'Test Strategy';
+                return TestConstants::STRATEGY_TEST;
             }
 
             public function testPreserveValueType(mixed $originalValue, string $maskedString): mixed
@@ -205,7 +206,7 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
 
             public function getName(): string
             {
-                return 'Test Strategy';
+                return TestConstants::STRATEGY_TEST;
             }
 
             public function testPreserveValueType(mixed $originalValue, string $maskedString): mixed
@@ -237,7 +238,7 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
 
             public function getName(): string
             {
-                return 'Test Strategy';
+                return TestConstants::STRATEGY_TEST;
             }
 
             public function testPreserveValueType(mixed $originalValue, string $maskedString): mixed

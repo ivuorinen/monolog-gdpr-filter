@@ -99,8 +99,8 @@ final class JsonMaskerEnhancedTest extends TestCase
         $recursiveCallback = fn($val) => $val;
         $masker = new JsonMasker($recursiveCallback, $auditLogger);
 
-        $json = '{"key":"value"}';
-        $result = $masker->processCandidate($json);
+        $json = TestConstants::JSON_KEY_VALUE;
+        $masker->processCandidate($json);
 
         // Should not log when unchanged
         $this->assertCount(0, $auditLog);
@@ -119,7 +119,7 @@ final class JsonMaskerEnhancedTest extends TestCase
 
         $masker = new JsonMasker($recursiveCallback);
 
-        $json = '{"key":"value"}';
+        $json = TestConstants::JSON_KEY_VALUE;
         $result = $masker->processCandidate($json);
 
         // Should return original when encoding fails
@@ -131,8 +131,8 @@ final class JsonMaskerEnhancedTest extends TestCase
         $recursiveCallback = fn($val) => $val;
         $masker = new JsonMasker($recursiveCallback);
 
-        $encoded = '{"key":"value"}';
-        $original = '{"key":"value"}';
+        $encoded = TestConstants::JSON_KEY_VALUE;
+        $original = TestConstants::JSON_KEY_VALUE;
 
         $result = $masker->fixEmptyObjects($encoded, $original);
 

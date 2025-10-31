@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Ivuorinen\MonologGdprFilter\Exceptions\RuleExecutionException;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 use Ivuorinen\MonologGdprFilter\MaskConstants as Mask;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -39,7 +40,7 @@ final class GdprProcessorConditionalRulesTest extends TestCase
             ]
         );
 
-        $record = $this->createLogRecord('secret data');
+        $record = $this->createLogRecord(TestConstants::MESSAGE_SECRET_DATA);
         $result = $processor($record);
 
         // Message should NOT be masked because rule returned false
@@ -71,13 +72,13 @@ final class GdprProcessorConditionalRulesTest extends TestCase
             maxDepth: 100,
             dataTypeMasks: [],
             conditionalRules: [
-                'error_rule' => function ($record): never {
-                    throw new \RuntimeException('Rule failed');
+                'error_rule' => function (): never {
+                    throw new RuleExecutionException('Rule failed');
                 },
             ]
         );
 
-        $record = $this->createLogRecord('secret data');
+        $record = $this->createLogRecord(TestConstants::MESSAGE_SECRET_DATA);
         $result = $processor($record);
 
         // Message SHOULD be masked because exception causes rule to be skipped
@@ -110,7 +111,7 @@ final class GdprProcessorConditionalRulesTest extends TestCase
             ]
         );
 
-        $record = $this->createLogRecord('secret data');
+        $record = $this->createLogRecord(TestConstants::MESSAGE_SECRET_DATA);
         $result = $processor($record);
 
         // Message should NOT be masked because rule3 returned false
@@ -137,14 +138,14 @@ final class GdprProcessorConditionalRulesTest extends TestCase
             maxDepth: 100,
             dataTypeMasks: [],
             conditionalRules: [
-                'sensitive_error' => function ($record): never {
-                    throw new \RuntimeException('Error with password=secret123 in message');
+                'sensitive_error' => function (): never {
+                    throw new RuleExecutionException('Error with password=secret123 in message');
                 },
             ]
         );
 
         $record = $this->createLogRecord('data here');
-        $result = $processor($record);
+        $processor($record);
 
         // Check that error message was sanitized (password should be masked)
         $errorEntry = array_filter($auditLog, fn(array $entry): bool => $entry['path'] === 'conditional_error');

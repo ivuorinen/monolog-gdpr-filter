@@ -66,7 +66,8 @@ class GdprProcessorValidationTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage('Pattern replacement must be of type string, got integer');
 
-        new GdprProcessor([TestConstants::PATTERN_TEST => 123]);
+        $processor = new GdprProcessor([TestConstants::PATTERN_TEST => 123]);
+        $this->assertInstanceOf(GdprProcessor::class, $processor);
     }
 
     #[Test]
@@ -122,7 +123,8 @@ class GdprProcessorValidationTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage('Field path value must be of type FieldMaskConfig or string, got integer');
 
-        new GdprProcessor([], [TestConstants::FIELD_USER_EMAIL => 123]);
+        $processor = new GdprProcessor([], [TestConstants::FIELD_USER_EMAIL => 123]);
+        $this->assertInstanceOf(GdprProcessor::class, $processor);
     }
 
     #[Test]
@@ -131,7 +133,8 @@ class GdprProcessorValidationTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage("Cannot have empty string value");
 
-        new GdprProcessor([], [TestConstants::FIELD_USER_EMAIL => '']);
+        $processor = new GdprProcessor([], [TestConstants::FIELD_USER_EMAIL => '']);
+        $this->assertInstanceOf(GdprProcessor::class, $processor);
     }
 
     #[Test]

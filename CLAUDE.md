@@ -98,6 +98,7 @@ The library can be integrated with Laravel in two ways:
 - **PHPStan**: Level 6 analysis with Laravel compatibility
 - **Rector**: Safe automated improvements (return types, string casting, etc.)
 - **PHPCS**: PSR-12 compliance enforcement
+- **SonarQube**: Cloud-based code quality and security analysis (quality gate must pass)
 
 **Issue Resolution Priority:**
 
@@ -108,6 +109,44 @@ The library can be integrated with Laravel in two ways:
    explicit discussion
 
 **Tip:** Use `git stash` before running `composer lint:fix` to easily revert changes if needed.
+
+### SonarQube-Specific Guidelines
+
+SonarQube is a **static analysis tool** that analyzes code structure,
+not runtime behavior. Unlike human reviewers, it does NOT understand:
+
+- PHPUnit's `expectException()` mechanism
+- Test intent or context
+- Comments explaining why code is written a certain way
+
+**Common SonarQube issues and their fixes:**
+
+1. **S1848: Useless object instantiation**
+   - **Issue**: `new ClassName()` in tests that expect exceptions
+   - **Why it occurs**: SonarQube doesn't understand `expectException()` means the object creation is the test
+   - **Fix**: Assign to variable and add assertion: `$obj = new ClassName(); $this->assertInstanceOf(...)`
+
+2. **S4833: Replace require_once with use statement**
+   - **Issue**: Direct file inclusion instead of autoloading
+   - **Fix**: Use composer's autoloader and proper `use` statements
+
+3. **S1172: Remove unused function parameter**
+   - **Issue**: Callback parameters that aren't used in the function body
+   - **Fix**: Remove unused parameters from function signature
+
+4. **S112: Define dedicated exception instead of generic one**
+   - **Issue**: Throwing `\RuntimeException` or `\Exception` directly
+   - **Fix**: Use project-specific exceptions like `RuleExecutionException`, `MaskingOperationFailedException`
+
+5. **S1192: Define constant instead of duplicating literal**
+   - **Issue**: String/number literals repeated 3+ times
+   - **Fix**: Add to `TestConstants` or `MaskConstants` and use the constant reference
+
+6. **S1481: Remove unused local variable**
+   - **Issue**: Variable assigned but never read
+   - **Fix**: Remove assignment or use the variable
+
+**IMPORTANT**: Comments and docblocks do NOT fix SonarQube issues. The code structure itself must be changed.
 
 ## Code Quality
 

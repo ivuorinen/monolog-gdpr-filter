@@ -230,7 +230,7 @@ final class DataTypeMaskerEnhancedTest extends TestCase
     public function testApplyToContextWithCurrentPath(): void
     {
         $auditLog = [];
-        $auditLogger = function (string $path, mixed $original, mixed $masked) use (&$auditLog): void {
+        $auditLogger = function (string $path) use (&$auditLog): void {
             $auditLog[] = $path;
         };
 

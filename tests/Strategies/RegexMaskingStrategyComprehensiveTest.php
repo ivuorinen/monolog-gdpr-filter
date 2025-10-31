@@ -25,7 +25,7 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
         ]);
 
         $record = $this->createLogRecord('Test');
-        $result = $strategy->mask('test string', 'field', $record);
+        $result = $strategy->mask(TestConstants::MESSAGE_TEST_STRING, 'field', $record);
 
         // Should work for normal input
         $this->assertStringContainsString('MASKED', $result);
@@ -61,7 +61,7 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
         $record = $this->createLogRecord('Test');
 
         // Should return false for non-string values that can't be matched
-        $result = $strategy->shouldApply('test string', 'field', $record);
+        $result = $strategy->shouldApply(TestConstants::MESSAGE_TEST_STRING, 'field', $record);
 
         $this->assertTrue($result);
     }
@@ -84,9 +84,10 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
         $this->expectExceptionMessage('ReDoS');
 
         // Pattern with (x+)+ - catastrophic backtracking
-        new RegexMaskingStrategy([
+        $strategy = new RegexMaskingStrategy([
             '/(.+)+/' => Mask::MASK_MASKED,
         ]);
+        $this->assertInstanceOf(RegexMaskingStrategy::class, $strategy);
     }
 
     public function testDetectReDoSRiskWithNestedStarQuantifiers(): void
@@ -95,9 +96,10 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
         $this->expectExceptionMessage('ReDoS');
 
         // Pattern with (x*)* - catastrophic backtracking
-        new RegexMaskingStrategy([
+        $strategy = new RegexMaskingStrategy([
             '/(a*)*/' => Mask::MASK_MASKED,
         ]);
+        $this->assertInstanceOf(RegexMaskingStrategy::class, $strategy);
     }
 
     public function testDetectReDoSRiskWithQuantifiedPlusGroup(): void
@@ -106,9 +108,10 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
         $this->expectExceptionMessage('ReDoS');
 
         // Pattern with (x+){n,m} - catastrophic backtracking
-        new RegexMaskingStrategy([
+        $strategy = new RegexMaskingStrategy([
             '/(a+){2,5}/' => Mask::MASK_MASKED,
         ]);
+        $this->assertInstanceOf(RegexMaskingStrategy::class, $strategy);
     }
 
     public function testDetectReDoSRiskWithQuantifiedStarGroup(): void
@@ -117,9 +120,10 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
         $this->expectExceptionMessage('ReDoS');
 
         // Pattern with (x*){n,m} - catastrophic backtracking
-        new RegexMaskingStrategy([
+        $strategy = new RegexMaskingStrategy([
             '/(b*){3,6}/' => Mask::MASK_MASKED,
         ]);
+        $this->assertInstanceOf(RegexMaskingStrategy::class, $strategy);
     }
 
     public function testDetectReDoSRiskWithIdenticalDotStarAlternations(): void
@@ -128,9 +132,10 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
         $this->expectExceptionMessage('ReDoS');
 
         // Pattern with (.*|.*) - identical alternations
-        new RegexMaskingStrategy([
+        $strategy = new RegexMaskingStrategy([
             '/(.*|.*)/' => Mask::MASK_MASKED,
         ]);
+        $this->assertInstanceOf(RegexMaskingStrategy::class, $strategy);
     }
 
     public function testDetectReDoSRiskWithIdenticalDotPlusAlternations(): void
@@ -139,9 +144,10 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
         $this->expectExceptionMessage('ReDoS');
 
         // Pattern with (.+|.+) - identical alternations
-        new RegexMaskingStrategy([
+        $strategy = new RegexMaskingStrategy([
             '/(.+|.+)/' => Mask::MASK_MASKED,
         ]);
+        $this->assertInstanceOf(RegexMaskingStrategy::class, $strategy);
     }
 
     public function testDetectReDoSRiskWithMultipleOverlappingAlternationsStar(): void
@@ -150,9 +156,10 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
         $this->expectExceptionMessage('ReDoS');
 
         // Pattern with multiple overlapping alternations with *
-        new RegexMaskingStrategy([
+        $strategy = new RegexMaskingStrategy([
             '/(a|b|c)*/' => Mask::MASK_MASKED,
         ]);
+        $this->assertInstanceOf(RegexMaskingStrategy::class, $strategy);
     }
 
     public function testDetectReDoSRiskWithMultipleOverlappingAlternationsPlus(): void
@@ -161,9 +168,10 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
         $this->expectExceptionMessage('ReDoS');
 
         // Pattern with multiple overlapping alternations with +
-        new RegexMaskingStrategy([
+        $strategy = new RegexMaskingStrategy([
             '/(abc|def|ghi)+/' => Mask::MASK_MASKED,
         ]);
+        $this->assertInstanceOf(RegexMaskingStrategy::class, $strategy);
     }
 
     public function testValidateReturnsFalseForEmptyPatterns(): void
@@ -183,7 +191,8 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
         $this->expectException(InvalidRegexPatternException::class);
 
         // This will throw during construction, which is the intended behavior
-        new RegexMaskingStrategy(['/(.+)+/' => Mask::MASK_MASKED]);
+        $strategy = new RegexMaskingStrategy(['/(.+)+/' => Mask::MASK_MASKED]);
+        $this->assertInstanceOf(RegexMaskingStrategy::class, $strategy);
     }
 
     public function testShouldApplyWithIncludePathsMatching(): void
@@ -196,10 +205,10 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
         $record = $this->createLogRecord('Test');
 
         // Should apply to included path
-        $this->assertTrue($strategy->shouldApply('secret data', TestConstants::FIELD_USER_PASSWORD, $record));
+        $this->assertTrue($strategy->shouldApply(TestConstants::MESSAGE_SECRET_DATA, TestConstants::FIELD_USER_PASSWORD, $record));
 
         // Should not apply to non-included path
-        $this->assertFalse($strategy->shouldApply('secret data', 'other.field', $record));
+        $this->assertFalse($strategy->shouldApply(TestConstants::MESSAGE_SECRET_DATA, 'other.field', $record));
     }
 
     public function testShouldApplyWithExcludePathsMatching(): void
@@ -212,10 +221,10 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
         $record = $this->createLogRecord('Test');
 
         // Should not apply to excluded path
-        $this->assertFalse($strategy->shouldApply('secret data', 'public.field', $record));
+        $this->assertFalse($strategy->shouldApply(TestConstants::MESSAGE_SECRET_DATA, 'public.field', $record));
 
         // Should apply to non-excluded path with matching pattern
-        $this->assertTrue($strategy->shouldApply('secret data', 'private.field', $record));
+        $this->assertTrue($strategy->shouldApply(TestConstants::MESSAGE_SECRET_DATA, 'private.field', $record));
     }
 
     public function testShouldApplyWithIncludeAndExcludePaths(): void
@@ -229,10 +238,10 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
         $record = $this->createLogRecord('Test');
 
         // Should not apply to excluded path even if in include list
-        $this->assertFalse($strategy->shouldApply('secret data', TestConstants::FIELD_USER_PUBLIC, $record));
+        $this->assertFalse($strategy->shouldApply(TestConstants::MESSAGE_SECRET_DATA, TestConstants::FIELD_USER_PUBLIC, $record));
 
         // Should apply to included path not in exclude list
-        $this->assertTrue($strategy->shouldApply('secret data', TestConstants::FIELD_USER_PASSWORD, $record));
+        $this->assertTrue($strategy->shouldApply(TestConstants::MESSAGE_SECRET_DATA, TestConstants::FIELD_USER_PASSWORD, $record));
     }
 
     public function testShouldApplyCatchesMaskingException(): void
@@ -243,7 +252,7 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
 
         // valueToString can throw MaskingOperationFailedException for certain types
         // For now, test that shouldApply returns false when it can't process the value
-        $result = $strategy->shouldApply('test string', 'field', $record);
+        $result = $strategy->shouldApply(TestConstants::MESSAGE_TEST_STRING, 'field', $record);
 
         $this->assertTrue($result);
     }
@@ -256,7 +265,7 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
         $record = $this->createLogRecord('Test');
 
         // For normal inputs, mask should work
-        $result = $strategy->mask('test string', 'field', $record);
+        $result = $strategy->mask(TestConstants::MESSAGE_TEST_STRING, 'field', $record);
 
         $this->assertStringContainsString('MASKED', $result);
     }
@@ -343,7 +352,7 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
         $record = $this->createLogRecord('Test');
 
         // Test first pattern match
-        $this->assertTrue($strategy->shouldApply('secret data', 'field', $record));
+        $this->assertTrue($strategy->shouldApply(TestConstants::MESSAGE_SECRET_DATA, 'field', $record));
 
         // Test second pattern match
         $this->assertTrue($strategy->shouldApply('password here', 'field', $record));

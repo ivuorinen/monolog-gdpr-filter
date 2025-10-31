@@ -44,7 +44,7 @@ final class ConditionalMaskingStrategyComprehensiveTest extends TestCase
         $wrappedStrategy = new class implements MaskingStrategyInterface {
             public function mask(mixed $value, string $path, LogRecord $logRecord): mixed
             {
-                throw new \RuntimeException('Wrapped strategy failed');
+                throw new MaskingOperationFailedException('Wrapped strategy failed');
             }
 
             public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool

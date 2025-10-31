@@ -63,15 +63,17 @@ echo COLOR_BLUE . "Loading constants from:\n" . COLOR_RESET;
 echo "  - src/MaskConstants.php\n";
 echo "  - tests/TestConstants.php\n\n";
 
-// Extract constants from files using reflection
-require_once $maskConstantsFile;
-require_once $testConstantsFile;
+// Load composer autoloader to enable namespace imports
+require_once __DIR__ . '/vendor/autoload.php';
+
+use Ivuorinen\MonologGdprFilter\MaskConstants;
+use Tests\TestConstants;
 
 try {
-    $maskReflection = new ReflectionClass(Ivuorinen\MonologGdprFilter\MaskConstants::class);
+    $maskReflection = new ReflectionClass(MaskConstants::class);
     $maskConstants = $maskReflection->getConstants();
 
-    $testReflection = new ReflectionClass(Tests\TestConstants::class);
+    $testReflection = new ReflectionClass(TestConstants::class);
     $testConstants = $testReflection->getConstants();
 } catch (ReflectionException $e) {
     echo sprintf("%sError loading constants: %s\n%s", COLOR_RED, $e->getMessage(), COLOR_RESET);

@@ -6,6 +6,7 @@ namespace Tests;
 
 use Adbar\Dot;
 use Ivuorinen\MonologGdprFilter\ContextProcessor;
+use Ivuorinen\MonologGdprFilter\Exceptions\RuleExecutionException;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
 use Ivuorinen\MonologGdprFilter\MaskConstants;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -176,8 +177,8 @@ final class ContextProcessorTest extends TestCase
         };
 
         $regexProcessor = fn(string $val): string => $val;
-        $callback = function (mixed $val): never {
-            throw new \RuntimeException('Callback error');
+        $callback = function (): never {
+            throw new RuleExecutionException('Callback error');
         };
 
         $processor = new ContextProcessor(

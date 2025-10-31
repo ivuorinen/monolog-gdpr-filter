@@ -36,7 +36,7 @@ final class GdprProcessorEdgeCasesTest extends TestCase
 
         // Process a record with field path masking to trigger child processors
         $record = $this->createLogRecord(TestConstants::MESSAGE_TEST_LOWERCASE, ['field' => 'value']);
-        $result = $processor($record);
+        $processor($record);
 
         // Audit log should have entries from child processors
         $this->assertNotEmpty($auditLog);

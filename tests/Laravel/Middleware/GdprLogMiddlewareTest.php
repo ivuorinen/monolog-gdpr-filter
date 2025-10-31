@@ -27,7 +27,7 @@ final class GdprLogMiddlewareTest extends TestCase
         parent::setUp();
 
         $this->processor = new GdprProcessor(
-            patterns: [TestConstants::PATTERN_SECRET => Mask::MASK_MASKED, TestConstants::PATTERN_SECRET => Mask::MASK_MASKED],
+            patterns: [TestConstants::PATTERN_SECRET => Mask::MASK_MASKED],
             fieldPaths: []
         );
     }
@@ -42,7 +42,7 @@ final class GdprLogMiddlewareTest extends TestCase
     public function testGetRequestBodyReturnsNullForGetRequest(): void
     {
         $middleware = new GdprLogMiddleware($this->processor);
-        $request = Request::create('/test', 'GET');
+        $request = Request::create(TestConstants::PATH_TEST, 'GET');
 
         $reflection = new \ReflectionClass($middleware);
         $method = $reflection->getMethod('getRequestBody');
@@ -57,8 +57,8 @@ final class GdprLogMiddlewareTest extends TestCase
         $middleware = new GdprLogMiddleware($this->processor);
 
         $data = ['key' => 'value', TestConstants::CONTEXT_PASSWORD => 'secret'];
-        $request = Request::create('/test', 'POST', [], [], [], [], json_encode($data));
-        $request->headers->set('Content-Type', 'application/json');
+        $request = Request::create(TestConstants::PATH_TEST, 'POST', [], [], [], [], json_encode($data));
+        $request->headers->set('Content-Type', TestConstants::CONTENT_TYPE_JSON);
 
         $reflection = new \ReflectionClass($middleware);
         $method = $reflection->getMethod('getRequestBody');
@@ -73,7 +73,7 @@ final class GdprLogMiddlewareTest extends TestCase
     {
         $middleware = new GdprLogMiddleware($this->processor);
 
-        $request = Request::create('/test', 'POST', ['field' => 'value']);
+        $request = Request::create(TestConstants::PATH_TEST, 'POST', ['field' => 'value']);
         $request->headers->set('Content-Type', 'application/x-www-form-urlencoded');
 
         $reflection = new \ReflectionClass($middleware);
@@ -89,7 +89,7 @@ final class GdprLogMiddlewareTest extends TestCase
     {
         $middleware = new GdprLogMiddleware($this->processor);
 
-        $request = Request::create('/test', 'POST', ['field' => 'value', '_token' => 'csrf-token']);
+        $request = Request::create(TestConstants::PATH_TEST, 'POST', ['field' => 'value', '_token' => 'csrf-token']);
         $request->headers->set('Content-Type', 'multipart/form-data');
 
         $reflection = new \ReflectionClass($middleware);
@@ -107,7 +107,7 @@ final class GdprLogMiddlewareTest extends TestCase
     {
         $middleware = new GdprLogMiddleware($this->processor);
 
-        $request = Request::create('/test', 'POST', []);
+        $request = Request::create(TestConstants::PATH_TEST, 'POST', []);
         $request->headers->set('Content-Type', 'text/plain');
 
         $reflection = new \ReflectionClass($middleware);
@@ -156,7 +156,7 @@ final class GdprLogMiddlewareTest extends TestCase
         $middleware = new GdprLogMiddleware($this->processor);
 
         $response = new Response('invalid json {', 200);
-        $response->headers->set('Content-Type', 'application/json');
+        $response->headers->set('Content-Type', TestConstants::CONTENT_TYPE_JSON);
 
         $reflection = new \ReflectionClass($middleware);
         $method = $reflection->getMethod('getResponseBody');
@@ -191,7 +191,7 @@ final class GdprLogMiddlewareTest extends TestCase
         $middleware = new GdprLogMiddleware($this->processor);
 
         $headers = [
-            'content-type' => ['application/json'],
+            'content-type' => [TestConstants::CONTENT_TYPE_JSON],
             'authorization' => ['Bearer token123'],
             'x-api-key' => ['secret-key'],
             'cookie' => ['session=abc123'],
@@ -203,7 +203,7 @@ final class GdprLogMiddlewareTest extends TestCase
 
         $result = $method->invoke($middleware, $headers);
 
-        $this->assertSame(['application/json'], $result['content-type']);
+        $this->assertSame([TestConstants::CONTENT_TYPE_JSON], $result['content-type']);
         $this->assertSame([Mask::MASK_FILTERED], $result['authorization']);
         $this->assertSame([Mask::MASK_FILTERED], $result['x-api-key']);
         $this->assertSame([Mask::MASK_FILTERED], $result['cookie']);

@@ -162,7 +162,7 @@ final class StrategyManagerComprehensiveTest extends TestCase
         $failingStrategy = new class implements MaskingStrategyInterface {
             public function mask(mixed $value, string $path, LogRecord $logRecord): mixed
             {
-                throw new \RuntimeException('Strategy execution failed');
+                throw new MaskingOperationFailedException('Strategy execution failed');
             }
 
             public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
@@ -418,7 +418,7 @@ final class StrategyManagerComprehensiveTest extends TestCase
 
             public function validate(): bool
             {
-                throw new \RuntimeException('Validation error');
+                throw new MaskingOperationFailedException('Validation error');
             }
 
             public function getConfiguration(): array
