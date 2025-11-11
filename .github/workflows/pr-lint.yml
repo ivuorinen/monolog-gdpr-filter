@@ -25,7 +25,7 @@ jobs:
       packages: read
       issues: write
       pull-requests: write
-      workflows: write
+      actions: write
 
     steps:
       - name: Run PR Lint
