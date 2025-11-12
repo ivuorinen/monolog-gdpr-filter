@@ -31,7 +31,6 @@ jobs:
     permissions:
       contents: read
       issues: write
-      workflows: write
 
     steps:
       - name: ⤵️ Checkout Repository

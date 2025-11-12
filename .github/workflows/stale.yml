@@ -12,7 +12,6 @@ permissions:
   contents: read
   packages: read
   statuses: read
-  workflows: write
 
 jobs:
   stale:
