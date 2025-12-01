@@ -296,7 +296,11 @@ class ComprehensiveValidationTest extends TestCase
                 fieldPaths: [],
                 customCallbacks: [],
                 auditLogger: function (string $path, mixed $original, mixed $masked): void {
-                    $this->auditLog[] = ['path' => $path, 'original' => $original, TestConstants::DATA_MASKED => $masked];
+                    $this->auditLog[] = [
+                        'path' => $path,
+                        'original' => $original,
+                        TestConstants::DATA_MASKED => $masked
+                    ];
                 },
                 maxDepth: 100,
                 dataTypeMasks: [],

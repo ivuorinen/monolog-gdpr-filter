@@ -60,12 +60,18 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
 
         // Process multiple log records
         for ($i = 0; $i < 5; $i++) {
+            // Add context data to be masked
+            $contextData = [
+                'user' => [
+                    TestConstants::CONTEXT_EMAIL => sprintf(TestConstants::TEMPLATE_USER_EMAIL, $i)
+                ]
+            ];
             $logRecord = new LogRecord(
                 new DateTimeImmutable(),
                 'test',
                 Level::Info,
                 sprintf(TestConstants::TEMPLATE_MESSAGE_EMAIL, $i),
-                ['user' => [TestConstants::CONTEXT_EMAIL => sprintf(TestConstants::TEMPLATE_USER_EMAIL, $i)]] // Add context data to be masked
+                $contextData
             );
 
             $result = $processor($logRecord);
@@ -266,7 +272,12 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
                 throw AuditLoggingException::callbackFailed($path, $original, $masked, 'Audit logging failed');
             }
 
-            $this->auditLogs[] = ['path' => $path, 'original' => $original, TestConstants::DATA_MASKED => $masked, 'timestamp' => time()];
+            $this->auditLogs[] = [
+                'path' => $path,
+                'original' => $original,
+                TestConstants::DATA_MASKED => $masked,
+                'timestamp' => time()
+            ];
         };
 
         $rateLimitedLogger = new RateLimitedAuditLogger($failingAuditLogger, 2, 60);
@@ -291,9 +302,11 @@ class GdprProcessorRateLimitingIntegrationTest extends TestCase
         $baseLogger = GdprProcessor::createArrayAuditLogger($this->auditLogs, false);
         $rateLimitedLogger = RateLimitedAuditLogger::create($baseLogger, 'default');
 
+        // Add field path masking to generate more audit logs
+        $fieldPaths = [TestConstants::FIELD_USER_EMAIL => 'user@masked.com'];
         $processor = $this->createProcessor(
             [TestConstants::PATTERN_EMAIL_TEST => MaskConstants::MASK_EMAIL],
-            [TestConstants::FIELD_USER_EMAIL => 'user@masked.com'], // Add field path masking to generate more audit logs
+            $fieldPaths,
             [],
             $rateLimitedLogger
         );

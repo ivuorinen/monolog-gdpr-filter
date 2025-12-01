@@ -23,8 +23,12 @@ final class ContextProcessorTest extends TestCase
     public function testMaskFieldPathsWithRegexMask(): void
     {
         $regexProcessor = fn(string $val): string => str_replace('test', MaskConstants::MASK_GENERIC, $val);
+        $emailConfig = FieldMaskConfig::regexMask(
+            TestConstants::PATTERN_TEST,
+            MaskConstants::MASK_GENERIC
+        );
         $processor = new ContextProcessor(
-            [TestConstants::CONTEXT_EMAIL => FieldMaskConfig::regexMask(TestConstants::PATTERN_TEST, MaskConstants::MASK_GENERIC)],
+            [TestConstants::CONTEXT_EMAIL => $emailConfig],
             [],
             null,
             $regexProcessor

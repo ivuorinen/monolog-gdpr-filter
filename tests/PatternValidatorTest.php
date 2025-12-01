@@ -195,7 +195,16 @@ class PatternValidatorTest extends TestCase
     /**
      * @return string[][]
      *
-     * @psalm-return array{'simple digits': array{pattern: TestConstants::PATTERN_DIGITS}, 'email pattern': array{pattern: '/[a-z]+@[a-z]+\.[a-z]+/'}, 'phone pattern': array{pattern: '/\+?\d{1,3}[\s-]?\d{3}[\s-]?\d{4}/'}, 'ssn pattern': array{pattern: TestConstants::PATTERN_SSN_FORMAT}, 'word boundary': array{pattern: '/\b\w+\b/'}, 'case insensitive': array{pattern: '/test/i'}, multiline: array{pattern: '/^test$/m'}, unicode: array{pattern: '/\p{L}+/u'}}
+     * @psalm-return array{
+     *     'simple digits': array{pattern: TestConstants::PATTERN_DIGITS},
+     *     'email pattern': array{pattern: '/[a-z]+@[a-z]+\.[a-z]+/'},
+     *     'phone pattern': array{pattern: '/\+?\d{1,3}[\s-]?\d{3}[\s-]?\d{4}/'},
+     *     'ssn pattern': array{pattern: TestConstants::PATTERN_SSN_FORMAT},
+     *     'word boundary': array{pattern: '/\b\w+\b/'},
+     *     'case insensitive': array{pattern: '/test/i'},
+     *     multiline: array{pattern: '/^test$/m'},
+     *     unicode: array{pattern: '/\p{L}+/u'}
+     * }
      */
     public static function validPatternProvider(): array
     {
@@ -221,7 +230,16 @@ class PatternValidatorTest extends TestCase
     /**
      * @return string[][]
      *
-     * @psalm-return array{'no delimiters': array{pattern: 'test'}, unclosed: array{pattern: '/unclosed'}, empty: array{pattern: '//'}, 'invalid bracket': array{pattern: '/[invalid/'}, recursive: array{pattern: TestConstants::PATTERN_RECURSIVE}, 'named recursion': array{pattern: TestConstants::PATTERN_NAMED_RECURSION}, 'nested quantifiers': array{pattern: '/^(a+)+$/'}, 'invalid unicode': array{pattern: '/\x{10000000}/'}}
+     * @psalm-return array{
+     *     'no delimiters': array{pattern: 'test'},
+     *     unclosed: array{pattern: '/unclosed'},
+     *     empty: array{pattern: '//'},
+     *     'invalid bracket': array{pattern: '/[invalid/'},
+     *     recursive: array{pattern: TestConstants::PATTERN_RECURSIVE},
+     *     'named recursion': array{pattern: TestConstants::PATTERN_NAMED_RECURSION},
+     *     'nested quantifiers': array{pattern: '/^(a+)+$/'},
+     *     'invalid unicode': array{pattern: '/\x{10000000}/'}
+     * }
      */
     public static function invalidPatternProvider(): array
     {

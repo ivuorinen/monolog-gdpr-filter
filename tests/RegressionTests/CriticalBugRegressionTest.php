@@ -124,7 +124,10 @@ class CriticalBugRegressionTest extends TestCase
     /**
      * Data provider for PHP type testing
      *
-     * @psalm-return Generator<string, list{'hello world'|123|bool|float|list{'a', 'b', 'c'}|null|resource|stdClass, string}, mixed, void>
+     * @psalm-return Generator<string, list{
+     *     'hello world'|123|bool|float|list{'a', 'b', 'c'}|null|resource|stdClass,
+     *     string
+     * }, mixed, void>
      */
     public static function phpTypesDataProvider(): Generator
     {

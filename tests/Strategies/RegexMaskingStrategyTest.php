@@ -127,7 +127,8 @@ final class RegexMaskingStrategyTest extends TestCase
             '/"email":"[^"]+"/' => '"email":"' . MaskConstants::MASK_EMAIL_PATTERN . '"',
         ]);
 
-        $result = $strategy->mask([TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_TEST], 'field', $this->logRecord);
+        $input = [TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_TEST];
+        $result = $strategy->mask($input, 'field', $this->logRecord);
 
         $this->assertIsArray($result);
         $this->assertSame(MaskConstants::MASK_EMAIL_PATTERN, $result[TestConstants::CONTEXT_EMAIL]);
@@ -180,7 +181,11 @@ final class RegexMaskingStrategyTest extends TestCase
             excludePaths: ['excluded.field']
         );
 
-        $this->assertFalse($strategy->shouldApply(TestConstants::DATA_NUMBER_STRING, 'excluded.field', $this->logRecord));
+        $this->assertFalse($strategy->shouldApply(
+            TestConstants::DATA_NUMBER_STRING,
+            'excluded.field',
+            $this->logRecord
+        ));
     }
 
     #[Test]
@@ -191,7 +196,11 @@ final class RegexMaskingStrategyTest extends TestCase
             excludePaths: ['excluded.field']
         );
 
-        $this->assertTrue($strategy->shouldApply(TestConstants::DATA_NUMBER_STRING, 'included.field', $this->logRecord));
+        $this->assertTrue($strategy->shouldApply(
+            TestConstants::DATA_NUMBER_STRING,
+            'included.field',
+            $this->logRecord
+        ));
     }
 
     #[Test]
@@ -202,9 +211,21 @@ final class RegexMaskingStrategyTest extends TestCase
             includePaths: ['user.ssn', 'user.phone']
         );
 
-        $this->assertTrue($strategy->shouldApply(TestConstants::DATA_NUMBER_STRING, 'user.ssn', $this->logRecord));
-        $this->assertTrue($strategy->shouldApply(TestConstants::DATA_NUMBER_STRING, 'user.phone', $this->logRecord));
-        $this->assertFalse($strategy->shouldApply(TestConstants::DATA_NUMBER_STRING, TestConstants::FIELD_USER_EMAIL, $this->logRecord));
+        $this->assertTrue($strategy->shouldApply(
+            TestConstants::DATA_NUMBER_STRING,
+            'user.ssn',
+            $this->logRecord
+        ));
+        $this->assertTrue($strategy->shouldApply(
+            TestConstants::DATA_NUMBER_STRING,
+            'user.phone',
+            $this->logRecord
+        ));
+        $this->assertFalse($strategy->shouldApply(
+            TestConstants::DATA_NUMBER_STRING,
+            TestConstants::FIELD_USER_EMAIL,
+            $this->logRecord
+        ));
     }
 
     #[Test]
@@ -337,7 +358,9 @@ final class RegexMaskingStrategyTest extends TestCase
             '/password/i' => MaskConstants::MASK_GENERIC,
         ]);
 
-        $this->assertSame(MaskConstants::MASK_GENERIC . ' ' . MaskConstants::MASK_GENERIC, $strategy->mask('password PASSWORD', 'field', $this->logRecord));
+        $expected = MaskConstants::MASK_GENERIC . ' ' . MaskConstants::MASK_GENERIC;
+        $result = $strategy->mask('password PASSWORD', 'field', $this->logRecord);
+        $this->assertSame($expected, $result);
     }
 
     #[Test]

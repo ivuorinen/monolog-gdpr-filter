@@ -196,20 +196,32 @@ final class AbstractMaskingStrategyTest extends TestCase
     #[Test]
     public function pathMatchesReturnsTrueForExactMatch(): void
     {
-        $this->assertTrue($this->strategy->testPathMatches(TestConstants::FIELD_USER_EMAIL, TestConstants::FIELD_USER_EMAIL));
+        $this->assertTrue($this->strategy->testPathMatches(
+            TestConstants::FIELD_USER_EMAIL,
+            TestConstants::FIELD_USER_EMAIL
+        ));
     }
 
     #[Test]
     public function pathMatchesReturnsFalseForNonMatch(): void
     {
-        $this->assertFalse($this->strategy->testPathMatches(TestConstants::FIELD_USER_EMAIL, TestConstants::FIELD_USER_PASSWORD));
+        $this->assertFalse($this->strategy->testPathMatches(
+            TestConstants::FIELD_USER_EMAIL,
+            TestConstants::FIELD_USER_PASSWORD
+        ));
     }
 
     #[Test]
     public function pathMatchesSupportsWildcardAtEnd(): void
     {
-        $this->assertTrue($this->strategy->testPathMatches(TestConstants::FIELD_USER_EMAIL, TestConstants::PATH_USER_WILDCARD));
-        $this->assertTrue($this->strategy->testPathMatches(TestConstants::FIELD_USER_PASSWORD, TestConstants::PATH_USER_WILDCARD));
+        $this->assertTrue($this->strategy->testPathMatches(
+            TestConstants::FIELD_USER_EMAIL,
+            TestConstants::PATH_USER_WILDCARD
+        ));
+        $this->assertTrue($this->strategy->testPathMatches(
+            TestConstants::FIELD_USER_PASSWORD,
+            TestConstants::PATH_USER_WILDCARD
+        ));
     }
 
     #[Test]

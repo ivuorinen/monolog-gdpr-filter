@@ -69,32 +69,52 @@ final class FieldPathMaskingStrategyTest extends TestCase
     #[Test]
     public function shouldApplyReturnsTrueForExactPathMatch(): void
     {
-        $strategy = new FieldPathMaskingStrategy([TestConstants::FIELD_USER_EMAIL => MaskConstants::MASK_GENERIC]);
+        $config = [TestConstants::FIELD_USER_EMAIL => MaskConstants::MASK_GENERIC];
+        $strategy = new FieldPathMaskingStrategy($config);
 
-        $this->assertTrue($strategy->shouldApply(TestConstants::EMAIL_TEST, TestConstants::FIELD_USER_EMAIL, $this->logRecord));
+        $this->assertTrue($strategy->shouldApply(
+            TestConstants::EMAIL_TEST,
+            TestConstants::FIELD_USER_EMAIL,
+            $this->logRecord
+        ));
     }
 
     #[Test]
     public function shouldApplyReturnsFalseForNonMatchingPath(): void
     {
-        $strategy = new FieldPathMaskingStrategy([TestConstants::FIELD_USER_EMAIL => MaskConstants::MASK_GENERIC]);
+        $config = [TestConstants::FIELD_USER_EMAIL => MaskConstants::MASK_GENERIC];
+        $strategy = new FieldPathMaskingStrategy($config);
 
-        $this->assertFalse($strategy->shouldApply(TestConstants::CONTEXT_PASSWORD, TestConstants::FIELD_USER_PASSWORD, $this->logRecord));
+        $this->assertFalse($strategy->shouldApply(
+            TestConstants::CONTEXT_PASSWORD,
+            TestConstants::FIELD_USER_PASSWORD,
+            $this->logRecord
+        ));
     }
 
     #[Test]
     public function shouldApplySupportsWildcardPatterns(): void
     {
-        $strategy = new FieldPathMaskingStrategy([TestConstants::PATH_USER_WILDCARD => MaskConstants::MASK_GENERIC]);
+        $config = [TestConstants::PATH_USER_WILDCARD => MaskConstants::MASK_GENERIC];
+        $strategy = new FieldPathMaskingStrategy($config);
 
-        $this->assertTrue($strategy->shouldApply(TestConstants::EMAIL_TEST, TestConstants::FIELD_USER_EMAIL, $this->logRecord));
-        $this->assertTrue($strategy->shouldApply(TestConstants::CONTEXT_PASSWORD, TestConstants::FIELD_USER_PASSWORD, $this->logRecord));
+        $this->assertTrue($strategy->shouldApply(
+            TestConstants::EMAIL_TEST,
+            TestConstants::FIELD_USER_EMAIL,
+            $this->logRecord
+        ));
+        $this->assertTrue($strategy->shouldApply(
+            TestConstants::CONTEXT_PASSWORD,
+            TestConstants::FIELD_USER_PASSWORD,
+            $this->logRecord
+        ));
     }
 
     #[Test]
     public function maskAppliesStringReplacement(): void
     {
-        $strategy = new FieldPathMaskingStrategy([TestConstants::FIELD_USER_EMAIL => MaskConstants::MASK_EMAIL_PATTERN]);
+        $config = [TestConstants::FIELD_USER_EMAIL => MaskConstants::MASK_EMAIL_PATTERN];
+        $strategy = new FieldPathMaskingStrategy($config);
 
         $result = $strategy->mask(TestConstants::EMAIL_TEST, TestConstants::FIELD_USER_EMAIL, $this->logRecord);
 
@@ -114,9 +134,11 @@ final class FieldPathMaskingStrategyTest extends TestCase
     #[Test]
     public function maskAppliesRegexReplacement(): void
     {
-        $strategy = new FieldPathMaskingStrategy([
-            'user.ssn' => FieldMaskConfig::regexMask(TestConstants::PATTERN_SSN_FORMAT, MaskConstants::MASK_SSN_PATTERN),
-        ]);
+        $ssnConfig = FieldMaskConfig::regexMask(
+            TestConstants::PATTERN_SSN_FORMAT,
+            MaskConstants::MASK_SSN_PATTERN
+        );
+        $strategy = new FieldPathMaskingStrategy(['user.ssn' => $ssnConfig]);
 
         $result = $strategy->mask(TestConstants::SSN_US, 'user.ssn', $this->logRecord);
 
@@ -208,10 +230,15 @@ final class FieldPathMaskingStrategyTest extends TestCase
     #[Test]
     public function validateReturnsTrueForValidConfiguration(): void
     {
+        $ssnConfig = FieldMaskConfig::regexMask(
+            TestConstants::PATTERN_SSN_FORMAT,
+            MaskConstants::MASK_SSN_PATTERN
+        );
+
         $strategy = new FieldPathMaskingStrategy([
             TestConstants::FIELD_USER_EMAIL => MaskConstants::MASK_EMAIL_PATTERN,
             TestConstants::FIELD_USER_PASSWORD => FieldMaskConfig::remove(),
-            'user.ssn' => FieldMaskConfig::regexMask(TestConstants::PATTERN_SSN_FORMAT, MaskConstants::MASK_SSN_PATTERN),
+            'user.ssn' => $ssnConfig,
         ]);
 
         $this->assertTrue($strategy->validate());

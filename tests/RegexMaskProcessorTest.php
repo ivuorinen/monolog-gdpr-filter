@@ -102,7 +102,8 @@ class RegexMaskProcessorTest extends TestCase
         );
         $processor($record);
         $this->assertNotEmpty($auditCalls);
-        $this->assertSame([TestConstants::FIELD_USER_EMAIL, TestConstants::EMAIL_JOHN_DOE, Mask::MASK_EMAIL], $auditCalls[0]);
+        $expected = [TestConstants::FIELD_USER_EMAIL, TestConstants::EMAIL_JOHN_DOE, Mask::MASK_EMAIL];
+        $this->assertSame($expected, $auditCalls[0]);
     }
 
     public function testInvalidRegexPatternThrowsExceptionOnConstruction(): void

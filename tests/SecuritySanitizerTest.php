@@ -101,7 +101,36 @@ class SecuritySanitizerTest extends TestCase
     /**
      * @return string[][]
      *
-     * @psalm-return array{'password with equals': array{input: 'Error: password=secretpass', shouldNotContain: 'secretpass'}, 'api key with underscore': array{input: 'Failed: api_key=key123456', shouldNotContain: 'key123456'}, 'api key with dash': array{input: 'Failed: api-key: key123456', shouldNotContain: 'key123456'}, 'token in header': array{input: 'Request failed: Authorization: Bearer token123abc', shouldNotContain: 'token123abc'}, 'mysql connection string': array{input: 'DB error: mysql://user:pass@localhost:3306', shouldNotContain: 'user:pass'}, 'secret key': array{input: 'Config: secret_key=my-secret-123', shouldNotContain: 'my-secret-123'}, 'private key': array{input: 'Error: private_key=pk_test_12345', shouldNotContain: 'pk_test_12345'}}
+     * @psalm-return array{
+     *     'password with equals': array{
+     *         input: 'Error: password=secretpass',
+     *         shouldNotContain: 'secretpass'
+     *     },
+     *     'api key with underscore': array{
+     *         input: 'Failed: api_key=key123456',
+     *         shouldNotContain: 'key123456'
+     *     },
+     *     'api key with dash': array{
+     *         input: 'Failed: api-key: key123456',
+     *         shouldNotContain: 'key123456'
+     *     },
+     *     'token in header': array{
+     *         input: 'Request failed: Authorization: Bearer token123abc',
+     *         shouldNotContain: 'token123abc'
+     *     },
+     *     'mysql connection string': array{
+     *         input: 'DB error: mysql://user:pass@localhost:3306',
+     *         shouldNotContain: 'user:pass'
+     *     },
+     *     'secret key': array{
+     *         input: 'Config: secret_key=my-secret-123',
+     *         shouldNotContain: 'my-secret-123'
+     *     },
+     *     'private key': array{
+     *         input: 'Error: private_key=pk_test_12345',
+     *         shouldNotContain: 'pk_test_12345'
+     *     }
+     * }
      */
     public static function sensitivePatternProvider(): array
     {

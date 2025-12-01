@@ -132,10 +132,15 @@ final class InputValidatorTest extends TestCase
     #[Test]
     public function validateFieldPathsPassesForValidPaths(): void
     {
+        $ssnConfig = FieldMaskConfig::regexMask(
+            TestConstants::PATTERN_SSN_FORMAT,
+            MaskConstants::MASK_SSN_PATTERN
+        );
+
         InputValidator::validateFieldPaths([
             TestConstants::FIELD_USER_EMAIL => MaskConstants::MASK_EMAIL_PATTERN,
             TestConstants::FIELD_USER_PASSWORD => FieldMaskConfig::remove(),
-            'user.ssn' => FieldMaskConfig::regexMask(TestConstants::PATTERN_SSN_FORMAT, MaskConstants::MASK_SSN_PATTERN),
+            'user.ssn' => $ssnConfig,
         ]);
 
         $this->assertTrue(true);

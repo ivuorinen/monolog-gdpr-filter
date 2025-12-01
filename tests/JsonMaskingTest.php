@@ -319,9 +319,10 @@ class JsonMaskingTest extends TestCase
         $extractedJson = $this->extractJsonFromMessage($result);
         $this->assertNotNull($extractedJson);
         $this->assertCount(2, $extractedJson['users']);
-        $this->assertEquals(MaskConstants::MASK_EMAIL, $extractedJson['users'][0][TestConstants::CONTEXT_EMAIL]);
-        $this->assertEquals(MaskConstants::MASK_PHONE, $extractedJson['users'][0]['contacts']['phone']);
-        $this->assertEquals(MaskConstants::MASK_EMAIL, $extractedJson['users'][0]['contacts']['emergency'][TestConstants::CONTEXT_EMAIL]);
+        $user0 = $extractedJson['users'][0];
+        $this->assertEquals(MaskConstants::MASK_EMAIL, $user0[TestConstants::CONTEXT_EMAIL]);
+        $this->assertEquals(MaskConstants::MASK_PHONE, $user0['contacts']['phone']);
+        $this->assertEquals(MaskConstants::MASK_EMAIL, $user0['contacts']['emergency'][TestConstants::CONTEXT_EMAIL]);
     }
 
     public function testJsonMaskingErrorHandling(): void
