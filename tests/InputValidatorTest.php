@@ -338,7 +338,7 @@ final class InputValidatorTest extends TestCase
     {
         InputValidator::validateConditionalRules([
             'rule1' => fn($value): bool => $value > 100,
-            'rule2' => fn($value): bool => is_string($value),
+            'rule2' => is_string(...),
         ]);
 
         $this->assertTrue(true);
