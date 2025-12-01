@@ -20,12 +20,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
-      statuses: write
-      contents: write
-      packages: read
-      issues: write
-      pull-requests: write
       actions: write
+      contents: write
+      issues: write
+      packages: read
+      pull-requests: write
+      statuses: write
 
     steps:
       - name: Run PR Lint

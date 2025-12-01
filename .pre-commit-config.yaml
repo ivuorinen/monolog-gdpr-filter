@@ -3,7 +3,6 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
-      - id: requirements-txt-fixer
       - id: detect-private-key
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
@@ -23,7 +22,7 @@ repos:
         args: [--autofix, --no-sort-keys]
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.45.0
+    rev: v0.46.0
     hooks:
       - id: markdownlint
         args: [-c, .markdownlint.json, --fix]
@@ -34,7 +33,7 @@ repos:
       - id: yamllint
 
   - repo: https://github.com/scop/pre-commit-shfmt
-    rev: v3.11.0-1
+    rev: v3.12.0-2
     hooks:
       - id: shfmt
 
@@ -42,22 +41,22 @@ repos:
     rev: v0.11.0
     hooks:
       - id: shellcheck
-        args: ['--severity=warning']
+        args: ["--severity=warning"]
 
   - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.8
+    rev: v1.7.9
     hooks:
       - id: actionlint
-        args: ['-shellcheck=']
+        args: ["-shellcheck="]
 
   - repo: https://github.com/renovatebot/pre-commit-hooks
-    rev: 42.2.0
+    rev: 42.27.1
     hooks:
       - id: renovate-config-validator
 
   - repo: https://github.com/bridgecrewio/checkov.git
-    rev: '3.2.489'
+    rev: "3.2.495"
     hooks:
       - id: checkov
         args:
-          - '--quiet'
+          - "--quiet"

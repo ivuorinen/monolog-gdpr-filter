@@ -163,8 +163,16 @@ foreach ($phpFiles as $filePath) {
 
             // Skip very generic values that would produce too many false positives
             $skipGeneric = [
-                'test', 'value', 'field', 'path', 'key',
-                'data', 'name', 'id', 'type', 'error'
+                'test',
+                'value',
+                'field',
+                'path',
+                'key',
+                'data',
+                'name',
+                'id',
+                'type',
+                'error'
             ];
             if (
                 in_array(strtolower($constantValue), $skipGeneric)
@@ -177,8 +185,17 @@ foreach ($phpFiles as $filePath) {
             if (!$isTestFile) {
                 // In src/ files, skip values commonly used as array keys or internal identifiers
                 $srcSkipValues = [
-                    'masked', 'original', 'remove', 'message', 'password', 'email',
-                    'user_id', 'sensitive_data', 'audit', 'security', 'application',
+                    'masked',
+                    'original',
+                    'remove',
+                    'message',
+                    'password',
+                    'email',
+                    'user_id',
+                    'sensitive_data',
+                    'audit',
+                    'security',
+                    'application',
                     'Cannot be null or empty for REPLACE type',
                     'Rate limiting key cannot be empty',
                     'Test message'
