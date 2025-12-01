@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ..:/app
+      - composer-cache:/home/developer/.composer/cache
+    working_dir: /app
+    environment:
+      - COMPOSER_HOME=/home/developer/.composer
+      - XDEBUG_MODE=coverage
+    stdin_open: true
+    tty: true
+    command: tail -f /dev/null
+
+  # PHP 8.3 for testing compatibility
+  php83:
+    image: php:8.3-cli-alpine
+    volumes:
+      - ..:/app
+    working_dir: /app
+    profiles:
+      - testing
+    command: php -v
+
+volumes:
+  composer-cache:
