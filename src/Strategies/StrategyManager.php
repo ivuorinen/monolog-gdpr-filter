@@ -243,7 +243,27 @@ class StrategyManager
      *
      * @return (((array|int|string)[]|int)[]|int)[]
      *
-     * @psalm-return array{total_strategies: int<0, max>, strategy_types: array<string, 1|2>, priority_distribution: array{'90-100 (Critical)'?: 1|2, '80-89 (High)'?: 1|2, '60-79 (Medium-High)'?: 1|2, '40-59 (Medium)'?: 1|2, '20-39 (Low-Medium)'?: 1|2, '0-19 (Low)'?: 1|2}, strategies: list{0?: array{name: string, class: string, priority: int<min, max>, configuration: array<string, mixed>},...}}
+     * @psalm-return array{
+     *     total_strategies: int<0, max>,
+     *     strategy_types: array<string, 1|2>,
+     *     priority_distribution: array{
+     *         '90-100 (Critical)'?: 1|2,
+     *         '80-89 (High)'?: 1|2,
+     *         '60-79 (Medium-High)'?: 1|2,
+     *         '40-59 (Medium)'?: 1|2,
+     *         '20-39 (Low-Medium)'?: 1|2,
+     *         '0-19 (Low)'?: 1|2
+     *     },
+     *     strategies: list{
+     *         0?: array{
+     *             name: string,
+     *             class: string,
+     *             priority: int<min, max>,
+     *             configuration: array<string, mixed>
+     *         },
+     *         ...
+     *     }
+     * }
      */
     public function getStatistics(): array
     {

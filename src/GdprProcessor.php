@@ -113,7 +113,9 @@ class GdprProcessor implements ProcessorInterface
      *
      *
      * @psalm-return RateLimitedAuditLogger|Closure(string, mixed, mixed):void
-     * @psalm-suppress ReferenceConstraintViolation - The closure always sets timestamp, but Psalm can't infer this through RateLimitedAuditLogger wrapper
+     * @psalm-suppress ReferenceConstraintViolation
+     *     The closure always sets timestamp, but Psalm can't infer this
+     *     through RateLimitedAuditLogger wrapper
      */
     public static function createArrayAuditLogger(
         array &$logStorage,
