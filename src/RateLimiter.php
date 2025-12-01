@@ -228,7 +228,7 @@ class RateLimiter
     public static function getMemoryStats(): array
     {
         $totalKeys = count(self::$requests);
-        $totalTimestamps = array_sum(array_map('count', self::$requests));
+        $totalTimestamps = array_sum(array_map(count(...), self::$requests));
         $estimatedMemory = $totalKeys * 50 + $totalTimestamps * 8; // Rough estimate
 
         return [

@@ -519,7 +519,7 @@ class MaskingStrategiesTest extends TestCase
         $this->assertCount(3, $strategies);
 
         // Check that we have the expected strategy types
-        $classNames = array_map('get_class', $strategies);
+        $classNames = array_map(get_class(...), $strategies);
         $this->assertContains(RegexMaskingStrategy::class, $classNames);
         $this->assertContains(FieldPathMaskingStrategy::class, $classNames);
         $this->assertContains(DataTypeMaskingStrategy::class, $classNames);
