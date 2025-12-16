@@ -129,7 +129,7 @@ final class RetryStrategy implements RecoveryStrategy
         $duration = (microtime(true) - $startTime) * 1000.0;
         $fallbackValue = $this->getFallbackValue($originalValue);
 
-        if ($lastError === null) {
+        if (!$lastError instanceof ErrorContext) {
             $lastError = ErrorContext::create('unknown', 'No error captured');
         }
 

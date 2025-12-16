@@ -178,7 +178,7 @@ final class CallbackMaskingStrategyTest extends TestCase
 
         $result = $strategy->mask('test', 'user.password', $record);
 
-        $this->assertSame(32, strlen($result));
+        $this->assertSame(32, strlen((string) $result));
     }
 
     public function testPartialFactoryMethod(): void

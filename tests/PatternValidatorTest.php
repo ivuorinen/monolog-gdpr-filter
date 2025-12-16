@@ -254,4 +254,184 @@ class PatternValidatorTest extends TestCase
             'invalid unicode' => ['pattern' => '/\x{10000000}/'],
         ];
     }
+
+    // =========================================================================
+    // INSTANCE METHOD TESTS
+    // =========================================================================
+
+    #[Test]
+    public function createReturnsNewInstance(): void
+    {
+        $validator = PatternValidator::create();
+
+        $this->assertInstanceOf(PatternValidator::class, $validator);
+    }
+
+    #[Test]
+    public function validateReturnsTrueForValidPattern(): void
+    {
+        $validator = new PatternValidator();
+
+        $this->assertTrue($validator->validate(TestConstants::PATTERN_DIGITS));
+        $this->assertTrue($validator->validate('/[a-z]+/i'));
+        $this->assertTrue($validator->validate('/^test$/'));
+    }
+
+    #[Test]
+    public function validateReturnsFalseForInvalidPattern(): void
+    {
+        $validator = new PatternValidator();
+
+        $this->assertFalse($validator->validate('invalid'));
+        $this->assertFalse($validator->validate('/unclosed'));
+        $this->assertFalse($validator->validate('//'));
+    }
+
+    #[Test]
+    public function validateReturnsFalseForDangerousPatterns(): void
+    {
+        $validator = new PatternValidator();
+
+        $this->assertFalse($validator->validate(TestConstants::PATTERN_RECURSIVE));
+        $this->assertFalse($validator->validate(TestConstants::PATTERN_NAMED_RECURSION));
+        $this->assertFalse($validator->validate('/^(a+)+$/'));
+    }
+
+    #[Test]
+    public function validateUsesCacheOnSecondCall(): void
+    {
+        $validator = new PatternValidator();
+        $pattern = TestConstants::PATTERN_DIGITS;
+
+        // First call should cache
+        $result1 = $validator->validate($pattern);
+
+        // Second call should use cache
+        $result2 = $validator->validate($pattern);
+
+        $this->assertTrue($result1);
+        $this->assertTrue($result2);
+        $this->assertArrayHasKey($pattern, $validator->getInstanceCache());
+    }
+
+    #[Test]
+    public function clearInstanceCacheRemovesAllCachedPatterns(): void
+    {
+        $validator = new PatternValidator();
+
+        $validator->validate(TestConstants::PATTERN_DIGITS);
+        $this->assertNotEmpty($validator->getInstanceCache());
+
+        $validator->clearInstanceCache();
+        $this->assertEmpty($validator->getInstanceCache());
+    }
+
+    #[Test]
+    public function cacheAllPatternsCachesValidPatterns(): void
+    {
+        $validator = new PatternValidator();
+        $patterns = [
+            TestConstants::PATTERN_DIGITS => 'mask1',
+            '/[a-z]+/' => 'mask2',
+        ];
+
+        $validator->cacheAllPatterns($patterns);
+        $cache = $validator->getInstanceCache();
+
+        $this->assertArrayHasKey(TestConstants::PATTERN_DIGITS, $cache);
+        $this->assertArrayHasKey('/[a-z]+/', $cache);
+        $this->assertTrue($cache[TestConstants::PATTERN_DIGITS]);
+        $this->assertTrue($cache['/[a-z]+/']);
+    }
+
+    #[Test]
+    public function cacheAllPatternsCachesBothValidAndInvalid(): void
+    {
+        $validator = new PatternValidator();
+        $patterns = [
+            '/valid/' => 'mask1',
+            'invalid' => 'mask2',
+        ];
+
+        $validator->cacheAllPatterns($patterns);
+        $cache = $validator->getInstanceCache();
+
+        $this->assertTrue($cache['/valid/']);
+        $this->assertFalse($cache['invalid']);
+    }
+
+    #[Test]
+    public function validateAllPatternsThrowsForInvalidPattern(): void
+    {
+        $validator = new PatternValidator();
+
+        $this->expectException(InvalidRegexPatternException::class);
+        $this->expectExceptionMessage('Pattern failed validation or is potentially unsafe');
+
+        $validator->validateAllPatterns(['invalid_pattern' => 'mask']);
+    }
+
+    #[Test]
+    public function validateAllPatternsPassesForValidPatterns(): void
+    {
+        $validator = new PatternValidator();
+        $patterns = [
+            TestConstants::PATTERN_SSN_FORMAT => 'SSN',
+            '/[a-z]+@[a-z]+\.[a-z]+/' => 'Email',
+        ];
+
+        // Should not throw
+        $validator->validateAllPatterns($patterns);
+        $this->assertTrue(true);
+    }
+
+    #[Test]
+    public function validateAllPatternsThrowsForDangerousPattern(): void
+    {
+        $validator = new PatternValidator();
+
+        $this->expectException(InvalidRegexPatternException::class);
+
+        $validator->validateAllPatterns([TestConstants::PATTERN_RECURSIVE => 'mask']);
+    }
+
+    #[Test]
+    public function getInstanceCacheReturnsEmptyArrayInitially(): void
+    {
+        $validator = new PatternValidator();
+        $cache = $validator->getInstanceCache();
+
+        $this->assertIsArray($cache);
+        $this->assertEmpty($cache);
+    }
+
+    #[Test]
+    public function instanceCachesAreIndependent(): void
+    {
+        $validator1 = new PatternValidator();
+        $validator2 = new PatternValidator();
+
+        $validator1->validate(TestConstants::PATTERN_DIGITS);
+
+        $this->assertNotEmpty($validator1->getInstanceCache());
+        $this->assertEmpty($validator2->getInstanceCache());
+    }
+
+    #[Test]
+    #[DataProvider('validPatternProvider')]
+    public function validateAcceptsVariousValidPatterns(string $pattern): void
+    {
+        $validator = new PatternValidator();
+
+        $this->assertTrue($validator->validate($pattern));
+    }
+
+    #[Test]
+    #[DataProvider('invalidPatternProvider')]
+    public function validateRejectsVariousInvalidPatterns(string $pattern): void
+    {
+        $validator = new PatternValidator();
+
+        $this->assertFalse($validator->validate($pattern));
+    }
 }

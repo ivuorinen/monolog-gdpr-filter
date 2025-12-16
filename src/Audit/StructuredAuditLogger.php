@@ -19,10 +19,6 @@ final class StructuredAuditLogger
     /** @var callable(string, mixed, mixed): void */
     private $wrappedLogger;
 
-    private bool $includeTimestamp;
-
-    private bool $includeDuration;
-
     /**
      * @param callable|RateLimitedAuditLogger $auditLogger Base logger to wrap
      * @param bool $includeTimestamp Whether to include timestamp in metadata
@@ -30,12 +26,10 @@ final class StructuredAuditLogger
      */
     public function __construct(
         callable|RateLimitedAuditLogger $auditLogger,
-        bool $includeTimestamp = true,
-        bool $includeDuration = true
+        private readonly bool $includeTimestamp = true,
+        private readonly bool $includeDuration = true
     ) {
         $this->wrappedLogger = $auditLogger;
-        $this->includeTimestamp = $includeTimestamp;
-        $this->includeDuration = $includeDuration;
     }
 
     /**
@@ -65,7 +59,7 @@ final class StructuredAuditLogger
     ): void {
         $enrichedContext = $context;
 
-        if ($enrichedContext !== null) {
+        if ($enrichedContext instanceof AuditContext) {
             $metadata = [];
 
             if ($this->includeTimestamp) {
@@ -88,7 +82,7 @@ final class StructuredAuditLogger
 
         // If we have context and the wrapped logger doesn't handle it,
         // we store it separately (could be extended to log to a separate channel)
-        if ($enrichedContext !== null) {
+        if ($enrichedContext instanceof AuditContext) {
             $this->logContext($path, $enrichedContext);
         }
     }

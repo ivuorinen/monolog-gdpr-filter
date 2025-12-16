@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Ivuorinen\MonologGdprFilter\Recovery;
 
-use Ivuorinen\MonologGdprFilter\Audit\AuditContext;
 use Throwable;
 
 /**

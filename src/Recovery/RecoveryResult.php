@@ -193,7 +193,7 @@ final readonly class RecoveryResult
             'duration_ms' => round($this->totalDurationMs, 3),
         ];
 
-        if ($this->lastError !== null) {
+        if ($this->lastError instanceof ErrorContext) {
             $data['error'] = $this->lastError->toArray();
         }
 

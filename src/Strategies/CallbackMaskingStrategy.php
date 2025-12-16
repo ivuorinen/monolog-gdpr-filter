@@ -175,7 +175,7 @@ final class CallbackMaskingStrategy extends AbstractMaskingStrategy
     #[\Override]
     public function validate(): bool
     {
-        if (empty($this->fieldPath)) {
+        if ($this->fieldPath === '' || $this->fieldPath === '0') {
             return false;
         }
 

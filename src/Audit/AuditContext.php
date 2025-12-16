@@ -195,7 +195,7 @@ final readonly class AuditContext
             $data['correlation_id'] = $this->correlationId;
         }
 
-        if ($this->error !== null) {
+        if ($this->error instanceof ErrorContext) {
             $data['error'] = $this->error->toArray();
         }
 
