@@ -1,143 +1,326 @@
 # Monolog GDPR Filter
 
-Monolog GDPR Filter is a PHP library that provides a Monolog processor for GDPR compliance. It allows masking, removing,
-or replacing sensitive data in logs using regex patterns, field-level configuration, and custom callbacks. Designed for
-easy integration with Monolog and Laravel.
+A PHP library providing a Monolog processor for GDPR compliance.
+Mask, remove, or replace sensitive data in logs using regex patterns, field-level configuration,
+custom callbacks, and advanced features like streaming, rate limiting, and k-anonymity.
 
 ## Features
 
-- **Regex-based masking** for patterns like SSNs, credit cards, emails
-- **Field-level masking/removal/replacement** using dot-notation paths
-- **Custom callbacks** for advanced masking logic per field
-- **Audit logging** for compliance tracking
-- **Easy integration with Monolog and Laravel**
+### Core Masking
+
+- **Regex-based masking** for patterns like SSNs, credit cards, emails, IPs, and more
+- **Field-level masking** using dot-notation paths with flexible configuration
+- **Custom callbacks** for advanced per-field masking logic
+- **Data type masking** to mask values based on their PHP type
+- **Serialized data support** for JSON, print_r, var_export, and serialize formats
+
+### Enterprise Features
+
+- **Fluent builder API** for readable processor configuration
+- **Streaming processor** for memory-efficient large file processing
+- **Rate-limited audit logging** to prevent log flooding
+- **Plugin system** for extensible pre/post-processing hooks
+- **K-anonymity support** for statistical privacy guarantees
+- **Retry and recovery** with configurable failure modes
+- **Conditional masking** based on log level, channel, or context
+
+### Framework Integration
+
+- **Monolog 3.x compatible** with ProcessorInterface implementation
+- **Laravel integration** with service provider, middleware, and console commands
+- **Audit logging** for compliance tracking and debugging
+
+## Requirements
+
+- PHP 8.2 or higher
+- Monolog 3.x
 
 ## Installation
-
-Install via Composer:
 
 ```bash
 composer require ivuorinen/monolog-gdpr-filter
 ```
 
-## Usage
-
-### Basic Monolog Setup
+## Quick Start
 
 ```php
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
+use Monolog\Level;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
 
-$patterns = GdprProcessor::getDefaultPatterns();
-$fieldPaths = [
-    'user.ssn' => GdprProcessor::removeField(),
-    'payment.card' => GdprProcessor::replaceWith('[CC]'),
-    'contact.email' => GdprProcessor::maskWithRegex(),
-    'metadata.session' => GdprProcessor::replaceWith('[SESSION]'),
-];
-
-// Optional: custom callback for advanced masking
-$customCallbacks = [
-    'user.name' => fn($value) => strtoupper($value),
-];
-
-// Optional: audit logger for compliance
-$auditLogger = function($path, $original, $masked) {
-    error_log("GDPR mask: $path: $original => $masked");
-};
-
-$logger = new Logger('app');
-$logger->pushHandler(new StreamHandler('path/to/your.log', Logger::WARNING));
-$logger->pushProcessor(
-    new GdprProcessor($patterns, $fieldPaths, $customCallbacks, $auditLogger)
+// Create processor with default GDPR patterns
+$processor = new GdprProcessor(
+    patterns: GdprProcessor::getDefaultPatterns(),
+    fieldPaths: [
+        'user.email' => FieldMaskConfig::remove(),
+        'user.ssn' => FieldMaskConfig::replace('[REDACTED]'),
+    ]
 );
 
-$logger->warning('This is a warning message.', [
-    'user' => ['ssn' => '123456-900T'],
-    'contact' => ['email' => 'user@example.com'],
-    'payment' => ['card' => '1234567812345678'],
+// Integrate with Monolog
+$logger = new Logger('app');
+$logger->pushHandler(new StreamHandler('app.log', Level::Warning));
+$logger->pushProcessor($processor);
+
+// Sensitive data is automatically masked
+$logger->warning('User login', [
+    'user' => [
+        'email' => 'john@example.com',  // Will be removed
+        'ssn' => '123-45-6789',         // Will be replaced with [REDACTED]
+    ]
 ]);
 ```
 
-### FieldMaskConfig Options
+## Core Concepts
 
-- `GdprProcessor::maskWithRegex()` — Mask field value using regex patterns
-- `GdprProcessor::removeField()` — Remove field from context
-- `GdprProcessor::replaceWith($value)` — Replace field value with static value
+### Regex Patterns
 
-### Custom Callbacks
-
-Provide custom callbacks for specific fields:
+Define regex patterns to mask sensitive data in log messages and context values:
 
 ```php
-$customCallbacks = [
-    'user.name' => fn($value) => strtoupper($value),
+$patterns = [
+    '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => '***EMAIL***',
+    '/\b\d{3}-\d{2}-\d{4}\b/' => '***SSN***',
+    '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/' => '***CARD***',
+];
+
+$processor = new GdprProcessor(patterns: $patterns);
+```
+
+Use `GdprProcessor::getDefaultPatterns()` for a comprehensive set of pre-configured patterns
+covering SSNs, credit cards, emails, phone numbers, IBANs, IP addresses, and more.
+
+### Field Path Masking (FieldMaskConfig)
+
+Configure masking for specific fields using dot-notation paths:
+
+```php
+use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
+
+$fieldPaths = [
+    // Remove field entirely from logs
+    'user.password' => FieldMaskConfig::remove(),
+
+    // Replace with static value
+    'payment.card_number' => FieldMaskConfig::replace('[CARD]'),
+
+    // Apply processor's regex patterns to this field
+    'user.bio' => FieldMaskConfig::useProcessorPatterns(),
+
+    // Apply custom regex pattern
+    'user.phone' => FieldMaskConfig::regexMask('/\d{3}-\d{4}/', '***-****'),
 ];
 ```
 
-### Audit Logger
+### Custom Callbacks
 
-Optionally provide an audit logger callback to record masking actions:
+Provide custom masking functions for complex scenarios:
 
 ```php
-$auditLogger = function($path, $original, $masked) {
-    // Log or store audit info
-};
+$customCallbacks = [
+    'user.name' => fn($value) => strtoupper(substr($value, 0, 1)) . '***',
+    'user.id' => fn($value) => hash('sha256', (string) $value),
+];
+
+$processor = new GdprProcessor(
+    patterns: [],
+    fieldPaths: [],
+    customCallbacks: $customCallbacks
+);
 ```
 
-> **IMPORTANT**: Be mindful what you send to your audit log. Passing the original value might defeat the whole purpose
-> of this project.
+## Basic Usage
+
+### Direct GdprProcessor Usage
+
+```php
+use Ivuorinen\MonologGdprFilter\GdprProcessor;
+use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
+
+$processor = new GdprProcessor(
+    patterns: GdprProcessor::getDefaultPatterns(),
+    fieldPaths: [
+        'user.ssn' => FieldMaskConfig::remove(),
+        'payment.card' => FieldMaskConfig::replace('[REDACTED]'),
+        'contact.email' => FieldMaskConfig::useProcessorPatterns(),
+    ],
+    customCallbacks: [
+        'user.name' => fn($v) => strtoupper($v),
+    ],
+    auditLogger: function($path, $original, $masked) {
+        // Log masking operations for compliance
+        error_log("Masked: $path");
+    },
+    maxDepth: 100,
+);
+```
+
+### Using GdprProcessorBuilder (Recommended)
+
+The builder provides a fluent, readable API:
+
+```php
+use Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder;
+use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
+
+$processor = GdprProcessorBuilder::create()
+    ->withDefaultPatterns()
+    ->addPattern('/custom-secret-\w+/', '[SECRET]')
+    ->addFieldPath('user.email', FieldMaskConfig::remove())
+    ->addFieldPath('user.ssn', FieldMaskConfig::replace('[SSN]'))
+    ->addCallback('user.id', fn($v) => hash('sha256', (string) $v))
+    ->withMaxDepth(50)
+    ->withAuditLogger(function($path, $original, $masked) {
+        // Audit logging
+    })
+    ->build();
+```
+
+## Advanced Features
+
+### Conditional Masking
+
+Apply masking only when specific conditions are met:
+
+```php
+use Ivuorinen\MonologGdprFilter\ConditionalRuleFactory;
+use Monolog\Level;
+
+$processor = new GdprProcessor(
+    patterns: GdprProcessor::getDefaultPatterns(),
+    conditionalRules: [
+        // Only mask error-level logs
+        'error_only' => ConditionalRuleFactory::createLevelBasedRule([Level::Error]),
+
+        // Only mask specific channels
+        'app_channel' => ConditionalRuleFactory::createChannelBasedRule(['app', 'security']),
+
+        // Custom condition
+        'has_user' => fn($record) => isset($record->context['user']),
+    ]
+);
+```
+
+### Data Type Masking
+
+Mask values based on their PHP type:
+
+```php
+use Ivuorinen\MonologGdprFilter\MaskConstants;
+
+$processor = new GdprProcessor(
+    patterns: [],
+    dataTypeMasks: [
+        'integer' => MaskConstants::MASK_INT,
+        'double' => MaskConstants::MASK_FLOAT,
+        'boolean' => MaskConstants::MASK_BOOL,
+    ]
+);
+```
+
+### Rate-Limited Audit Logging
+
+Prevent audit log flooding in high-volume applications:
+
+```php
+use Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger;
+
+$baseLogger = function($path, $original, $masked) {
+    // Your audit logging logic
+};
+
+// Create rate-limited wrapper (100 logs per minute)
+$rateLimitedLogger = new RateLimitedAuditLogger($baseLogger, 100, 60);
+
+$processor = new GdprProcessor(
+    patterns: GdprProcessor::getDefaultPatterns(),
+    auditLogger: $rateLimitedLogger
+);
+
+// Available rate limit profiles via factory
+$strictLogger = RateLimitedAuditLogger::create($baseLogger, 'strict');   // 50/min
+$defaultLogger = RateLimitedAuditLogger::create($baseLogger, 'default'); // 100/min
+$relaxedLogger = RateLimitedAuditLogger::create($baseLogger, 'relaxed'); // 200/min
+```
+
+### Streaming Large Files
+
+Process large log files with memory-efficient streaming:
+
+```php
+use Ivuorinen\MonologGdprFilter\Streaming\StreamingProcessor;
+use Ivuorinen\MonologGdprFilter\MaskingOrchestrator;
+
+$orchestrator = new MaskingOrchestrator(GdprProcessor::getDefaultPatterns());
+$streaming = new StreamingProcessor($orchestrator, chunkSize: 1000);
+
+// Process file line by line
+$lineParser = fn(string $line) => ['message' => $line, 'context' => []];
+
+foreach ($streaming->processFile('large-app.log', $lineParser) as $maskedRecord) {
+    // Write to output file or process further
+    fwrite($output, $maskedRecord['message'] . "\n");
+}
+
+// Or process to file directly
+$formatter = fn(array $record) => json_encode($record);
+$count = $streaming->processToFile($records, 'masked-output.log', $formatter);
+```
 
 ## Laravel Integration
 
-You can integrate the GDPR processor with Laravel logging in two ways:
-
-### 1. Service Provider
+### Service Provider
 
 ```php
 // app/Providers/AppServiceProvider.php
+namespace App\Providers;
+
 use Illuminate\Support\ServiceProvider;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
+use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
 
 class AppServiceProvider extends ServiceProvider
 {
-    public function boot()
+    public function boot(): void
     {
-        $patterns = GdprProcessor::getDefaultPatterns();
-        $fieldPaths = [
-            'user.ssn' => '[GDPR]',
-            'payment.card' => '[CC]',
-            'contact.email' => '', // empty string = regex mask
-            'metadata.session' => '[SESSION]',
-        ];
-        $this->app['log']->getLogger()
-            ->pushProcessor(new GdprProcessor($patterns, $fieldPaths));
+        $processor = new GdprProcessor(
+            patterns: GdprProcessor::getDefaultPatterns(),
+            fieldPaths: [
+                'user.email' => FieldMaskConfig::remove(),
+                'user.password' => FieldMaskConfig::remove(),
+            ]
+        );
+
+        $this->app['log']->getLogger()->pushProcessor($processor);
     }
 }
 ```
 
-### 2. Tap Class (config/logging.php)
+### Tap Class
 
 ```php
 // app/Logging/GdprTap.php
 namespace App\Logging;
+
 use Monolog\Logger;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
+use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
 
 class GdprTap
 {
-    public function __invoke(Logger $logger)
+    public function __invoke(Logger $logger): void
     {
-        $patterns = GdprProcessor::getDefaultPatterns();
-        $fieldPaths = [
-            'user.ssn' => '[GDPR]',
-            'payment.card' => '[CC]',
-            'contact.email' => '',
-            'metadata.session' => '[SESSION]',
-        ];
-        $logger->pushProcessor(new GdprProcessor($patterns, $fieldPaths));
+        $processor = new GdprProcessor(
+            patterns: GdprProcessor::getDefaultPatterns(),
+            fieldPaths: [
+                'user.email' => FieldMaskConfig::remove(),
+                'payment.card' => FieldMaskConfig::replace('[CARD]'),
+            ]
+        );
+
+        $logger->pushProcessor($processor);
     }
 }
 ```
@@ -146,313 +329,192 @@ Reference in `config/logging.php`:
 
 ```php
 'channels' => [
-    'stack' => [
-        'driver' => 'stack',
-        'channels' => ['single'],
+    'single' => [
+        'driver' => 'single',
+        'path' => storage_path('logs/laravel.log'),
+        'level' => 'debug',
         'tap' => [App\Logging\GdprTap::class],
     ],
-    // ...
 ],
 ```
 
-## Configuration
+### Console Commands
 
-You can configure the processor to filter out sensitive data by specifying:
-
-- **Regex patterns:** Used for masking values in messages and context
-- **Field paths:** Dot-notation paths for masking/removal/replacement
-- **Custom callbacks:** For advanced per-field masking
-- **Audit logger:** For compliance tracking
-
-## Testing & Quality
-
-This project uses PHPUnit for testing, Psalm and PHPStan for static analysis, and PHP_CodeSniffer for code style checks.
-
-### Running Tests
-
-To run the test suite:
+The library provides Artisan commands for testing and debugging:
 
 ```bash
-composer test
+# Test a pattern against sample data
+php artisan gdpr:test-pattern '/\b\d{3}-\d{2}-\d{4}\b/' 'SSN: 123-45-6789'
+
+# Debug current GDPR configuration
+php artisan gdpr:debug
 ```
 
-To generate a code coverage report (HTML output in the `coverage/` directory):
+## Plugin System
 
-```bash
-composer test:coverage
+Extend the processor with custom pre/post-processing hooks:
+
+```php
+use Ivuorinen\MonologGdprFilter\Contracts\MaskingPluginInterface;
+use Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder;
+
+class CustomPlugin implements MaskingPluginInterface
+{
+    public function getName(): string
+    {
+        return 'custom-plugin';
+    }
+
+    public function getPriority(): int
+    {
+        return 10; // Lower = earlier execution
+    }
+
+    public function preProcessMessage(string $message): string
+    {
+        // Modify message before masking
+        return $message;
+    }
+
+    public function postProcessMessage(string $message): string
+    {
+        // Modify message after masking
+        return $message;
+    }
+
+    public function preProcessContext(array $context): array
+    {
+        return $context;
+    }
+
+    public function postProcessContext(array $context): array
+    {
+        return $context;
+    }
+}
+
+$processor = GdprProcessorBuilder::create()
+    ->withDefaultPatterns()
+    ->addPlugin(new CustomPlugin())
+    ->buildWithPlugins();
 ```
 
-### Linting & Static Analysis
+## Default Patterns Reference
 
-To run all linters and static analysis:
+`GdprProcessor::getDefaultPatterns()` includes patterns for:
 
-```bash
-composer lint
-```
-
-To automatically fix code style and static analysis issues:
-
-```bash
-composer lint:fix
-```
+| Category | Data Types |
+|----------|------------|
+| Personal IDs | Finnish SSN (HETU), US SSN, Passport numbers, National IDs |
+| Financial | Credit cards, IBAN, Bank account numbers |
+| Contact | Email addresses, Phone numbers (E.164) |
+| Technical | IPv4/IPv6 addresses, MAC addresses, API keys, Bearer tokens |
+| Health | Medicare numbers, European Health Insurance Card (EHIC) |
+| Dates | Birth dates in multiple formats |
 
 ## Performance Considerations
 
 ### Pattern Optimization
 
-The library processes patterns sequentially, so pattern order can affect performance:
+Order patterns from most specific to most general:
 
 ```php
-// Good: More specific patterns first
+// Recommended: specific patterns first
 $patterns = [
     '/\b\d{3}-\d{2}-\d{4}\b/' => '***SSN***',     // Specific format
-    '/\b\d+\b/' => '***NUMBER***',                // Generic pattern last
-];
-
-// Avoid: Too many broad patterns
-$patterns = [
-    '/.*sensitive.*/' => '***MASKED***',          // Too broad, may be slow
+    '/\b\d+\b/' => '***NUMBER***',                // Generic fallback
 ];
 ```
 
-### Large Dataset Handling
+### Memory-Efficient Processing
 
-For applications processing large volumes of logs:
+For large datasets:
 
-```php
-// Consider pattern count vs. performance
-$processor = new GdprProcessor(
-    $patterns,        // Keep to essential patterns only
-    $fieldPaths,      // More efficient than regex for known fields
-    $callbacks        // Most efficient for complex logic
-);
-```
+- Use `StreamingProcessor` for file-based processing
+- Configure appropriate `maxDepth` to limit recursion
+- Use rate-limited audit logging to prevent memory growth
 
-### Memory Usage
+### Pattern Caching
 
-- **Regex Compilation**: Patterns are compiled on each use. Consider caching for high-volume applications.
-- **Deep Nesting**: The `recursiveMask()` method processes nested arrays. Very deep structures may impact memory.
-- **Audit Logging**: Be mindful of audit logger memory usage in high-volume scenarios.
-
-### Benchmarking
-
-Test performance with your actual data patterns:
-
-```php
-$start = microtime(true);
-$processor = new GdprProcessor($patterns);
-$result = $processor->regExpMessage($yourLogMessage);
-$time = microtime(true) - $start;
-echo "Processing time: " . ($time * 1000) . "ms\n";
-```
+Patterns are validated and cached internally.
+For high-throughput applications, the library automatically caches compiled patterns.
 
 ## Troubleshooting
 
-### Common Issues
-
-#### Pattern Not Matching
-
-**Problem**: Custom regex pattern isn't masking expected data.
-
-**Solutions**:
+### Pattern Not Matching
 
 ```php
-// 1. Test pattern in isolation
-$testPattern = '/your-pattern/';
-if (preg_match($testPattern, $testString)) {
-    echo "Pattern matches!";
-} else {
-    echo "Pattern doesn't match.";
+// Test pattern in isolation
+$pattern = '/your-pattern/';
+if (preg_match($pattern, $testString)) {
+    echo 'Pattern matches';
 }
 
-// 2. Validate pattern safety
+// Validate pattern safety
 try {
-    GdprProcessor::validatePatterns([
+    GdprProcessor::validatePatternsArray([
         '/your-pattern/' => '***MASKED***'
     ]);
-    echo "Pattern is valid and safe.";
-} catch (InvalidArgumentException $e) {
-    echo "Pattern error: " . $e->getMessage();
+} catch (PatternValidationException $e) {
+    echo 'Invalid pattern: ' . $e->getMessage();
 }
+```
 
-// 3. Enable audit logging to see what's happening
-$auditLogger = function ($path, $original, $masked) {
-    error_log("GDPR Debug: {$path} - Original type: " . gettype($original));
+### Performance Issues
+
+- Reduce pattern count to essential patterns only
+- Use field-specific masking instead of broad regex patterns
+- Profile with audit logging to identify slow operations
+
+### Audit Logger Issues
+
+```php
+// Safe audit logging (never log original sensitive data)
+$auditLogger = function($path, $original, $masked) {
+    error_log(sprintf(
+        'GDPR Audit: %s - type=%s, masked=%s',
+        $path,
+        gettype($original),
+        $original !== $masked ? 'yes' : 'no'
+    ));
 };
 ```
 
-#### Performance Issues
+## Testing and Quality
 
-**Problem**: Slow log processing with many patterns.
+```bash
+# Run tests
+composer test
 
-**Solutions**:
+# Run tests with coverage report
+composer test:coverage
 
-```php
-// 1. Reduce pattern count
-$essentialPatterns = [
-    '/\b\d{3}-\d{2}-\d{4}\b/' => '***SSN***',
-    '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/' => '***EMAIL***',
-];
+# Run all linters
+composer lint
 
-// 2. Use field-specific masking instead of global patterns
-$fieldPaths = [
-    'user.email' => GdprProcessor::maskWithRegex(), // Only for specific fields
-    'user.ssn' => GdprProcessor::replaceWith('***SSN***'),
-];
-
-// 3. Profile pattern performance
-$start = microtime(true);
-// ... processing
-$duration = microtime(true) - $start;
-if ($duration > 0.1) { // 100ms threshold
-    error_log("Slow GDPR processing: {$duration}s");
-}
+# Auto-fix code style issues
+composer lint:fix
 ```
 
-#### Audit Logging Issues
+## Security
 
-**Problem**: Audit logger not being called or logging sensitive data.
+- All patterns are validated for safety before use to prevent regex injection attacks
+- The library includes ReDoS (Regular Expression Denial of Service) protection
+- Dangerous patterns with recursive structures or excessive backtracking are rejected
 
-**Solutions**:
-
-```php
-// 1. Verify audit logger is callable
-$auditLogger = function ($path, $original, $masked) {
-    // SECURITY: Never log original sensitive data!
-    $safeLog = [
-        'path' => $path,
-        'original_type' => gettype($original),
-        'was_masked' => $original !== $masked,
-        'timestamp' => date('c'),
-    ];
-    error_log('GDPR Audit: ' . json_encode($safeLog));
-};
-
-// 2. Test audit logger independently  
-$processor = new GdprProcessor($patterns, [], [], $auditLogger);
-$processor->regExpMessage('test@example.com'); // Should trigger audit log
-
-// 3. Check if masking actually occurred
-if ($original === $masked) {
-    // No masking happened - check your patterns
-}
-```
-
-#### Laravel Integration Issues
-
-**Problem**: GDPR processor not working in Laravel.
-
-**Solutions**:
-
-```php
-// 1. Verify processor is registered
-Log::info('Test message with email@example.com');
-// Check logs to see if masking occurred
-
-// 2. Check logging channel configuration
-// In config/logging.php, ensure tap is properly configured
-'single' => [
-    'driver' => 'single',
-    'path' => storage_path('logs/laravel.log'),
-    'level' => 'debug',
-    'tap' => [App\Logging\GdprTap::class], // Ensure this line exists
-],
-
-// 3. Debug in service provider
-class AppServiceProvider extends ServiceProvider
-{
-    public function boot()
-    {
-        $logger = Log::getLogger();
-        $processor = new GdprProcessor($patterns, $fieldPaths);
-        $logger->pushProcessor($processor);
-
-        // Test immediately
-        Log::info('GDPR test: email@example.com should be masked');
-    }
-}
-```
-
-### Error Messages
-
-#### "Invalid regex pattern"
-
-- **Cause**: Pattern fails validation due to syntax error or security risk
-- **Solution**: Check pattern syntax and avoid nested quantifiers
-
-#### "Compilation failed"
-
-- **Cause**: PHP regex compilation error
-- **Solution**: Test pattern with `preg_match()` in isolation
-
-#### "Unknown modifier"
-
-- **Cause**: Invalid regex modifiers or malformed pattern
-- **Solution**: Use standard modifiers like `/pattern/i` for case-insensitive
-
-### Debugging Tips
-
-1. **Enable Error Logging**:
-
-   ```php
-   error_reporting(E_ALL);
-   ini_set('display_errors', 1);
-   ```
-
-2. **Test Patterns Separately**:
-
-   ```php
-   foreach ($patterns as $pattern => $replacement) {
-       echo "Testing: {$pattern}\n";
-       $result = preg_replace($pattern, $replacement, 'test string');
-       if ($result === null) {
-           echo "Error in pattern: {$pattern}\n";
-       }
-   }
-   ```
-
-3. **Monitor Performance**:
-
-   ```php
-   $processor = new GdprProcessor($patterns, $fieldPaths, [], function($path, $orig, $masked) {
-       if (microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'] > 1.0) {
-           error_log("Slow GDPR processing detected");
-       }
-   });
-   ```
-
-### Getting Help
-
-- **Documentation**: Check [CONTRIBUTING.md](CONTRIBUTING.md) for development setup
-- **Security Issues**: See [SECURITY.md](SECURITY.md) for responsible disclosure
-- **Bug Reports**: Create an issue on GitHub with minimal reproduction example
-- **Performance Issues**: Include profiling data and pattern counts
-
-## Notable Implementation Details
-
-- If a regex replacement in `regExpMessage` results in an empty string or the string "0", the original message is
-  returned. This is covered by dedicated PHPUnit tests.
-- If a regex pattern is invalid, the audit logger (if set) is called, and the original message is returned.
-- All patterns are validated for security before use to prevent regex injection attacks.
-- The library includes ReDoS (Regular Expression Denial of Service) protection.
-
-## Directory Structure
-
-- `src/` — Main library source code
-- `tests/` — PHPUnit tests
-- `coverage/` — Code coverage reports
-- `vendor/` — Composer dependencies
+For security vulnerabilities, please see [SECURITY.md](SECURITY.md) for responsible disclosure guidelines.
 
 ## Legal Disclaimer
 
-> **CAUTION**: This library helps mask/filter sensitive data for GDPR compliance, but it is your responsibility to
-> ensure your application fully complies with all legal requirements. Review your logging and data handling policies
-> regularly.
+This library helps mask and filter sensitive data for GDPR compliance, but it is your responsibility
+to ensure your application fully complies with all applicable legal requirements.
+This tool is provided as-is without warranty.
+Review your logging and data handling policies regularly with legal counsel.
 
 ## Contributing
 
-If you would like to contribute to this project, please fork the repository and submit a pull request.
+Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
