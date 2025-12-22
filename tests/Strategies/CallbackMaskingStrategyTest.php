@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Tests\Strategies;
 
 use Ivuorinen\MonologGdprFilter\Exceptions\MaskingOperationFailedException;
+use Ivuorinen\MonologGdprFilter\Exceptions\RuleExecutionException;
 use Ivuorinen\MonologGdprFilter\Strategies\CallbackMaskingStrategy;
 use PHPUnit\Framework\TestCase;
-use RuntimeException;
 use Tests\TestConstants;
 use Tests\TestHelpers;
 
@@ -55,7 +55,7 @@ final class CallbackMaskingStrategyTest extends TestCase
     public function testMaskThrowsOnCallbackException(): void
     {
         $callback = function (): never {
-            throw new RuntimeException('Callback failed');
+            throw new RuleExecutionException('Callback failed');
         };
         $strategy = new CallbackMaskingStrategy('user.data', $callback);
         $record = $this->createLogRecord();
@@ -229,7 +229,7 @@ final class CallbackMaskingStrategyTest extends TestCase
 
         $strategy->mask(['key' => 'value'], 'user.data', $record);
 
-        $this->assertSame(['key' => 'value'], $receivedValue);
+        $this->assertSame($receivedValue, ['key' => 'value']);
     }
 
     public function testCallbackCanReturnNonString(): void

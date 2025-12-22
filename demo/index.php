@@ -18,7 +18,7 @@ spl_autoload_register(function (string $class): void {
     if (str_starts_with($class, 'Ivuorinen\\MonologGdprFilter\\Demo\\')) {
         $file = __DIR__ . '/' . substr($class, strlen('Ivuorinen\\MonologGdprFilter\\Demo\\')) . '.php';
         if (file_exists($file)) {
-            require $file;
+            require_once $file;
         }
     }
 });

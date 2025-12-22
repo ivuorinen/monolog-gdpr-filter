@@ -76,7 +76,7 @@ final class RetryStrategyTest extends TestCase
         $operation = function () use (&$attemptCount): string {
             $attemptCount++;
             if ($attemptCount < 3) {
-                throw MaskingOperationFailedException::regexMaskingFailed('Temporary failure', '/test/', 'test');
+                throw MaskingOperationFailedException::regexMaskingFailed('Temporary failure', TestConstants::PATTERN_TEST, 'test');
             }
             return TestConstants::MASK_MASKED_BRACKETS;
         };
@@ -99,7 +99,7 @@ final class RetryStrategyTest extends TestCase
         );
 
         $operation = function (): never {
-            throw MaskingOperationFailedException::regexMaskingFailed('Permanent failure', '/test/', 'test');
+            throw MaskingOperationFailedException::regexMaskingFailed('Permanent failure', TestConstants::PATTERN_TEST, 'test');
         };
 
         $result = $strategy->execute($operation, 'original string', 'test.path');
@@ -118,7 +118,7 @@ final class RetryStrategyTest extends TestCase
         );
 
         $operation = function (): never {
-            throw MaskingOperationFailedException::regexMaskingFailed('Failure', '/test/', 'test');
+            throw MaskingOperationFailedException::regexMaskingFailed('Failure', TestConstants::PATTERN_TEST, 'test');
         };
 
         $result = $strategy->execute($operation, 'original', 'test.path');
@@ -134,7 +134,7 @@ final class RetryStrategyTest extends TestCase
         );
 
         $operation = function (): never {
-            throw MaskingOperationFailedException::regexMaskingFailed('Failure', '/test/', 'test');
+            throw MaskingOperationFailedException::regexMaskingFailed('Failure', TestConstants::PATTERN_TEST, 'test');
         };
 
         $result = $strategy->execute($operation, 'original', 'test.path');
@@ -150,7 +150,7 @@ final class RetryStrategyTest extends TestCase
         );
 
         $operation = function (): never {
-            throw MaskingOperationFailedException::regexMaskingFailed('Failure', '/test/', 'test');
+            throw MaskingOperationFailedException::regexMaskingFailed('Failure', TestConstants::PATTERN_TEST, 'test');
         };
 
         $result = $strategy->execute($operation, 'original', 'test.path');
@@ -190,7 +190,7 @@ final class RetryStrategyTest extends TestCase
     {
         $strategy = new RetryStrategy();
         $exception = MaskingOperationFailedException::regexMaskingFailed(
-            '/test/',
+            TestConstants::PATTERN_TEST,
             'input',
             'Pattern compilation failed'
         );
@@ -202,7 +202,7 @@ final class RetryStrategyTest extends TestCase
     {
         $strategy = new RetryStrategy();
         $exception = MaskingOperationFailedException::regexMaskingFailed(
-            '/test/',
+            TestConstants::PATTERN_TEST,
             'input',
             'Potential ReDoS vulnerability detected'
         );
@@ -213,7 +213,7 @@ final class RetryStrategyTest extends TestCase
     public function testIsRecoverableWithTransientError(): void
     {
         $strategy = new RetryStrategy();
-        $exception = MaskingOperationFailedException::regexMaskingFailed('Temporary failure', '/test/', 'test');
+        $exception = MaskingOperationFailedException::regexMaskingFailed('Temporary failure', TestConstants::PATTERN_TEST, 'test');
 
         $this->assertTrue($strategy->isRecoverable($exception));
     }
@@ -251,7 +251,7 @@ final class RetryStrategyTest extends TestCase
         );
 
         $operation = function (): never {
-            throw MaskingOperationFailedException::regexMaskingFailed('Failure', '/test/', 'test');
+            throw MaskingOperationFailedException::regexMaskingFailed('Failure', TestConstants::PATTERN_TEST, 'test');
         };
 
         $result = $strategy->execute($operation, 42, 'test.path');
@@ -267,7 +267,7 @@ final class RetryStrategyTest extends TestCase
         );
 
         $operation = function (): never {
-            throw MaskingOperationFailedException::regexMaskingFailed('Failure', '/test/', 'test');
+            throw MaskingOperationFailedException::regexMaskingFailed('Failure', TestConstants::PATTERN_TEST, 'test');
         };
 
         $result = $strategy->execute($operation, ['key' => 'value'], 'test.path');
@@ -297,7 +297,7 @@ final class RetryStrategyTest extends TestCase
         );
 
         $operation = function (): never {
-            throw MaskingOperationFailedException::regexMaskingFailed('Failure', '/test/', 'test');
+            throw MaskingOperationFailedException::regexMaskingFailed('Failure', TestConstants::PATTERN_TEST, 'test');
         };
 
         $strategy->execute($operation, 'original', 'test.path', $auditLogger);

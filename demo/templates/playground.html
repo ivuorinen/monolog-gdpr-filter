@@ -91,7 +91,7 @@
             margin-top: 15px;
         }
         button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4c51bf 0%, #553c9a 100%);
             color: #ffffff;
             border: none;
             padding: 12px 24px;
@@ -103,7 +103,7 @@
         }
         button:hover {
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 12px rgba(76, 81, 191, 0.4);
         }
         button.secondary {
             background: #f8f9fa;
@@ -152,7 +152,7 @@
             font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
         }
         .pattern-item .arrow {
-            color: #764ba2;
+            color: #553c9a;
             margin: 0 8px;
         }
         .tabs {
@@ -169,7 +169,7 @@
             font-size: 13px;
         }
         .tab.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4c51bf 0%, #553c9a 100%);
             color: #ffffff;
         }
         .highlight {
@@ -464,7 +464,9 @@ IBAN: FI21 1234 5600 0007 85</textarea>
         }
 
         // Initialize on page load
-        loadDefaultPatternsOnInit();
+        loadDefaultPatternsOnInit().catch(error => {
+            console.error('Failed to initialize:', error);
+        });
 
         function escapeHtml(text) {
             const div = document.createElement('div');
