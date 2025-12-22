@@ -14,6 +14,9 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @psalm-suppress DeprecatedMethod - Tests for deprecated audit logger factory methods
+ */
 #[CoversClass(GdprProcessor::class)]
 final class GdprProcessorExtendedTest extends TestCase
 {

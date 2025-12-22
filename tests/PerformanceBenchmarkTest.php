@@ -21,6 +21,7 @@ use Ivuorinen\MonologGdprFilter\PatternValidator;
  * These tests measure and validate the performance improvements.
  *
  * @api
+ * @psalm-suppress DeprecatedMethod - Tests for deprecated PatternValidator API
  */
 class PerformanceBenchmarkTest extends TestCase
 {
@@ -170,7 +171,8 @@ class PerformanceBenchmarkTest extends TestCase
             // Verify processing worked
             $this->assertInstanceOf(LogRecord::class, $result);
             $this->assertCount($size, $result->context);
-            $this->assertStringContainsString(MaskConstants::MASK_EMAIL, (string) $result->context['item_0'][TestConstants::CONTEXT_EMAIL]);
+            $emailValue = (string) $result->context['item_0'][TestConstants::CONTEXT_EMAIL];
+            $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $emailValue);
 
             // Performance should scale reasonably
             $timePerItem = $duration / (float) $size;
@@ -267,7 +269,8 @@ class PerformanceBenchmarkTest extends TestCase
         // Verify processing worked
         $this->assertInstanceOf(LogRecord::class, $result);
         $this->assertCount(2000, $result->context);
-        $this->assertStringContainsString(MaskConstants::MASK_EMAIL, (string) $result->context['item_0'][TestConstants::CONTEXT_EMAIL]);
+        $emailValue = (string) $result->context['item_0'][TestConstants::CONTEXT_EMAIL];
+        $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $emailValue);
 
         // Memory usage should be reasonable even for large datasets
         $this->assertLessThan(50, $memoryUsed, 'Memory usage should be under 50MB for dataset');

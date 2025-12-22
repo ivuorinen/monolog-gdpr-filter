@@ -32,6 +32,7 @@ use stdClass;
  * Each test method corresponds to a specific bug that was identified and fixed.
  *
  * @psalm-api
+ * @psalm-suppress DeprecatedMethod - Tests for deprecated PatternValidator API
  */
 #[CoversClass(GdprProcessor::class)]
 #[CoversClass(RateLimiter::class)]
@@ -124,7 +125,10 @@ class CriticalBugRegressionTest extends TestCase
     /**
      * Data provider for PHP type testing
      *
-     * @psalm-return Generator<string, list{'hello world'|123|bool|float|list{'a', 'b', 'c'}|null|resource|stdClass, string}, mixed, void>
+     * @psalm-return Generator<string, list{
+     *     'hello world'|123|bool|float|list{'a', 'b', 'c'}|null|resource|stdClass,
+     *     string
+     * }, mixed, void>
      */
     public static function phpTypesDataProvider(): Generator
     {

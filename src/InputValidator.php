@@ -81,6 +81,7 @@ final class InputValidator
             }
 
             // Validate regex pattern syntax
+            /** @psalm-suppress DeprecatedMethod - Internal validation use */
             if (!PatternValidator::isValid($pattern)) {
                 throw InvalidRegexPatternException::forPattern(
                     $pattern,

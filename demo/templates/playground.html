@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GDPR Pattern Tester - Monolog GDPR Filter</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 25px;
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+        }
+        .card h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card h2::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.9rem;
+        }
+        textarea, input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5eb;
+            border-radius: 8px;
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+            font-size: 13px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        textarea:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        textarea {
+            min-height: 180px;
+            resize: vertical;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        button {
+            background: linear-gradient(135deg, #4c51bf 0%, #553c9a 100%);
+            color: #ffffff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(76, 81, 191, 0.4);
+        }
+        button.secondary {
+            background: #f8f9fa;
+            color: #333;
+        }
+        button.secondary:hover {
+            background: #e9ecef;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .result-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .result-box.error {
+            background: #fff5f5;
+            border-left: 4px solid #e53e3e;
+        }
+        .result-box.success {
+            background: #f0fff4;
+            border-left: 4px solid #38a169;
+        }
+        .patterns-list {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        .pattern-item {
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 12px;
+        }
+        .pattern-item:last-child {
+            border-bottom: none;
+        }
+        .pattern-item code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+        }
+        .pattern-item .arrow {
+            color: #553c9a;
+            margin: 0 8px;
+        }
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+        .tab {
+            padding: 8px 16px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .tab.active {
+            background: linear-gradient(135deg, #4c51bf 0%, #553c9a 100%);
+            color: #ffffff;
+        }
+        .highlight {
+            background: #fff3cd;
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .stat-box {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .stat-box .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-box .label {
+            font-size: 11px;
+            color: #888;
+            margin-top: 5px;
+        }
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            opacity: 0.8;
+        }
+        footer a {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>GDPR Pattern Tester</h1>
+            <p>Test and validate regex patterns for masking sensitive data in log messages</p>
+        </header>
+
+        <div class="grid">
+            <div class="card">
+                <h2>Sample Input</h2>
+                <label for="sampleText">Enter text containing sensitive data:</label>
+                <textarea id="sampleText">User john.doe@example.com logged in from 192.168.1.100.
+Credit card: 4532-1234-5678-9012
+SSN: 123-45-6789
+Phone: +1 (555) 123-4567
+Finnish SSN: 131052-308T
+IBAN: FI21 1234 5600 0007 85</textarea>
+            </div>
+
+            <div class="card">
+                <h2>Custom Patterns</h2>
+                <label for="patterns">JSON patterns (pattern => replacement):</label>
+                <textarea id="patterns">{
+    "/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/": "[EMAIL]",
+    "/\\b\\d{3}-\\d{2}-\\d{4}\\b/": "***-**-****",
+    "/\\b\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}\\b/": "****-****-****-****",
+    "/\\b\\d{6}[-+A]\\d{3}[A-Z0-9]\\b/": "******-****"
+}</textarea>
+                <div class="btn-group">
+                    <button class="secondary" onclick="loadDefaults()">Load Defaults</button>
+                    <button class="secondary" onclick="clearPatterns()">Clear</button>
+                </div>
+            </div>
+
+            <div class="card" style="grid-column: 1 / -1;">
+                <h2>Actions</h2>
+                <div class="btn-group">
+                    <button onclick="testPatterns()">Test Patterns</button>
+                    <button onclick="testProcessor()">Test Full Processor</button>
+                    <button onclick="testStrategies()">Test with Strategies</button>
+                    <button class="secondary" onclick="validatePatterns()">Validate Patterns</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Masked Output</h2>
+                <div id="maskedOutput" class="result-box">Masked output will appear here...</div>
+            </div>
+
+            <div class="card">
+                <h2>Pattern Matches</h2>
+                <div id="matchesOutput" class="result-box">Matches will appear here...</div>
+            </div>
+
+            <div class="card">
+                <h2>Default Patterns</h2>
+                <div id="defaultPatterns" class="patterns-list">Loading default patterns...</div>
+            </div>
+
+            <div class="card">
+                <h2>Audit Log</h2>
+                <div id="auditLog" class="result-box">Audit log entries will appear here...</div>
+            </div>
+
+            <div class="card" style="grid-column: 1 / -1;">
+                <h2>Full Results</h2>
+                <div id="fullResults" class="result-box">Complete results will appear here...</div>
+            </div>
+        </div>
+
+        <footer>
+            <p>
+                <a href="https://github.com/ivuorinen/monolog-gdpr-filter" target="_blank">
+                    ivuorinen/monolog-gdpr-filter
+                </a>
+                &mdash; Run with: <code>php -S localhost:8080 demo/index.php</code>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        async function api(action, data = {}) {
+            try {
+                const response = await fetch(globalThis.location.href, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action, ...data })
+                });
+                return await response.json();
+            } catch (error) {
+                return { error: error.message };
+            }
+        }
+
+        function getPatterns() {
+            try {
+                return JSON.parse(document.getElementById('patterns').value);
+            } catch (error) {
+                showError('Invalid JSON in patterns field: ' + error.message);
+                return null;
+            }
+        }
+
+        async function testPatterns() {
+            const text = document.getElementById('sampleText').value;
+            const patterns = getPatterns();
+
+            if (!patterns) {
+                showError('Invalid JSON in patterns field');
+                return;
+            }
+
+            const result = await api('test_patterns', { text, patterns });
+
+            if (result.error) {
+                showError(result.error);
+                return;
+            }
+
+            document.getElementById('maskedOutput').textContent = result.masked || '';
+            document.getElementById('maskedOutput').className = 'result-box success';
+
+            if (result.matches && Object.keys(result.matches).length > 0) {
+                document.getElementById('matchesOutput').textContent =
+                    JSON.stringify(result.matches, null, 2);
+            } else {
+                document.getElementById('matchesOutput').textContent = 'No matches found';
+            }
+
+            document.getElementById('fullResults').textContent =
+                JSON.stringify(result, null, 2);
+
+            if (result.errors && result.errors.length > 0) {
+                document.getElementById('fullResults').className = 'result-box error';
+            } else {
+                document.getElementById('fullResults').className = 'result-box success';
+            }
+        }
+
+        async function testProcessor() {
+            const message = document.getElementById('sampleText').value;
+            const patterns = getPatterns() || {};
+
+            const result = await api('test_processor', { message, patterns });
+
+            if (result.error) {
+                showError(result.error);
+                return;
+            }
+
+            document.getElementById('maskedOutput').textContent =
+                result.masked_message || '';
+            document.getElementById('maskedOutput').className = 'result-box success';
+
+            if (result.audit_log && result.audit_log.length > 0) {
+                document.getElementById('auditLog').textContent =
+                    JSON.stringify(result.audit_log, null, 2);
+            } else {
+                document.getElementById('auditLog').textContent = 'No audit entries';
+            }
+
+            document.getElementById('fullResults').textContent =
+                JSON.stringify(result, null, 2);
+            document.getElementById('fullResults').className = 'result-box success';
+        }
+
+        async function testStrategies() {
+            const message = document.getElementById('sampleText').value;
+            const patterns = getPatterns() || {};
+
+            const result = await api('test_strategies', { message, patterns });
+
+            document.getElementById('maskedOutput').textContent =
+                result.masked_message || '';
+            document.getElementById('maskedOutput').className = 'result-box success';
+
+            if (result.strategy_stats) {
+                document.getElementById('matchesOutput').textContent =
+                    'Strategy Statistics:\n' + JSON.stringify(result.strategy_stats, null, 2);
+            }
+
+            document.getElementById('fullResults').textContent =
+                JSON.stringify(result, null, 2);
+            document.getElementById('fullResults').className = 'result-box success';
+        }
+
+        async function validatePatterns() {
+            const patterns = getPatterns();
+
+            if (!patterns) {
+                showError('Invalid JSON in patterns field');
+                return;
+            }
+
+            const results = [];
+            for (const pattern of Object.keys(patterns)) {
+                const result = await api('validate_pattern', { pattern });
+                results.push({
+                    pattern,
+                    valid: result.valid,
+                    error: result.error
+                });
+            }
+
+            const valid = results.filter(r => r.valid).length;
+            const invalid = results.filter(r => !r.valid).length;
+
+            document.getElementById('fullResults').textContent =
+                `Validation Results: ${valid} valid, ${invalid} invalid\n\n` +
+                JSON.stringify(results, null, 2);
+
+            document.getElementById('fullResults').className =
+                invalid > 0 ? 'result-box error' : 'result-box success';
+        }
+
+        async function loadDefaults() {
+            const result = await api('get_defaults');
+            if (result.patterns) {
+                document.getElementById('patterns').value =
+                    JSON.stringify(result.patterns, null, 4);
+            }
+        }
+
+        function clearPatterns() {
+            document.getElementById('patterns').value = '{\n    \n}';
+        }
+
+        function showError(message) {
+            document.getElementById('fullResults').textContent = 'Error: ' + message;
+            document.getElementById('fullResults').className = 'result-box error';
+        }
+
+        // Load default patterns on page load
+        async function loadDefaultPatternsOnInit() {
+            try {
+                const result = await api('get_defaults');
+                if (result.patterns) {
+                    const container = document.getElementById('defaultPatterns');
+                    container.innerHTML = Object.entries(result.patterns)
+                        .map(([pattern, replacement]) =>
+                            `<div class="pattern-item">
+                                <code>${escapeHtml(pattern)}</code>
+                                <span class="arrow">→</span>
+                                <code>${escapeHtml(replacement)}</code>
+                            </div>`
+                        ).join('');
+                }
+            } catch (error) {
+                const container = document.getElementById('defaultPatterns');
+                container.textContent = 'Error loading default patterns: ' + error.message;
+            }
+        }
+
+        // Initialize on page load
+        loadDefaultPatternsOnInit().catch(error => {
+            console.error('Failed to initialize:', error);
+        });
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

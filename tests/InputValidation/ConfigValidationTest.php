@@ -22,7 +22,25 @@ class ConfigValidationTest extends TestCase
      *
      * @return ((bool|int|string)[]|bool|int)[]
      *
-     * @psalm-return array{auto_register: bool, channels: list{'single', 'daily', 'stack'}, patterns: array<never, never>, field_paths: array<never, never>, custom_callbacks: array<never, never>, max_depth: int<1, 1000>, audit_logging: array{enabled: bool, channel: string}, performance: array{chunk_size: int<100, 10000>, garbage_collection_threshold: int<1000, 100000>}, validation: array{max_pattern_length: int<10, 1000>, max_field_path_length: int<5, 500>, allow_empty_patterns: bool, strict_regex_validation: bool}}
+     * @psalm-return array{
+     *     auto_register: bool,
+     *     channels: list{'single', 'daily', 'stack'},
+     *     patterns: array<never, never>,
+     *     field_paths: array<never, never>,
+     *     custom_callbacks: array<never, never>,
+     *     max_depth: int<1, 1000>,
+     *     audit_logging: array{enabled: bool, channel: string},
+     *     performance: array{
+     *         chunk_size: int<100, 10000>,
+     *         garbage_collection_threshold: int<1000, 100000>
+     *     },
+     *     validation: array{
+     *         max_pattern_length: int<10, 1000>,
+     *         max_field_path_length: int<5, 500>,
+     *         allow_empty_patterns: bool,
+     *         strict_regex_validation: bool
+     *     }
+     * }
      */
     private function getTestConfig(): array
     {
@@ -42,10 +60,22 @@ class ConfigValidationTest extends TestCase
                 'garbage_collection_threshold' => max(1000, min(100000, (int) ($_ENV['GDPR_GC_THRESHOLD'] ?? 10000))),
             ],
             'validation' => [
-                'max_pattern_length' => max(10, min(1000, (int) ($_ENV['GDPR_MAX_PATTERN_LENGTH'] ?? 500))),
-                'max_field_path_length' => max(5, min(500, (int) ($_ENV['GDPR_MAX_FIELD_PATH_LENGTH'] ?? 100))),
-                'allow_empty_patterns' => filter_var($_ENV['GDPR_ALLOW_EMPTY_PATTERNS'] ?? false, FILTER_VALIDATE_BOOLEAN),
-                'strict_regex_validation' => filter_var($_ENV['GDPR_STRICT_REGEX_VALIDATION'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                'max_pattern_length' => max(
+                    10,
+                    min(1000, (int) ($_ENV['GDPR_MAX_PATTERN_LENGTH'] ?? 500))
+                ),
+                'max_field_path_length' => max(
+                    5,
+                    min(500, (int) ($_ENV['GDPR_MAX_FIELD_PATH_LENGTH'] ?? 100))
+                ),
+                'allow_empty_patterns' => filter_var(
+                    $_ENV['GDPR_ALLOW_EMPTY_PATTERNS'] ?? false,
+                    FILTER_VALIDATE_BOOLEAN
+                ),
+                'strict_regex_validation' => filter_var(
+                    $_ENV['GDPR_STRICT_REGEX_VALIDATION'] ?? true,
+                    FILTER_VALIDATE_BOOLEAN
+                ),
             ],
         ];
     }
@@ -426,9 +456,18 @@ class ConfigValidationTest extends TestCase
 
         // Security-focused defaults
         $this->assertFalse($config['auto_register'], 'auto_register should default to false');
-        $this->assertFalse($config['audit_logging']['enabled'], 'audit logging should default to false');
-        $this->assertFalse($config['validation']['allow_empty_patterns'], 'empty patterns should not be allowed by default');
-        $this->assertTrue($config['validation']['strict_regex_validation'], 'strict regex validation should be enabled by default');
+        $this->assertFalse(
+            $config['audit_logging']['enabled'],
+            'audit logging should default to false'
+        );
+        $this->assertFalse(
+            $config['validation']['allow_empty_patterns'],
+            'empty patterns should not be allowed by default'
+        );
+        $this->assertTrue(
+            $config['validation']['strict_regex_validation'],
+            'strict regex validation should be enabled by default'
+        );
 
         // Restore environment variables
         foreach ($oldValues as $var => $value) {

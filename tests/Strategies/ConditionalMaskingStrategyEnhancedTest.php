@@ -170,9 +170,24 @@ final class ConditionalMaskingStrategyEnhancedTest extends TestCase
             [TestConstants::CHANNEL_SECURITY, TestConstants::CHANNEL_AUDIT, 'admin']
         );
 
-        $securityRecord = $this->createLogRecord(TestConstants::MESSAGE_DEFAULT, [], Level::Info, TestConstants::CHANNEL_SECURITY);
-        $auditRecord = $this->createLogRecord(TestConstants::MESSAGE_DEFAULT, [], Level::Info, TestConstants::CHANNEL_AUDIT);
-        $testRecord = $this->createLogRecord(TestConstants::MESSAGE_DEFAULT, [], Level::Info, 'test');
+        $securityRecord = $this->createLogRecord(
+            TestConstants::MESSAGE_DEFAULT,
+            [],
+            Level::Info,
+            TestConstants::CHANNEL_SECURITY
+        );
+        $auditRecord = $this->createLogRecord(
+            TestConstants::MESSAGE_DEFAULT,
+            [],
+            Level::Info,
+            TestConstants::CHANNEL_AUDIT
+        );
+        $testRecord = $this->createLogRecord(
+            TestConstants::MESSAGE_DEFAULT,
+            [],
+            Level::Info,
+            'test'
+        );
 
         $this->assertTrue($strategy->shouldApply('secret', TestConstants::FIELD_MESSAGE, $securityRecord));
         $this->assertTrue($strategy->shouldApply('secret', TestConstants::FIELD_MESSAGE, $auditRecord));
@@ -188,8 +203,16 @@ final class ConditionalMaskingStrategyEnhancedTest extends TestCase
             ['env' => 'production', 'sensitive' => true]
         );
 
-        $prodRecord = $this->createLogRecord(TestConstants::MESSAGE_DEFAULT, ['env' => 'production', 'sensitive' => true]);
-        $devRecord = $this->createLogRecord(TestConstants::MESSAGE_DEFAULT, ['env' => 'development', 'sensitive' => true]);
+        $prodContext = ['env' => 'production', 'sensitive' => true];
+        $prodRecord = $this->createLogRecord(
+            TestConstants::MESSAGE_DEFAULT,
+            $prodContext
+        );
+        $devContext = ['env' => 'development', 'sensitive' => true];
+        $devRecord = $this->createLogRecord(
+            TestConstants::MESSAGE_DEFAULT,
+            $devContext
+        );
         $noContextRecord = $this->createLogRecord(TestConstants::MESSAGE_DEFAULT);
 
         $this->assertTrue($strategy->shouldApply('secret', TestConstants::FIELD_MESSAGE, $prodRecord));

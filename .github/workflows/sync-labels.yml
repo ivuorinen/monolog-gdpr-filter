@@ -20,7 +20,8 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
   labels:
@@ -38,4 +39,4 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: ⤵️ Sync Latest Labels Definitions
-        uses: ivuorinen/actions/sync-labels@44a11e9773be8ae72c469d2461478413156de797 # v2025.12.07
+        uses: ivuorinen/actions/sync-labels@db86bb2f0df059edc619ecca735320ed571f51e0 # v2025.12.21

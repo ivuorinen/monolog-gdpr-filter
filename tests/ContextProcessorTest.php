@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
-use Adbar\Dot;
+use Ivuorinen\MonologGdprFilter\ArrayAccessor\DotArrayAccessor;
 use Ivuorinen\MonologGdprFilter\ContextProcessor;
 use Ivuorinen\MonologGdprFilter\Exceptions\RuleExecutionException;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
@@ -23,14 +23,18 @@ final class ContextProcessorTest extends TestCase
     public function testMaskFieldPathsWithRegexMask(): void
     {
         $regexProcessor = fn(string $val): string => str_replace('test', MaskConstants::MASK_GENERIC, $val);
+        $emailConfig = FieldMaskConfig::regexMask(
+            TestConstants::PATTERN_TEST,
+            MaskConstants::MASK_GENERIC
+        );
         $processor = new ContextProcessor(
-            [TestConstants::CONTEXT_EMAIL => FieldMaskConfig::regexMask(TestConstants::PATTERN_TEST, MaskConstants::MASK_GENERIC)],
+            [TestConstants::CONTEXT_EMAIL => $emailConfig],
             [],
             null,
             $regexProcessor
         );
 
-        $accessor = new Dot([TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_TEST]);
+        $accessor = new DotArrayAccessor([TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_TEST]);
         $processed = $processor->maskFieldPaths($accessor);
 
         $this->assertSame([TestConstants::CONTEXT_EMAIL], $processed);
@@ -47,7 +51,7 @@ final class ContextProcessorTest extends TestCase
             $regexProcessor
         );
 
-        $accessor = new Dot(['secret' => 'confidential', 'public' => 'data']);
+        $accessor = new DotArrayAccessor(['secret' => 'confidential', 'public' => 'data']);
         $processed = $processor->maskFieldPaths($accessor);
 
         $this->assertSame(['secret'], $processed);
@@ -65,7 +69,7 @@ final class ContextProcessorTest extends TestCase
             $regexProcessor
         );
 
-        $accessor = new Dot([TestConstants::CONTEXT_PASSWORD => 'secret123']);
+        $accessor = new DotArrayAccessor([TestConstants::CONTEXT_PASSWORD => 'secret123']);
         $processed = $processor->maskFieldPaths($accessor);
 
         $this->assertSame([TestConstants::CONTEXT_PASSWORD], $processed);
@@ -82,7 +86,7 @@ final class ContextProcessorTest extends TestCase
             $regexProcessor
         );
 
-        $accessor = new Dot(['other' => 'value']);
+        $accessor = new DotArrayAccessor(['other' => 'value']);
         $processed = $processor->maskFieldPaths($accessor);
 
         $this->assertSame([], $processed);
@@ -104,7 +108,7 @@ final class ContextProcessorTest extends TestCase
             $regexProcessor
         );
 
-        $accessor = new Dot(['field' => 'value']);
+        $accessor = new DotArrayAccessor(['field' => 'value']);
         $processor->maskFieldPaths($accessor);
 
         $this->assertCount(1, $auditLog);
@@ -128,7 +132,7 @@ final class ContextProcessorTest extends TestCase
             $regexProcessor
         );
 
-        $accessor = new Dot(['secret' => 'data']);
+        $accessor = new DotArrayAccessor(['secret' => 'data']);
         $processor->maskFieldPaths($accessor);
 
         $this->assertCount(1, $auditLog);
@@ -148,7 +152,7 @@ final class ContextProcessorTest extends TestCase
             $regexProcessor
         );
 
-        $accessor = new Dot(['name' => 'john']);
+        $accessor = new DotArrayAccessor(['name' => 'john']);
         $processed = $processor->processCustomCallbacks($accessor);
 
         $this->assertSame(['name'], $processed);
@@ -167,7 +171,7 @@ final class ContextProcessorTest extends TestCase
             $regexProcessor
         );
 
-        $accessor = new Dot(['other' => 'value']);
+        $accessor = new DotArrayAccessor(['other' => 'value']);
         $processed = $processor->processCustomCallbacks($accessor);
 
         $this->assertSame([], $processed);
@@ -192,7 +196,7 @@ final class ContextProcessorTest extends TestCase
             $regexProcessor
         );
 
-        $accessor = new Dot(['field' => 'value']);
+        $accessor = new DotArrayAccessor(['field' => 'value']);
         $processed = $processor->processCustomCallbacks($accessor);
 
         $this->assertSame(['field'], $processed);
@@ -220,7 +224,7 @@ final class ContextProcessorTest extends TestCase
             $regexProcessor
         );
 
-        $accessor = new Dot(['field' => 'original']);
+        $accessor = new DotArrayAccessor(['field' => 'original']);
         $processor->processCustomCallbacks($accessor);
 
         $this->assertCount(1, $auditLog);
@@ -332,7 +336,7 @@ final class ContextProcessorTest extends TestCase
             $regexProcessor
         );
 
-        $accessor = new Dot(['field' => 'value']);
+        $accessor = new DotArrayAccessor(['field' => 'value']);
         $processor->processCustomCallbacks($accessor);
 
         // Should not log when value unchanged

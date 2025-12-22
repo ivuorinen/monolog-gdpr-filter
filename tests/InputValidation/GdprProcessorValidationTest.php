@@ -21,6 +21,7 @@ use Tests\TestConstants;
  * Tests for the GdprProcessor class.
  *
  * @api
+ * @psalm-suppress DeprecatedMethod - Tests for deprecated validation methods
  */
 #[CoversClass(GdprProcessor::class)]
 class GdprProcessorValidationTest extends TestCase
@@ -272,7 +273,8 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForInvalidDataTypeMaskKey(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage("Must be one of: integer, double, string, boolean, NULL, array, object, resource");
+        $expectedMsg = 'Must be one of: integer, double, string, boolean, NULL, array, object, resource';
+        $this->expectExceptionMessage($expectedMsg);
 
         new GdprProcessor([], [], [], null, 100, ['invalid_type' => MaskConstants::MASK_MASKED]);
     }
@@ -408,8 +410,12 @@ class GdprProcessorValidationTest extends TestCase
     #[Test]
     public function constructorHandlesComplexValidRegexPatterns(): void
     {
+        // Complex IP address pattern (IPv4 octet validation)
+        $ipPattern = '/(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}'
+            . '(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/';
+
         $complexPatterns = [
-            '/(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/' => MaskConstants::MASK_IP,
+            $ipPattern => MaskConstants::MASK_IP,
             TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL,
             '/\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b/' => MaskConstants::MASK_CARD
         ];

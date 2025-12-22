@@ -83,7 +83,8 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
         $logRecord = $this->createLogRecord();
 
         // Should successfully apply all valid patterns
-        $result = $strategy->mask('SSN: 123-45-6789, Email: emailtest@example.com', TestConstants::FIELD_MESSAGE, $logRecord);
+        $input = 'SSN: 123-45-6789, Email: emailtest@example.com';
+        $result = $strategy->mask($input, TestConstants::FIELD_MESSAGE, $logRecord);
         $this->assertStringContainsString(MaskConstants::MASK_SSN, $result);
         $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
     }
@@ -126,25 +127,44 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
     public function testShouldApplyWithIncludePathsOnly(): void
     {
         $patterns = [TestConstants::PATTERN_TEST => MaskConstants::MASK_MASKED];
-        $strategy = new RegexMaskingStrategy($patterns, [TestConstants::PATH_USER_WILDCARD, 'admin.log']);
+        $includePaths = [TestConstants::PATH_USER_WILDCARD, 'admin.log'];
+        $strategy = new RegexMaskingStrategy($patterns, $includePaths);
         $logRecord = $this->createLogRecord();
 
         // Should apply to matching content in included paths
-        $this->assertTrue($strategy->shouldApply(TestConstants::DATA_TEST_DATA, TestConstants::FIELD_USER_EMAIL, $logRecord));
-        $this->assertTrue($strategy->shouldApply(TestConstants::DATA_TEST_DATA, 'admin.log', $logRecord));
+        $this->assertTrue($strategy->shouldApply(
+            TestConstants::DATA_TEST_DATA,
+            TestConstants::FIELD_USER_EMAIL,
+            $logRecord
+        ));
+        $this->assertTrue($strategy->shouldApply(
+            TestConstants::DATA_TEST_DATA,
+            'admin.log',
+            $logRecord
+        ));
 
         // Should not apply to non-included paths even if content matches
-        $this->assertFalse($strategy->shouldApply(TestConstants::DATA_TEST_DATA, 'system.info', $logRecord));
+        $this->assertFalse($strategy->shouldApply(
+            TestConstants::DATA_TEST_DATA,
+            'system.info',
+            $logRecord
+        ));
     }
 
     public function testShouldApplyWithExcludePathsPrecedence(): void
     {
         $patterns = [TestConstants::PATTERN_TEST => MaskConstants::MASK_MASKED];
-        $strategy = new RegexMaskingStrategy($patterns, [TestConstants::PATH_USER_WILDCARD], ['user.id', 'user.created_at']);
+        $includePaths = [TestConstants::PATH_USER_WILDCARD];
+        $excludePaths = ['user.id', 'user.created_at'];
+        $strategy = new RegexMaskingStrategy($patterns, $includePaths, $excludePaths);
         $logRecord = $this->createLogRecord();
 
         // Should apply to included but not excluded
-        $this->assertTrue($strategy->shouldApply(TestConstants::DATA_TEST_DATA, TestConstants::FIELD_USER_EMAIL, $logRecord));
+        $this->assertTrue($strategy->shouldApply(
+            TestConstants::DATA_TEST_DATA,
+            TestConstants::FIELD_USER_EMAIL,
+            $logRecord
+        ));
 
         // Should not apply to excluded paths
         $this->assertFalse($strategy->shouldApply(TestConstants::DATA_TEST_DATA, 'user.id', $logRecord));
@@ -158,8 +178,16 @@ final class RegexMaskingStrategyEnhancedTest extends TestCase
         $logRecord = $this->createLogRecord();
 
         // Should return false when content doesn't match patterns
-        $this->assertFalse($strategy->shouldApply(TestConstants::DATA_PUBLIC, TestConstants::FIELD_MESSAGE, $logRecord));
-        $this->assertFalse($strategy->shouldApply('no sensitive info', 'context.field', $logRecord));
+        $this->assertFalse($strategy->shouldApply(
+            TestConstants::DATA_PUBLIC,
+            TestConstants::FIELD_MESSAGE,
+            $logRecord
+        ));
+        $this->assertFalse($strategy->shouldApply(
+            'no sensitive info',
+            'context.field',
+            $logRecord
+        ));
     }
 
     public function testShouldApplyForNonStringValuesWhenPatternMatches(): void

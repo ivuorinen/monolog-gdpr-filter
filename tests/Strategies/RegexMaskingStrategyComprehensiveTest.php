@@ -205,7 +205,12 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
         $record = $this->createLogRecord('Test');
 
         // Should apply to included path
-        $this->assertTrue($strategy->shouldApply(TestConstants::MESSAGE_SECRET_DATA, TestConstants::FIELD_USER_PASSWORD, $record));
+        $shouldApply = $strategy->shouldApply(
+            TestConstants::MESSAGE_SECRET_DATA,
+            TestConstants::FIELD_USER_PASSWORD,
+            $record
+        );
+        $this->assertTrue($shouldApply);
 
         // Should not apply to non-included path
         $this->assertFalse($strategy->shouldApply(TestConstants::MESSAGE_SECRET_DATA, 'other.field', $record));
@@ -238,10 +243,20 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
         $record = $this->createLogRecord('Test');
 
         // Should not apply to excluded path even if in include list
-        $this->assertFalse($strategy->shouldApply(TestConstants::MESSAGE_SECRET_DATA, TestConstants::FIELD_USER_PUBLIC, $record));
+        $shouldNotApply = $strategy->shouldApply(
+            TestConstants::MESSAGE_SECRET_DATA,
+            TestConstants::FIELD_USER_PUBLIC,
+            $record
+        );
+        $this->assertFalse($shouldNotApply);
 
         // Should apply to included path not in exclude list
-        $this->assertTrue($strategy->shouldApply(TestConstants::MESSAGE_SECRET_DATA, TestConstants::FIELD_USER_PASSWORD, $record));
+        $shouldApply = $strategy->shouldApply(
+            TestConstants::MESSAGE_SECRET_DATA,
+            TestConstants::FIELD_USER_PASSWORD,
+            $record
+        );
+        $this->assertTrue($shouldApply);
     }
 
     public function testShouldApplyCatchesMaskingException(): void

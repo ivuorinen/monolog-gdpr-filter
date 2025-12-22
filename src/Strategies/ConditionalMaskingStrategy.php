@@ -80,7 +80,14 @@ class ConditionalMaskingStrategy extends AbstractMaskingStrategy
     {
         $conditionCount = count($this->conditions);
         $logic = $this->requireAllConditions ? 'AND' : 'OR';
-        return sprintf('Conditional Masking (%d conditions, %s logic) -> %s', $conditionCount, $logic, $this->wrappedStrategy->getName());
+        $wrappedName = $this->wrappedStrategy->getName();
+
+        return sprintf(
+            'Conditional Masking (%d conditions, %s logic) -> %s',
+            $conditionCount,
+            $logic,
+            $wrappedName
+        );
     }
 
     /**

@@ -2,12 +2,12 @@
 
 namespace Ivuorinen\MonologGdprFilter;
 
+use Ivuorinen\MonologGdprFilter\ArrayAccessor\ArrayAccessorFactory;
 use Ivuorinen\MonologGdprFilter\Exceptions\PatternValidationException;
 use Ivuorinen\MonologGdprFilter\Exceptions\InvalidRegexPatternException;
+use Ivuorinen\MonologGdprFilter\Factory\AuditLoggerFactory;
 use Closure;
 use Throwable;
-use Error;
-use Adbar\Dot;
 use Monolog\LogRecord;
 use Monolog\Processor\ProcessorInterface;
 
@@ -15,14 +15,18 @@ use Monolog\Processor\ProcessorInterface;
  * GdprProcessor is a Monolog processor that masks sensitive information in log messages
  * according to specified regex patterns and field paths.
  *
+ * This class serves as a Monolog adapter, delegating actual masking work to MaskingOrchestrator.
+ *
  * @psalm-api
  */
 class GdprProcessor implements ProcessorInterface
 {
-    private readonly DataTypeMasker $dataTypeMasker;
-    private readonly JsonMasker $jsonMasker;
-    private readonly ContextProcessor $contextProcessor;
-    private readonly RecursiveProcessor $recursiveProcessor;
+    private readonly MaskingOrchestrator $orchestrator;
+
+    /**
+     * @var callable(string,mixed,mixed):void|null
+     */
+    private $auditLogger;
 
     /**
      * @param array<string,string> $patterns Regex pattern => replacement
@@ -34,18 +38,22 @@ class GdprProcessor implements ProcessorInterface
      * @param array<string,string> $dataTypeMasks Type-based masking: type => mask pattern
      * @param array<string,callable(LogRecord):bool> $conditionalRules Conditional masking rules:
      *                                   rule_name => condition_callback
+     * @param ArrayAccessorFactory|null $arrayAccessorFactory Factory for creating array accessors
      *
      * @throws \InvalidArgumentException When any parameter is invalid
      */
     public function __construct(
         private readonly array $patterns,
-        private readonly array $fieldPaths = [],
-        private readonly array $customCallbacks = [],
-        private $auditLogger = null,
+        array $fieldPaths = [],
+        array $customCallbacks = [],
+        $auditLogger = null,
         int $maxDepth = 100,
         array $dataTypeMasks = [],
-        private readonly array $conditionalRules = []
+        private readonly array $conditionalRules = [],
+        ?ArrayAccessorFactory $arrayAccessorFactory = null
     ) {
+        $this->auditLogger = $auditLogger;
+
         // Validate all constructor parameters using InputValidator
         InputValidator::validateAll(
             $patterns,
@@ -58,48 +66,34 @@ class GdprProcessor implements ProcessorInterface
         );
 
         // Pre-validate and cache patterns for better performance
+        /** @psalm-suppress DeprecatedMethod - Internal use of caching mechanism */
         PatternValidator::cachePatterns($patterns);
 
-        // Initialize data type masker
-        $this->dataTypeMasker = new DataTypeMasker($dataTypeMasks, $auditLogger);
-
-        // Initialize recursive processor for data structure processing
-        $this->recursiveProcessor = new RecursiveProcessor(
-            $this->regExpMessage(...),
-            $this->dataTypeMasker,
-            $auditLogger,
-            $maxDepth
-        );
-
-        // Initialize JSON masker with recursive mask callback
-        /** @psalm-suppress InvalidArgument - recursiveMask is intentionally impure due to audit logging */
-        $this->jsonMasker = new JsonMasker(
-            $this->recursiveProcessor->recursiveMask(...),
-            $auditLogger
-        );
-
-        // Initialize context processor for field-level operations
-        $this->contextProcessor = new ContextProcessor(
+        // Create orchestrator to handle actual masking work
+        $this->orchestrator = new MaskingOrchestrator(
+            $patterns,
             $fieldPaths,
             $customCallbacks,
             $auditLogger,
-            $this->regExpMessage(...)
+            $maxDepth,
+            $dataTypeMasks,
+            $arrayAccessorFactory
         );
     }
-
-
 
     /**
      * Create a rate-limited audit logger wrapper.
      *
      * @param callable(string,mixed,mixed):void $auditLogger The underlying audit logger
      * @param string $profile Rate limiting profile: 'strict', 'default', 'relaxed', or 'testing'
+     *
+     * @deprecated Use AuditLoggerFactory::create()->createRateLimited() instead
      */
     public static function createRateLimitedAuditLogger(
         callable $auditLogger,
         string $profile = 'default'
     ): RateLimitedAuditLogger {
-        return RateLimitedAuditLogger::create($auditLogger, $profile);
+        return AuditLoggerFactory::create()->createRateLimited($auditLogger, $profile);
     }
 
     /**
@@ -111,29 +105,16 @@ class GdprProcessor implements ProcessorInterface
      * @phpstan-param-out array<array-key, mixed> $logStorage
      * @param bool $rateLimited Whether to apply rate limiting (default: false for testing)
      *
-     *
      * @psalm-return RateLimitedAuditLogger|Closure(string, mixed, mixed):void
-     * @psalm-suppress ReferenceConstraintViolation - The closure always sets timestamp, but Psalm can't infer this through RateLimitedAuditLogger wrapper
+     *
+     * @deprecated Use AuditLoggerFactory::create()->createArrayLogger() instead
      */
     public static function createArrayAuditLogger(
         array &$logStorage,
         bool $rateLimited = false
     ): Closure|RateLimitedAuditLogger {
-        $baseLogger = function (string $path, mixed $original, mixed $masked) use (&$logStorage): void {
-            $logStorage[] = [
-                'path' => $path,
-                'original' => $original,
-                'masked' => $masked,
-                'timestamp' => time()
-            ];
-        };
-
-        return $rateLimited
-            ? self::createRateLimitedAuditLogger($baseLogger, 'testing')
-            : $baseLogger;
+        return AuditLoggerFactory::create()->createArrayLogger($logStorage, $rateLimited);
     }
-
-
 
     /**
      * Process a log record to mask sensitive information.
@@ -149,36 +130,10 @@ class GdprProcessor implements ProcessorInterface
             return $record;
         }
 
-        $message = $this->regExpMessage($record->message);
-        $context = $record->context;
-        $accessor = new Dot($context);
-        $processedFields = [];
+        // Delegate to orchestrator
+        $result = $this->orchestrator->process($record->message, $record->context);
 
-        if ($this->fieldPaths !== []) {
-            $processedFields = array_merge($processedFields, $this->contextProcessor->maskFieldPaths($accessor));
-        }
-
-        if ($this->customCallbacks !== []) {
-            $processedFields = array_merge(
-                $processedFields,
-                $this->contextProcessor->processCustomCallbacks($accessor)
-            );
-        }
-
-        if ($this->fieldPaths !== [] || $this->customCallbacks !== []) {
-            $context = $accessor->all();
-            // Apply data type masking to the entire context after field/callback processing
-            $context = $this->dataTypeMasker->applyToContext(
-                $context,
-                $processedFields,
-                '',
-                $this->recursiveProcessor->recursiveMask(...)
-            );
-        } else {
-            $context = $this->recursiveProcessor->recursiveMask($context, 0);
-        }
-
-        return $record->with(message: $message, context: $context);
+        return $record->with(message: $result['message'], context: $result['context']);
     }
 
     /**
@@ -227,57 +182,7 @@ class GdprProcessor implements ProcessorInterface
      */
     public function regExpMessage(string $message = ''): string
     {
-        // Early return for empty messages
-        if ($message === '') {
-            return $message;
-        }
-
-        // Track original message for empty result protection
-        $originalMessage = $message;
-
-        // Handle JSON strings and regular patterns in a coordinated way
-        $message = $this->maskMessageWithJsonSupport($message);
-
-        return $message === '' || $message === '0' ? $originalMessage : $message;
-    }
-
-    /**
-     * Mask message content, handling both JSON structures and regular patterns.
-     */
-    private function maskMessageWithJsonSupport(string $message): string
-    {
-        // Use JsonMasker to process JSON structures
-        $result = $this->jsonMasker->processMessage($message);
-
-        // Now apply regular patterns to the entire result
-        foreach ($this->patterns as $regex => $replacement) {
-            try {
-                /** @psalm-suppress ArgumentTypeCoercion */
-                $newResult = preg_replace($regex, $replacement, $result, -1, $count);
-
-                if ($newResult === null) {
-                    $error = preg_last_error_msg();
-
-                    if ($this->auditLogger !== null) {
-                        ($this->auditLogger)('preg_replace_error', $result, 'Error: ' . $error);
-                    }
-
-                    continue;
-                }
-
-                if ($count > 0) {
-                    $result = $newResult;
-                }
-            } catch (Error $e) {
-                if ($this->auditLogger !== null) {
-                    ($this->auditLogger)('regex_error', $regex, $e->getMessage());
-                }
-
-                continue;
-            }
-        }
-
-        return $result;
+        return $this->orchestrator->regExpMessage($message);
     }
 
     /**
@@ -290,7 +195,7 @@ class GdprProcessor implements ProcessorInterface
      */
     public function recursiveMask(array|string $data, int $currentDepth = 0): array|string
     {
-        return $this->recursiveProcessor->recursiveMask($data, $currentDepth);
+        return $this->orchestrator->recursiveMask($data, $currentDepth);
     }
 
     /**
@@ -314,7 +219,7 @@ class GdprProcessor implements ProcessorInterface
             }
 
             return $result;
-        } catch (Error $error) {
+        } catch (\Error $error) {
             if ($this->auditLogger !== null) {
                 ($this->auditLogger)('regex_batch_error', implode(', ', $keys), $error->getMessage());
             }
@@ -331,10 +236,15 @@ class GdprProcessor implements ProcessorInterface
     public function setAuditLogger(?callable $auditLogger): void
     {
         $this->auditLogger = $auditLogger;
+        $this->orchestrator->setAuditLogger($auditLogger);
+    }
 
-        // Propagate to child processors
-        $this->contextProcessor->setAuditLogger($auditLogger);
-        $this->recursiveProcessor->setAuditLogger($auditLogger);
+    /**
+     * Get the underlying orchestrator for direct access.
+     */
+    public function getOrchestrator(): MaskingOrchestrator
+    {
+        return $this->orchestrator;
     }
 
     /**
@@ -347,6 +257,7 @@ class GdprProcessor implements ProcessorInterface
     public static function validatePatternsArray(array $patterns): void
     {
         try {
+            /** @psalm-suppress DeprecatedMethod - Wrapper for deprecated validation */
             PatternValidator::validateAll($patterns);
         } catch (InvalidRegexPatternException $e) {
             throw PatternValidationException::forMultiplePatterns(

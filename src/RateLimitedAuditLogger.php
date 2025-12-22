@@ -66,7 +66,33 @@ class RateLimitedAuditLogger
      *
      * @return int[][]
      *
-     * @psalm-return array{'audit:general_operations'?: array{current_requests: int<1, max>, remaining_requests: int<0, max>, time_until_reset: int<0, max>}, 'audit:error_operations'?: array{current_requests: int<1, max>, remaining_requests: int<0, max>, time_until_reset: int<0, max>}, 'audit:regex_operations'?: array{current_requests: int<1, max>, remaining_requests: int<0, max>, time_until_reset: int<0, max>}, 'audit:conditional_operations'?: array{current_requests: int<1, max>, remaining_requests: int<0, max>, time_until_reset: int<0, max>}, 'audit:json_operations'?: array{current_requests: int<1, max>, remaining_requests: int<0, max>, time_until_reset: int<0, max>}}
+     * @psalm-return array{
+     *     'audit:general_operations'?: array{
+     *         current_requests: int<1, max>,
+     *         remaining_requests: int<0, max>,
+     *         time_until_reset: int<0, max>
+     *     },
+     *     'audit:error_operations'?: array{
+     *         current_requests: int<1, max>,
+     *         remaining_requests: int<0, max>,
+     *         time_until_reset: int<0, max>
+     *     },
+     *     'audit:regex_operations'?: array{
+     *         current_requests: int<1, max>,
+     *         remaining_requests: int<0, max>,
+     *         time_until_reset: int<0, max>
+     *     },
+     *     'audit:conditional_operations'?: array{
+     *         current_requests: int<1, max>,
+     *         remaining_requests: int<0, max>,
+     *         time_until_reset: int<0, max>
+     *     },
+     *     'audit:json_operations'?: array{
+     *         current_requests: int<1, max>,
+     *         remaining_requests: int<0, max>,
+     *         time_until_reset: int<0, max>
+     *     }
+     * }
      */
     public function getRateLimitStats(): array
     {

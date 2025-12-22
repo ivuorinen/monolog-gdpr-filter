@@ -39,6 +39,7 @@ use InvalidArgumentException;
  * - Concurrent access safety
  *
  * @psalm-api
+ * @psalm-suppress DeprecatedMethod - Tests for deprecated PatternValidator API
  */
 #[CoversClass(GdprProcessor::class)]
 #[CoversClass(RateLimiter::class)]

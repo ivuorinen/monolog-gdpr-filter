@@ -10,12 +10,14 @@
       "@lint:tool:ec",
       "@lint:tool:psalm",
       "@lint:tool:phpstan",
-      "@lint:tool:phpcs"
+      "@lint:tool:phpcs",
+      "@lint:tool:md"
     ],
     "lint:fix": [
       "@lint:tool:rector",
       "@lint:tool:psalm:fix",
       "@lint:tool:phpcbf",
+      "@lint:tool:md:fix",
       "@lint:tool:ec:fix"
     ],
     "test": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --coverage-text",
@@ -24,11 +26,13 @@
     "lint:tool:ec": "./vendor/bin/ec *.md *.json *.yml *.yaml *.xml *.php",
     "lint:tool:ec:fix": "./vendor/bin/ec *.md *.json *.yml *.yaml *.xml *.php --fix",
     "lint:tool:phpcs": "./vendor/bin/phpcs src/ tests/ examples/ config/ rector.php --warning-severity=0",
-    "lint:tool:phpcbf": "./vendor/bin/phpcbf src/ tests/ examples/ config/ rector.php",
+    "lint:tool:phpcbf": "./vendor/bin/phpcbf src/ tests/ examples/ config/ rector.php || [ $? -eq 2 ]",
     "lint:tool:phpstan": "./vendor/bin/phpstan analyse --memory-limit=1G",
     "lint:tool:psalm": "./vendor/bin/psalm --show-info=true",
     "lint:tool:psalm:fix": "./vendor/bin/psalm --alter --issues=MissingReturnType,MissingParamType,MissingClosureReturnType",
-    "lint:tool:rector": "./vendor/bin/rector"
+    "lint:tool:rector": "./vendor/bin/rector",
+    "lint:tool:md:fix": "markdownlint -f '**/*.md'",
+    "lint:tool:md": "markdownlint '**/*.md'"
   },
   "require": {
     "php": "^8.2",

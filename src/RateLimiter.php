@@ -129,7 +129,11 @@ class RateLimiter
      *
      * @return int[]
      *
-     * @psalm-return array{current_requests: int<0, max>, remaining_requests: int<0, max>, time_until_reset: int<0, max>}
+     * @psalm-return array{
+     *     current_requests: int<0, max>,
+     *     remaining_requests: int<0, max>,
+     *     time_until_reset: int<0, max>
+     * }
      * @throws InvalidRateLimitConfigurationException When key is invalid
      */
     public function getStats(string $key): array
@@ -223,7 +227,13 @@ class RateLimiter
      *
      * @return int[]
      *
-     * @psalm-return array{total_keys: int<0, max>, total_timestamps: int, estimated_memory_bytes: int<min, max>, last_cleanup: int, cleanup_interval: int}
+     * @psalm-return array{
+     *     total_keys: int<0, max>,
+     *     total_timestamps: int,
+     *     estimated_memory_bytes: int<min, max>,
+     *     last_cleanup: int,
+     *     cleanup_interval: int
+     * }
      */
     public static function getMemoryStats(): array
     {

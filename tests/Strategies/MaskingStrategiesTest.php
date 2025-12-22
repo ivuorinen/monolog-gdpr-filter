@@ -69,7 +69,10 @@ class MaskingStrategiesTest extends TestCase
     public function testRegexMaskingStrategyWithInvalidPattern(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
-        $strategy = new RegexMaskingStrategy([TestConstants::PATTERN_INVALID_UNCLOSED_BRACKET => TestConstants::DATA_MASKED]);
+        $patterns = [
+            TestConstants::PATTERN_INVALID_UNCLOSED_BRACKET => TestConstants::DATA_MASKED
+        ];
+        $strategy = new RegexMaskingStrategy($patterns);
         unset($strategy); // Satisfy SonarQube - this line won't be reached if exception is thrown
         $this->fail(TestConstants::ERROR_EXCEPTION_NOT_THROWN);
     }
@@ -390,7 +393,10 @@ class MaskingStrategiesTest extends TestCase
         $this->assertFalse($strategy->testRecordMatches($logRecord, ['level' => 'Info']));
 
         // Test preserveValueType
-        $this->assertEquals(TestConstants::DATA_MASKED, $strategy->testPreserveValueType('original', TestConstants::DATA_MASKED));
+        $this->assertEquals(
+            TestConstants::DATA_MASKED,
+            $strategy->testPreserveValueType('original', TestConstants::DATA_MASKED)
+        );
         $this->assertEquals(123, $strategy->testPreserveValueType(456, '123'));
         $this->assertEqualsWithDelta(12.5, $strategy->testPreserveValueType(45.6, '12.5'), PHP_FLOAT_EPSILON);
         $this->assertTrue($strategy->testPreserveValueType(false, 'true'));

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Ivuorinen\MonologGdprFilter;
 
-use Adbar\Dot;
+use Ivuorinen\MonologGdprFilter\Contracts\ArrayAccessorInterface;
 use Throwable;
 
 /**
@@ -34,11 +34,11 @@ class ContextProcessor
     /**
      * Mask field paths in the context using the configured field masks.
      *
-     * @param Dot<array-key, mixed> $accessor
+     * @param ArrayAccessorInterface $accessor
      * @return string[] Array of processed field paths
      * @psalm-return list<string>
      */
-    public function maskFieldPaths(Dot $accessor): array
+    public function maskFieldPaths(ArrayAccessorInterface $accessor): array
     {
         $processedFields = [];
         foreach ($this->fieldPaths as $path => $config) {
@@ -70,11 +70,11 @@ class ContextProcessor
     /**
      * Process custom callbacks on context fields.
      *
-     * @param Dot<array-key, mixed> $accessor
+     * @param ArrayAccessorInterface $accessor
      * @return string[] Array of processed field paths
      * @psalm-return list<string>
      */
-    public function processCustomCallbacks(Dot $accessor): array
+    public function processCustomCallbacks(ArrayAccessorInterface $accessor): array
     {
         $processedFields = [];
         foreach ($this->customCallbacks as $path => $callback) {

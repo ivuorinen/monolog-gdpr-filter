@@ -85,7 +85,10 @@ class ConditionalMaskingTest extends TestCase
 
     public function testChannelBasedConditionalMasking(): void
     {
-        // Create a processor that only masks logs from TestConstants::CHANNEL_SECURITY and TestConstants::CHANNEL_AUDIT channels
+        // Create a processor that only masks logs from security and audit channels
+        $channels = [TestConstants::CHANNEL_SECURITY, TestConstants::CHANNEL_AUDIT];
+        $channelRule = ConditionalRuleFactory::createChannelBasedRule($channels);
+
         $processor = $this->createProcessor(
             [TestConstants::PATTERN_EMAIL_TEST => MaskConstants::MASK_EMAIL],
             [],
@@ -93,9 +96,7 @@ class ConditionalMaskingTest extends TestCase
             null,
             100,
             [],
-            [
-                'security_channels_only' => ConditionalRuleFactory::createChannelBasedRule([TestConstants::CHANNEL_SECURITY, TestConstants::CHANNEL_AUDIT])
-            ]
+            ['security_channels_only' => $channelRule]
         );
 
         // Test security channel - should be masked
@@ -143,7 +144,9 @@ class ConditionalMaskingTest extends TestCase
             100,
             [],
             [
-                'sensitive_data_present' => ConditionalRuleFactory::createContextFieldRule(TestConstants::CONTEXT_SENSITIVE_DATA)
+                'sensitive_data_present' => ConditionalRuleFactory::createContextFieldRule(
+                    TestConstants::CONTEXT_SENSITIVE_DATA
+                )
             ]
         );
 
@@ -306,7 +309,7 @@ class ConditionalMaskingTest extends TestCase
     {
         // Create a custom rule that masks only logs with user_id > 1000
         $customRule = (
-            fn(LogRecord $record): bool => isset($record->context[TestConstants::CONTEXT_USER_ID]) && $record->context[TestConstants::CONTEXT_USER_ID] > 1000
+            fn(LogRecord $record): bool => ($record->context[TestConstants::CONTEXT_USER_ID] ?? 0) > 1000
         );
 
         $processor = $this->createProcessor(

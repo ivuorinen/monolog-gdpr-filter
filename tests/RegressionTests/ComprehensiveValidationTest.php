@@ -38,6 +38,7 @@ use Tests\TestConstants;
  * 5. Laravel Integration - Fixed undefined variables and imports
  *
  * @psalm-api
+ * @psalm-suppress DeprecatedMethod - Tests for deprecated validation methods
  */
 #[CoversClass(GdprProcessor::class)]
 #[CoversClass(RateLimiter::class)]
@@ -296,7 +297,11 @@ class ComprehensiveValidationTest extends TestCase
                 fieldPaths: [],
                 customCallbacks: [],
                 auditLogger: function (string $path, mixed $original, mixed $masked): void {
-                    $this->auditLog[] = ['path' => $path, 'original' => $original, TestConstants::DATA_MASKED => $masked];
+                    $this->auditLog[] = [
+                        'path' => $path,
+                        'original' => $original,
+                        TestConstants::DATA_MASKED => $masked
+                    ];
                 },
                 maxDepth: 100,
                 dataTypeMasks: [],

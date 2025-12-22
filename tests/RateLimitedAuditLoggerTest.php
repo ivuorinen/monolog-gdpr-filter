@@ -236,21 +236,26 @@ class RateLimitedAuditLoggerTest extends TestCase
 
         // Test that different paths are classified correctly
         $rateLimitedLogger('json_masked', 'original', TestConstants::DATA_MASKED);
-        $rateLimitedLogger('json_encode_error', 'original', TestConstants::DATA_MASKED); // Should be blocked (same type)
+        // Should be blocked (same type)
+        $rateLimitedLogger('json_encode_error', 'original', TestConstants::DATA_MASKED);
 
-        $this->assertCount(2, $this->logStorage); // 1 successful + 1 rate limit warning
+        // 1 successful + 1 rate limit warning
+        $this->assertCount(2, $this->logStorage);
 
         $this->logStorage = []; // Reset
 
         $rateLimitedLogger('conditional_skip', 'original', TestConstants::DATA_MASKED);
-        $rateLimitedLogger('conditional_error', 'original', TestConstants::DATA_MASKED); // Should be blocked (same type)
+        // Should be blocked (same type)
+        $rateLimitedLogger('conditional_error', 'original', TestConstants::DATA_MASKED);
 
-        $this->assertCount(2, $this->logStorage); // 1 successful + 1 rate limit warning
+        // 1 successful + 1 rate limit warning
+        $this->assertCount(2, $this->logStorage);
 
         $this->logStorage = []; // Reset
 
         $rateLimitedLogger('regex_error', 'original', TestConstants::DATA_MASKED);
-        $rateLimitedLogger('preg_replace_error', 'original', TestConstants::DATA_MASKED); // Should be blocked (same type)
+        // Should be blocked (same type)
+        $rateLimitedLogger('preg_replace_error', 'original', TestConstants::DATA_MASKED);
 
         $this->assertCount(2, $this->logStorage); // 1 successful + 1 rate limit warning
     }

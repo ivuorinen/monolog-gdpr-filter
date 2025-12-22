@@ -142,7 +142,8 @@ class CustomExceptionsTest extends TestCase
             'Invalid configuration'
         );
 
-        $this->assertStringContainsString("Field path masking failed for path '" . TestConstants::FIELD_USER_EMAIL . "'", $exception->getMessage());
+        $expectedMsg = "Field path masking failed for path '" . TestConstants::FIELD_USER_EMAIL . "'";
+        $this->assertStringContainsString($expectedMsg, $exception->getMessage());
         $this->assertStringContainsString('Invalid configuration', $exception->getMessage());
         $this->assertStringContainsString('operation_type: "field_path_masking"', $exception->getMessage());
         $this->assertStringContainsString('value_type: "string"', $exception->getMessage());
@@ -356,7 +357,12 @@ class CustomExceptionsTest extends TestCase
             'input',
             'Failed'
         );
-        $auditException = AuditLoggingException::callbackFailed('path', 'original', TestConstants::DATA_MASKED, 'Failed');
+        $auditException = AuditLoggingException::callbackFailed(
+            'path',
+            'original',
+            TestConstants::DATA_MASKED,
+            'Failed'
+        );
         $depthException = RecursionDepthExceededException::depthExceeded(10, 5, 'path');
 
         // All should inherit from GdprProcessorException
