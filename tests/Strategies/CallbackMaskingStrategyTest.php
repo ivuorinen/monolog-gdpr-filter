@@ -8,6 +8,7 @@ use Ivuorinen\MonologGdprFilter\Exceptions\MaskingOperationFailedException;
 use Ivuorinen\MonologGdprFilter\Strategies\CallbackMaskingStrategy;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use Tests\TestConstants;
 use Tests\TestHelpers;
 
 /**
@@ -21,7 +22,7 @@ final class CallbackMaskingStrategyTest extends TestCase
 
     public function testBasicConstruction(): void
     {
-        $callback = fn(mixed $value): string => '[MASKED]';
+        $callback = fn(mixed $value): string => TestConstants::MASK_MASKED_BRACKETS;
         $strategy = new CallbackMaskingStrategy('user.email', $callback);
 
         $this->assertSame('user.email', $strategy->getFieldPath());
@@ -31,13 +32,13 @@ final class CallbackMaskingStrategyTest extends TestCase
 
     public function testMaskWithSimpleCallback(): void
     {
-        $callback = fn(mixed $value): string => '[MASKED]';
+        $callback = fn(mixed $value): string => TestConstants::MASK_MASKED_BRACKETS;
         $strategy = new CallbackMaskingStrategy('user.email', $callback);
         $record = $this->createLogRecord();
 
         $result = $strategy->mask('john@example.com', 'user.email', $record);
 
-        $this->assertSame('[MASKED]', $result);
+        $this->assertSame(TestConstants::MASK_MASKED_BRACKETS, $result);
     }
 
     public function testMaskWithTransformingCallback(): void
@@ -53,7 +54,7 @@ final class CallbackMaskingStrategyTest extends TestCase
 
     public function testMaskThrowsOnCallbackException(): void
     {
-        $callback = function (mixed $value): never {
+        $callback = function (): never {
             throw new RuntimeException('Callback failed');
         };
         $strategy = new CallbackMaskingStrategy('user.data', $callback);
@@ -67,7 +68,7 @@ final class CallbackMaskingStrategyTest extends TestCase
 
     public function testShouldApplyWithExactMatch(): void
     {
-        $callback = fn(mixed $value): string => '[MASKED]';
+        $callback = fn(mixed $value): string => TestConstants::MASK_MASKED_BRACKETS;
         $strategy = new CallbackMaskingStrategy(
             'user.email',
             $callback,
@@ -82,7 +83,7 @@ final class CallbackMaskingStrategyTest extends TestCase
 
     public function testShouldApplyWithWildcardMatch(): void
     {
-        $callback = fn(mixed $value): string => '[MASKED]';
+        $callback = fn(mixed $value): string => TestConstants::MASK_MASKED_BRACKETS;
         $strategy = new CallbackMaskingStrategy(
             'user.*',
             $callback,
@@ -97,7 +98,7 @@ final class CallbackMaskingStrategyTest extends TestCase
 
     public function testGetName(): void
     {
-        $callback = fn(mixed $value): string => '[MASKED]';
+        $callback = fn(mixed $value): string => TestConstants::MASK_MASKED_BRACKETS;
         $strategy = new CallbackMaskingStrategy('user.email', $callback);
 
         $name = $strategy->getName();
@@ -108,7 +109,7 @@ final class CallbackMaskingStrategyTest extends TestCase
 
     public function testValidate(): void
     {
-        $callback = fn(mixed $value): string => '[MASKED]';
+        $callback = fn(mixed $value): string => TestConstants::MASK_MASKED_BRACKETS;
         $strategy = new CallbackMaskingStrategy('user.email', $callback);
 
         $this->assertTrue($strategy->validate());
@@ -116,7 +117,7 @@ final class CallbackMaskingStrategyTest extends TestCase
 
     public function testGetConfiguration(): void
     {
-        $callback = fn(mixed $value): string => '[MASKED]';
+        $callback = fn(mixed $value): string => TestConstants::MASK_MASKED_BRACKETS;
         $strategy = new CallbackMaskingStrategy(
             'user.email',
             $callback,
@@ -136,7 +137,7 @@ final class CallbackMaskingStrategyTest extends TestCase
 
     public function testForPathsFactoryMethod(): void
     {
-        $callback = fn(mixed $value): string => '[MASKED]';
+        $callback = fn(mixed $value): string => TestConstants::MASK_MASKED_BRACKETS;
         $paths = ['user.email', 'admin.email', 'contact.email'];
 
         $strategies = CallbackMaskingStrategy::forPaths($paths, $callback);
@@ -220,7 +221,7 @@ final class CallbackMaskingStrategyTest extends TestCase
         $receivedValue = null;
         $callback = function (mixed $value) use (&$receivedValue): string {
             $receivedValue = $value;
-            return '[MASKED]';
+            return TestConstants::MASK_MASKED_BRACKETS;
         };
 
         $strategy = new CallbackMaskingStrategy('user.data', $callback);
@@ -244,7 +245,7 @@ final class CallbackMaskingStrategyTest extends TestCase
 
     public function testCustomPriority(): void
     {
-        $callback = fn(mixed $value): string => '[MASKED]';
+        $callback = fn(mixed $value): string => TestConstants::MASK_MASKED_BRACKETS;
         $strategy = new CallbackMaskingStrategy('user.email', $callback, 100);
 
         $this->assertSame(100, $strategy->getPriority());

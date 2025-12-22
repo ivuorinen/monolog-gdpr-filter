@@ -290,7 +290,7 @@ final class PluginAwareProcessorTest extends TestCase
     public function testSetAuditLoggerDelegates(): void
     {
         $logs = [];
-        $auditLogger = function (string $path, mixed $original, mixed $masked) use (&$logs): void {
+        $auditLogger = function (string $path) use (&$logs): void {
             $logs[] = ['path' => $path];
         };
 

@@ -92,90 +92,37 @@ final class RetryStrategy implements RecoveryStrategy
         $lastError = null;
 
         for ($attempt = 1; $attempt <= $this->maxAttempts; $attempt++) {
-            try {
-                $result = $operation();
-                $duration = (microtime(true) - $startTime) * 1000.0;
+            $attemptResult = $this->handleRetryAttempt($operation, $startTime, $attempt, $path, $auditLogger);
 
-                if ($attempt === 1) {
-                    return RecoveryResult::success($result, $duration);
-                }
+            if ($attemptResult['success'] && $attemptResult['result'] instanceof RecoveryResult) {
+                return $attemptResult['result'];
+            }
 
-                return RecoveryResult::recovered($result, $attempt, $duration);
-            } catch (Throwable $e) {
-                $lastError = ErrorContext::fromThrowable($e);
+            $lastError = $attemptResult['errorContext'];
+            $exception = $attemptResult['exception'];
 
-                // Log the retry attempt
-                if ($auditLogger !== null && $attempt < $this->maxAttempts) {
-                    $auditLogger(
-                        'recovery_retry',
-                        ['path' => $path, 'attempt' => $attempt],
-                        ['error' => $lastError->message, 'will_retry' => true]
-                    );
-                }
-
-                // Don't retry if the error is not recoverable
-                if (!$this->isRecoverable($e)) {
-                    break;
-                }
-
-                // Apply delay before retry (except on last attempt)
-                if ($attempt < $this->maxAttempts) {
-                    $this->delay($attempt);
-                }
+            if (!$this->shouldContinueRetrying($exception, $attempt)) {
+                break;
             }
         }
 
-        // All attempts failed, apply fallback
-        $duration = (microtime(true) - $startTime) * 1000.0;
-        $fallbackValue = $this->getFallbackValue($originalValue);
-
-        if (!$lastError instanceof ErrorContext) {
-            $lastError = ErrorContext::create('unknown', 'No error captured');
-        }
-
-        // Log fallback usage
-        if ($auditLogger !== null) {
-            $auditLogger(
-                'recovery_fallback',
-                ['path' => $path, 'mode' => $this->failureMode->value],
-                ['error' => $lastError->message, 'fallback_applied' => true]
-            );
-        }
-
-        return RecoveryResult::fallback(
-            $fallbackValue,
-            $this->maxAttempts,
-            $lastError,
-            $duration
-        );
+        return $this->applyFallback($originalValue, $path, $startTime, $lastError, $auditLogger);
     }
 
     public function isRecoverable(Throwable $error): bool
     {
         // These errors indicate permanent failures that won't recover with retry
-        $nonRecoverableTypes = [
-            RecursionDepthExceededException::class,
-        ];
-
-        foreach ($nonRecoverableTypes as $type) {
-            if ($error instanceof $type) {
-                return false;
-            }
+        if ($error instanceof RecursionDepthExceededException) {
+            return false;
         }
 
-        // Some MaskingOperationFailedException errors might be recoverable
+        // Some MaskingOperationFailedException errors are non-recoverable
         if ($error instanceof MaskingOperationFailedException) {
             $message = $error->getMessage();
+            $isNonRecoverable = str_contains($message, 'Pattern compilation failed')
+                || str_contains($message, 'ReDoS');
 
-            // Pattern compilation errors won't recover
-            if (str_contains($message, 'Pattern compilation failed')) {
-                return false;
-            }
-
-            // ReDoS errors won't recover
-            if (str_contains($message, 'ReDoS')) {
-                return false;
-            }
+            return !$isNonRecoverable;
         }
 
         // Transient errors like timeouts might recover
@@ -201,6 +148,106 @@ final class RetryStrategy implements RecoveryStrategy
             'failure_mode' => $this->failureMode->value,
             'fallback_mask' => $this->fallbackMask ?? '[auto]',
         ];
+    }
+
+    /**
+     * Handle a single retry attempt.
+     *
+     * @return array{
+     *     success: bool,
+     *     result: RecoveryResult|null,
+     *     errorContext: ErrorContext|null,
+     *     exception: Throwable|null
+     * }
+     */
+    private function handleRetryAttempt(
+        callable $operation,
+        float $startTime,
+        int $attempt,
+        string $path,
+        ?callable $auditLogger
+    ): array {
+        try {
+            $result = $operation();
+            $duration = (microtime(true) - $startTime) * 1000.0;
+
+            $recoveryResult = $attempt === 1
+                ? RecoveryResult::success($result, $duration)
+                : RecoveryResult::recovered($result, $attempt, $duration);
+
+            return ['success' => true, 'result' => $recoveryResult, 'errorContext' => null, 'exception' => null];
+        } catch (Throwable $e) {
+            $errorContext = ErrorContext::fromThrowable($e);
+            $this->logRetryAttempt($path, $attempt, $errorContext, $auditLogger);
+
+            return ['success' => false, 'result' => null, 'errorContext' => $errorContext, 'exception' => $e];
+        }
+    }
+
+    /**
+     * Log a retry attempt to the audit logger.
+     */
+    private function logRetryAttempt(
+        string $path,
+        int $attempt,
+        ErrorContext $errorContext,
+        ?callable $auditLogger
+    ): void {
+        if ($auditLogger !== null && $attempt < $this->maxAttempts) {
+            $auditLogger(
+                'recovery_retry',
+                ['path' => $path, 'attempt' => $attempt],
+                ['error' => $errorContext->message, 'will_retry' => true]
+            );
+        }
+    }
+
+    /**
+     * Determine if retry should be continued.
+     */
+    private function shouldContinueRetrying(?Throwable $exception, int $attempt): bool
+    {
+        if ($exception === null || !$this->isRecoverable($exception)) {
+            return false;
+        }
+
+        if ($attempt >= $this->maxAttempts) {
+            return false;
+        }
+
+        $this->delay($attempt);
+        return true;
+    }
+
+    /**
+     * Apply fallback value after all retry attempts failed.
+     */
+    private function applyFallback(
+        mixed $originalValue,
+        string $path,
+        float $startTime,
+        ?ErrorContext $lastError,
+        ?callable $auditLogger
+    ): RecoveryResult {
+        $duration = (microtime(true) - $startTime) * 1000.0;
+        $fallbackValue = $this->getFallbackValue($originalValue);
+
+        $errorContext = $lastError ?? ErrorContext::create('unknown', 'No error captured');
+
+        if ($auditLogger !== null) {
+            $auditLogger(
+                'recovery_fallback',
+                ['path' => $path, 'mode' => $this->failureMode->value],
+                ['error' => $errorContext->message, 'fallback_applied' => true]
+            );
+        }
+
+        return RecoveryResult::fallback(
+            $fallbackValue,
+            $this->maxAttempts,
+            $errorContext,
+            $duration
+        );
     }
 
     /**

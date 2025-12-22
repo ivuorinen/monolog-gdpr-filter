@@ -323,4 +323,140 @@ class GdprProcessorTest extends TestCase
         $result = $processor->regExpMessage('foo');
         $this->assertSame('foo', $result, 'Should return original message if preg_replace result is string "0"');
     }
+
+    public function testCreateRateLimitedAuditLoggerReturnsRateLimitedLogger(): void
+    {
+        $auditLog = [];
+        $auditLogger = function (string $path, mixed $original, mixed $masked) use (&$auditLog): void {
+            $auditLog[] = ['path' => $path, 'original' => $original, TestConstants::DATA_MASKED => $masked];
+        };
+
+        /** @psalm-suppress DeprecatedMethod */
+        $rateLimitedLogger = GdprProcessor::createRateLimitedAuditLogger($auditLogger, 'testing');
+
+        $this->assertInstanceOf(\Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger::class, $rateLimitedLogger);
+    }
+
+    public function testCreateArrayAuditLoggerReturnsCallable(): void
+    {
+        $logStorage = [];
+
+        /** @psalm-suppress DeprecatedMethod */
+        $logger = GdprProcessor::createArrayAuditLogger($logStorage, false);
+
+        // Logger is a Closure which is callable
+        $this->assertInstanceOf(\Closure::class, $logger);
+    }
+
+    public function testCreateArrayAuditLoggerWithRateLimiting(): void
+    {
+        $logStorage = [];
+
+        /** @psalm-suppress DeprecatedMethod */
+        $logger = GdprProcessor::createArrayAuditLogger($logStorage, true);
+
+        $this->assertInstanceOf(\Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger::class, $logger);
+    }
+
+    public function testValidatePatternsArraySucceedsWithValidPatterns(): void
+    {
+        $patterns = [
+            TestConstants::PATTERN_EMAIL_FULL => Mask::MASK_EMAIL,
+            TestConstants::PATTERN_SSN_FORMAT => Mask::MASK_SSN,
+        ];
+
+        // Should not throw
+        GdprProcessor::validatePatternsArray($patterns);
+        $this->assertTrue(true);
+    }
+
+    public function testValidatePatternsArrayThrowsForInvalidPattern(): void
+    {
+        $this->expectException(\Ivuorinen\MonologGdprFilter\Exceptions\PatternValidationException::class);
+
+        $patterns = [
+            '/[invalid/' => 'MASKED',
+        ];
+
+        GdprProcessor::validatePatternsArray($patterns);
+    }
+
+    public function testGetOrchestratorReturnsOrchestrator(): void
+    {
+        $processor = $this->createProcessor([TestConstants::PATTERN_TEST => Mask::MASK_GENERIC]);
+
+        $orchestrator = $processor->getOrchestrator();
+
+        $this->assertInstanceOf(\Ivuorinen\MonologGdprFilter\MaskingOrchestrator::class, $orchestrator);
+    }
+
+    public function testSetAuditLoggerUpdatesLogger(): void
+    {
+        $auditLog = [];
+        $auditLogger = function (string $path, mixed $original, mixed $masked) use (&$auditLog): void {
+            $auditLog[] = ['path' => $path, 'original' => $original, TestConstants::DATA_MASKED => $masked];
+        };
+
+        $processor = $this->createProcessor(
+            [TestConstants::PATTERN_SECRET => Mask::MASK_MASKED],
+            [TestConstants::FIELD_USER_PASSWORD => FieldMaskConfig::replace(Mask::MASK_MASKED)]
+        );
+
+        // Initially no audit logger
+        $processor->setAuditLogger($auditLogger);
+
+        $record = $this->createLogRecord(
+            context: ['user' => [TestConstants::CONTEXT_PASSWORD => TestConstants::PASSWORD]]
+        );
+        $processor($record);
+
+        $this->assertNotEmpty($auditLog);
+    }
+
+    public function testSetAuditLoggerToNull(): void
+    {
+        $auditLog = [];
+        $auditLogger = function (string $path, mixed $original, mixed $masked) use (&$auditLog): void {
+            $auditLog[] = ['path' => $path, 'original' => $original, TestConstants::DATA_MASKED => $masked];
+        };
+
+        $processor = $this->createProcessor(
+            [TestConstants::PATTERN_SECRET => Mask::MASK_MASKED],
+            [TestConstants::FIELD_USER_PASSWORD => FieldMaskConfig::replace(Mask::MASK_MASKED)],
+            [],
+            $auditLogger
+        );
+
+        // Set to null
+        $processor->setAuditLogger(null);
+
+        $record = $this->createLogRecord(
+            context: ['user' => [TestConstants::CONTEXT_PASSWORD => TestConstants::PASSWORD]]
+        );
+        $processor($record);
+
+        // Audit log should be empty because logger was set to null
+        $this->assertEmpty($auditLog);
+    }
+
+    public function testMaskMessageHandlesEmptyPatterns(): void
+    {
+        $processor = $this->createProcessor([]);
+
+        $result = $processor->maskMessage('test message with nothing to mask');
+
+        $this->assertSame('test message with nothing to mask', $result);
+    }
+
+    public function testMaskMessageAppliesAllPatterns(): void
+    {
+        $processor = $this->createProcessor([
+            '/foo/' => 'bar',
+            '/baz/' => 'qux',
+        ]);
+
+        $result = $processor->maskMessage('foo and baz');
+
+        $this->assertSame('bar and qux', $result);
+    }
 }

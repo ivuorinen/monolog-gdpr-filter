@@ -169,19 +169,16 @@ final class PatternValidator
     private function performValidation(string $pattern): bool
     {
         // Check for basic regex structure
-        if (strlen($pattern) < 3) {
-            return false;
-        }
-
-        // Must start and end with delimiters
         $firstChar = $pattern[0];
         $lastDelimPos = strrpos($pattern, $firstChar);
-        if ($lastDelimPos === false || $lastDelimPos === 0) {
-            return false;
-        }
 
-        // Enhanced ReDoS protection - check for potentially dangerous patterns
-        if ($this->checkDangerousPattern($pattern)) {
+        // Consolidated validation checks - return false if any basic check fails
+        if (
+            strlen($pattern) < 3
+            || $lastDelimPos === false
+            || $lastDelimPos === 0
+            || $this->checkDangerousPattern($pattern)
+        ) {
             return false;
         }
 

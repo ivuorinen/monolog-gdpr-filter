@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Streaming;
 
+use Ivuorinen\MonologGdprFilter\Exceptions\StreamingOperationFailedException;
 use Ivuorinen\MonologGdprFilter\MaskConstants;
 use Ivuorinen\MonologGdprFilter\MaskingOrchestrator;
 use Ivuorinen\MonologGdprFilter\Streaming\StreamingProcessor;
@@ -138,8 +139,8 @@ final class StreamingProcessorTest extends TestCase
     {
         $processor = new StreamingProcessor($this->createOrchestrator(), 10);
 
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Cannot open file:');
+        $this->expectException(StreamingOperationFailedException::class);
+        $this->expectExceptionMessage('Cannot open input file for streaming:');
 
         iterator_to_array($processor->processFile('/nonexistent/path/file.log', fn(string $l): array => ['message' => $l, 'context' => []]));
     }
@@ -173,8 +174,8 @@ final class StreamingProcessorTest extends TestCase
     {
         $processor = new StreamingProcessor($this->createOrchestrator(), 10);
 
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Cannot open output file:');
+        $this->expectException(StreamingOperationFailedException::class);
+        $this->expectExceptionMessage('Cannot open output file for streaming:');
 
         $processor->processToFile([], '/nonexistent/path/output.log', fn(array $r): string => '');
     }
@@ -198,7 +199,7 @@ final class StreamingProcessorTest extends TestCase
     public function testSetAuditLogger(): void
     {
         $logs = [];
-        $auditLogger = function (string $path, mixed $original, mixed $masked) use (&$logs): void {
+        $auditLogger = function (string $path) use (&$logs): void {
             $logs[] = ['path' => $path];
         };
 
@@ -235,8 +236,9 @@ final class StreamingProcessorTest extends TestCase
         }
 
         $count = 0;
-        foreach ($processor->processStream($records) as $_) {
+        foreach ($processor->processStream($records) as $record) {
             $count++;
+            $this->assertIsArray($record);
         }
 
         $this->assertSame(500, $count);

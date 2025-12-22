@@ -8,6 +8,7 @@ use Adbar\Dot;
 use Ivuorinen\MonologGdprFilter\ArrayAccessor\DotArrayAccessor;
 use Ivuorinen\MonologGdprFilter\Contracts\ArrayAccessorInterface;
 use PHPUnit\Framework\TestCase;
+use Tests\TestConstants;
 
 /**
  * Tests for ArrayAccessorInterface implementations.
@@ -27,7 +28,7 @@ final class ArrayAccessorInterfaceTest extends TestCase
     {
         $accessor = new DotArrayAccessor([
             'user' => [
-                'email' => 'test@example.com',
+                'email' => TestConstants::EMAIL_TEST,
             ],
         ]);
 
@@ -38,7 +39,7 @@ final class ArrayAccessorInterfaceTest extends TestCase
     {
         $accessor = new DotArrayAccessor([
             'user' => [
-                'email' => 'test@example.com',
+                'email' => TestConstants::EMAIL_TEST,
             ],
         ]);
 
@@ -50,12 +51,12 @@ final class ArrayAccessorInterfaceTest extends TestCase
     {
         $accessor = new DotArrayAccessor([
             'user' => [
-                'email' => 'test@example.com',
+                'email' => TestConstants::EMAIL_TEST,
                 'age' => 25,
             ],
         ]);
 
-        $this->assertSame('test@example.com', $accessor->get('user.email'));
+        $this->assertSame(TestConstants::EMAIL_TEST, $accessor->get('user.email'));
         $this->assertSame(25, $accessor->get('user.age'));
     }
 
@@ -71,10 +72,10 @@ final class ArrayAccessorInterfaceTest extends TestCase
     {
         $accessor = new DotArrayAccessor([]);
 
-        $accessor->set('user.email', 'new@example.com');
+        $accessor->set('user.email', TestConstants::EMAIL_NEW);
 
         $this->assertTrue($accessor->has('user.email'));
-        $this->assertSame('new@example.com', $accessor->get('user.email'));
+        $this->assertSame(TestConstants::EMAIL_NEW, $accessor->get('user.email'));
     }
 
     public function testSetOverwritesExistingPath(): void
@@ -83,16 +84,16 @@ final class ArrayAccessorInterfaceTest extends TestCase
             'user' => ['email' => 'old@example.com'],
         ]);
 
-        $accessor->set('user.email', 'new@example.com');
+        $accessor->set('user.email', TestConstants::EMAIL_NEW);
 
-        $this->assertSame('new@example.com', $accessor->get('user.email'));
+        $this->assertSame(TestConstants::EMAIL_NEW, $accessor->get('user.email'));
     }
 
     public function testDeleteRemovesPath(): void
     {
         $accessor = new DotArrayAccessor([
             'user' => [
-                'email' => 'test@example.com',
+                'email' => TestConstants::EMAIL_TEST,
                 'name' => 'Test User',
             ],
         ]);
@@ -107,7 +108,7 @@ final class ArrayAccessorInterfaceTest extends TestCase
     {
         $data = [
             'user' => [
-                'email' => 'test@example.com',
+                'email' => TestConstants::EMAIL_TEST,
                 'profile' => [
                     'bio' => 'Hello world',
                 ],

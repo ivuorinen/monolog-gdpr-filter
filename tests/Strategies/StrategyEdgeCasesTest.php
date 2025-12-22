@@ -51,7 +51,8 @@ final class StrategyEdgeCasesTest extends TestCase
         $this->expectException(InvalidRegexPatternException::class);
         $this->expectExceptionMessage('catastrophic backtracking');
 
-        new RegexMaskingStrategy([$pattern => MaskConstants::MASK_GENERIC]);
+        $strategy = new RegexMaskingStrategy([$pattern => MaskConstants::MASK_GENERIC]);
+        $this->assertInstanceOf(RegexMaskingStrategy::class, $strategy);
     }
 
     /**

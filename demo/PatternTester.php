@@ -90,7 +90,7 @@ final class PatternTester
         try {
             // Use default patterns if none provided
             if (empty($patterns)) {
-                $patterns = DefaultPatterns::getPatterns();
+                $patterns = DefaultPatterns::get();
             }
 
             // Create audit logger
@@ -103,14 +103,7 @@ final class PatternTester
             };
 
             // Convert field paths to FieldMaskConfig
-            $configuredPaths = [];
-            foreach ($fieldPaths as $path => $config) {
-                if ($config instanceof FieldMaskConfig) {
-                    $configuredPaths[$path] = $config;
-                } elseif (is_string($config)) {
-                    $configuredPaths[$path] = $config;
-                }
-            }
+            $configuredPaths = $this->convertFieldPathsToConfig($fieldPaths);
 
             // Create processor
             $processor = new GdprProcessor(
@@ -174,7 +167,7 @@ final class PatternTester
 
         try {
             if (empty($patterns)) {
-                $patterns = DefaultPatterns::getPatterns();
+                $patterns = DefaultPatterns::get();
             }
 
             // Create strategies
@@ -231,7 +224,7 @@ final class PatternTester
      */
     public function getDefaultPatterns(): array
     {
-        return DefaultPatterns::getPatterns();
+        return DefaultPatterns::get();
     }
 
     /**
@@ -251,6 +244,22 @@ final class PatternTester
         }
 
         return ['valid' => true, 'error' => null];
+    }
+
+    /**
+     * Convert field paths to configuration array.
+     *
+     * @param array<string, string|FieldMaskConfig> $fieldPaths
+     * @return array<string, string|FieldMaskConfig>
+     */
+    private function convertFieldPathsToConfig(array $fieldPaths): array
+    {
+        $configuredPaths = [];
+        foreach ($fieldPaths as $path => $config) {
+            // Accept both FieldMaskConfig instances and strings
+            $configuredPaths[$path] = $config;
+        }
+        return $configuredPaths;
     }
 
     /**

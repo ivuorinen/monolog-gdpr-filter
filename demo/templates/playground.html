@@ -92,7 +92,7 @@
         }
         button {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            color: #ffffff;
             border: none;
             padding: 12px 24px;
             border-radius: 8px;
@@ -170,7 +170,7 @@
         }
         .tab.active {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            color: #ffffff;
         }
         .highlight {
             background: #fff3cd;
@@ -293,7 +293,7 @@ IBAN: FI21 1234 5600 0007 85</textarea>
     <script>
         async function api(action, data = {}) {
             try {
-                const response = await fetch(window.location.href, {
+                const response = await fetch(globalThis.location.href, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action, ...data })
@@ -307,7 +307,8 @@ IBAN: FI21 1234 5600 0007 85</textarea>
         function getPatterns() {
             try {
                 return JSON.parse(document.getElementById('patterns').value);
-            } catch (e) {
+            } catch (error) {
+                showError('Invalid JSON in patterns field: ' + error.message);
                 return null;
             }
         }
@@ -442,20 +443,28 @@ IBAN: FI21 1234 5600 0007 85</textarea>
         }
 
         // Load default patterns on page load
-        (async function() {
-            const result = await api('get_defaults');
-            if (result.patterns) {
+        async function loadDefaultPatternsOnInit() {
+            try {
+                const result = await api('get_defaults');
+                if (result.patterns) {
+                    const container = document.getElementById('defaultPatterns');
+                    container.innerHTML = Object.entries(result.patterns)
+                        .map(([pattern, replacement]) =>
+                            `<div class="pattern-item">
+                                <code>${escapeHtml(pattern)}</code>
+                                <span class="arrow">→</span>
+                                <code>${escapeHtml(replacement)}</code>
+                            </div>`
+                        ).join('');
+                }
+            } catch (error) {
                 const container = document.getElementById('defaultPatterns');
-                container.innerHTML = Object.entries(result.patterns)
-                    .map(([pattern, replacement]) =>
-                        `<div class="pattern-item">
-                            <code>${escapeHtml(pattern)}</code>
-                            <span class="arrow">→</span>
-                            <code>${escapeHtml(replacement)}</code>
-                        </div>`
-                    ).join('');
+                container.textContent = 'Error loading default patterns: ' + error.message;
             }
-        })();
+        }
+
+        // Initialize on page load
+        loadDefaultPatternsOnInit();
 
         function escapeHtml(text) {
             const div = document.createElement('div');

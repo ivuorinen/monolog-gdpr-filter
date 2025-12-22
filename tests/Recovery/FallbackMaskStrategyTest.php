@@ -9,6 +9,7 @@ use Ivuorinen\MonologGdprFilter\Recovery\FailureMode;
 use Ivuorinen\MonologGdprFilter\Recovery\FallbackMaskStrategy;
 use PHPUnit\Framework\TestCase;
 use stdClass;
+use Tests\TestConstants;
 
 /**
  * Tests for FallbackMaskStrategy.
@@ -192,13 +193,13 @@ final class FallbackMaskStrategyTest extends TestCase
     public function testPreserveTypeFalseUsesDefault(): void
     {
         $strategy = new FallbackMaskStrategy(
-            defaultFallback: '[ALWAYS_THIS]',
+            defaultFallback: TestConstants::MASK_ALWAYS_THIS,
             preserveType: false
         );
 
-        $this->assertSame('[ALWAYS_THIS]', $strategy->getFallback('string', FailureMode::FAIL_SAFE));
-        $this->assertSame('[ALWAYS_THIS]', $strategy->getFallback(42, FailureMode::FAIL_SAFE));
-        $this->assertSame('[ALWAYS_THIS]', $strategy->getFallback(['array'], FailureMode::FAIL_SAFE));
+        $this->assertSame(TestConstants::MASK_ALWAYS_THIS, $strategy->getFallback('string', FailureMode::FAIL_SAFE));
+        $this->assertSame(TestConstants::MASK_ALWAYS_THIS, $strategy->getFallback(42, FailureMode::FAIL_SAFE));
+        $this->assertSame(TestConstants::MASK_ALWAYS_THIS, $strategy->getFallback(['array'], FailureMode::FAIL_SAFE));
     }
 
     public function testCustomClosedFallback(): void

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ivuorinen\MonologGdprFilter\Streaming;
 
+use Ivuorinen\MonologGdprFilter\Exceptions\StreamingOperationFailedException;
 use Ivuorinen\MonologGdprFilter\MaskingOrchestrator;
 
 /**
@@ -78,7 +79,7 @@ final class StreamingProcessor
     {
         $handle = @fopen($filePath, 'r');
         if ($handle === false) {
-            throw new \RuntimeException("Cannot open file: {$filePath}");
+            throw StreamingOperationFailedException::cannotOpenInputFile($filePath);
         }
 
         try {
@@ -130,7 +131,7 @@ final class StreamingProcessor
     ): int {
         $handle = @fopen($outputPath, 'w');
         if ($handle === false) {
-            throw new \RuntimeException("Cannot open output file: {$outputPath}");
+            throw StreamingOperationFailedException::cannotOpenOutputFile($outputPath);
         }
 
         try {

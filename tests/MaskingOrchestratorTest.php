@@ -35,22 +35,22 @@ final class MaskingOrchestratorTest extends TestCase
             [TestConstants::PATTERN_TEST => MaskConstants::MASK_GENERIC]
         );
 
-        $result = $orchestrator->process('message', ['key' => 'test value']);
+        $result = $orchestrator->process('message', ['key' => TestConstants::VALUE_TEST]);
 
         $this->assertSame('message', $result['message']);
-        $this->assertSame(MaskConstants::MASK_GENERIC . ' value', $result['context']['key']);
+        $this->assertSame(MaskConstants::MASK_GENERIC . TestConstants::VALUE_SUFFIX, $result['context']['key']);
     }
 
     public function testProcessMasksFieldPaths(): void
     {
         $orchestrator = new MaskingOrchestrator(
             [],
-            [TestConstants::CONTEXT_EMAIL => FieldMaskConfig::replace('[EMAIL]')]
+            [TestConstants::CONTEXT_EMAIL => FieldMaskConfig::replace(TestConstants::MASK_EMAIL_BRACKETS)]
         );
 
         $result = $orchestrator->process('message', [TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_TEST]);
 
-        $this->assertSame('[EMAIL]', $result['context'][TestConstants::CONTEXT_EMAIL]);
+        $this->assertSame(TestConstants::MASK_EMAIL_BRACKETS, $result['context'][TestConstants::CONTEXT_EMAIL]);
     }
 
     public function testProcessExecutesCustomCallbacks(): void
@@ -72,9 +72,9 @@ final class MaskingOrchestratorTest extends TestCase
             [TestConstants::PATTERN_TEST => MaskConstants::MASK_GENERIC]
         );
 
-        $result = $orchestrator->processContext(['key' => 'test value']);
+        $result = $orchestrator->processContext(['key' => TestConstants::VALUE_TEST]);
 
-        $this->assertSame(MaskConstants::MASK_GENERIC . ' value', $result['key']);
+        $this->assertSame(MaskConstants::MASK_GENERIC . TestConstants::VALUE_SUFFIX, $result['key']);
     }
 
     public function testRegExpMessageMasksPatterns(): void
@@ -103,10 +103,10 @@ final class MaskingOrchestratorTest extends TestCase
             [TestConstants::PATTERN_TEST => MaskConstants::MASK_GENERIC]
         );
 
-        $result = $orchestrator->recursiveMask(['level1' => ['level2' => 'test value']]);
+        $result = $orchestrator->recursiveMask(['level1' => ['level2' => TestConstants::VALUE_TEST]]);
 
         $this->assertIsArray($result);
-        $this->assertSame(MaskConstants::MASK_GENERIC . ' value', $result['level1']['level2']);
+        $this->assertSame(MaskConstants::MASK_GENERIC . TestConstants::VALUE_SUFFIX, $result['level1']['level2']);
     }
 
     public function testRecursiveMaskMasksString(): void
@@ -209,7 +209,7 @@ final class MaskingOrchestratorTest extends TestCase
     {
         $orchestrator = new MaskingOrchestrator(
             [TestConstants::PATTERN_TEST => MaskConstants::MASK_GENERIC],
-            [TestConstants::CONTEXT_EMAIL => FieldMaskConfig::replace('[EMAIL]')],
+            [TestConstants::CONTEXT_EMAIL => FieldMaskConfig::replace(TestConstants::MASK_EMAIL_BRACKETS)],
             ['name' => fn(mixed $val): string => strtoupper((string) $val)]
         );
 
@@ -223,7 +223,7 @@ final class MaskingOrchestratorTest extends TestCase
         );
 
         $this->assertSame('Hello ' . MaskConstants::MASK_GENERIC, $result['message']);
-        $this->assertSame('[EMAIL]', $result['context'][TestConstants::CONTEXT_EMAIL]);
+        $this->assertSame(TestConstants::MASK_EMAIL_BRACKETS, $result['context'][TestConstants::CONTEXT_EMAIL]);
         $this->assertSame('JOHN', $result['context']['name']);
     }
 

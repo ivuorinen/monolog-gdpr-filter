@@ -17,6 +17,7 @@ use Monolog\LogRecord;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Tests\TestConstants;
 
 /**
  * Edge case tests for GdprProcessorBuilder.
@@ -123,13 +124,13 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
         $rule2Called = false;
 
         $builder = GdprProcessorBuilder::create()
-            ->addPattern('/sensitive/', '[MASKED]')
+            ->addPattern('/sensitive/', TestConstants::MASK_MASKED_BRACKETS)
             ->addConditionalRules([
                 'rule1' => function (LogRecord $record) use (&$rule1Called): bool {
                     $rule1Called = true;
                     return $record->channel === 'test';
                 },
-                'rule2' => function (LogRecord $record) use (&$rule2Called): bool {
+                'rule2' => function () use (&$rule2Called): bool {
                     $rule2Called = true;
                     return true;
                 },
@@ -142,7 +143,7 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
 
         $this->assertTrue($rule1Called);
         $this->assertTrue($rule2Called);
-        $this->assertStringContainsString('[MASKED]', $processed->message);
+        $this->assertStringContainsString(TestConstants::MASK_MASKED_BRACKETS, $processed->message);
     }
 
     #[Test]
@@ -329,7 +330,7 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
     {
         $processor = GdprProcessorBuilder::create()
             ->withMaxDepth(2)
-            ->addPattern('/secret/', '[MASKED]')
+            ->addPattern('/secret/', TestConstants::MASK_MASKED_BRACKETS)
             ->build();
 
         $record = $this->createLogRecord('Test', [
@@ -370,8 +371,8 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
         $ruleExecuted = false;
 
         $processor = GdprProcessorBuilder::create()
-            ->addPattern('/data/', '[MASKED]')
-            ->addConditionalRule('track-execution', function (LogRecord $r) use (&$ruleExecuted): bool {
+            ->addPattern('/data/', TestConstants::MASK_MASKED_BRACKETS)
+            ->addConditionalRule('track-execution', function () use (&$ruleExecuted): bool {
                 $ruleExecuted = true;
                 return true;
             })

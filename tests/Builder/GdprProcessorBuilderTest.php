@@ -49,7 +49,7 @@ final class GdprProcessorBuilderTest extends TestCase
     public function testAddPattern(): void
     {
         $builder = GdprProcessorBuilder::create()
-            ->addPattern(TestConstants::PATTERN_DIGITS, '[DIGITS]');
+            ->addPattern(TestConstants::PATTERN_DIGITS, TestConstants::MASK_DIGITS_BRACKETS);
 
         $this->assertArrayHasKey(TestConstants::PATTERN_DIGITS, $builder->getPatterns());
     }
@@ -57,7 +57,7 @@ final class GdprProcessorBuilderTest extends TestCase
     public function testAddPatterns(): void
     {
         $patterns = [
-            TestConstants::PATTERN_DIGITS => '[DIGITS]',
+            TestConstants::PATTERN_DIGITS => TestConstants::MASK_DIGITS_BRACKETS,
             TestConstants::PATTERN_TEST => '[TEST]',
         ];
 
@@ -69,7 +69,7 @@ final class GdprProcessorBuilderTest extends TestCase
     public function testSetPatternsReplacesExisting(): void
     {
         $builder = GdprProcessorBuilder::create()
-            ->addPattern(TestConstants::PATTERN_DIGITS, '[DIGITS]')
+            ->addPattern(TestConstants::PATTERN_DIGITS, TestConstants::MASK_DIGITS_BRACKETS)
             ->setPatterns([TestConstants::PATTERN_TEST => '[TEST]']);
 
         $patterns = $builder->getPatterns();
@@ -153,7 +153,7 @@ final class GdprProcessorBuilderTest extends TestCase
             ->build();
 
         // The processor should still work
-        $result = $processor->regExpMessage('test message');
+        $result = $processor->regExpMessage(TestConstants::MESSAGE_TEST_LOWERCASE);
 
         $this->assertSame(MaskConstants::MASK_GENERIC . ' message', $result);
     }
@@ -161,7 +161,7 @@ final class GdprProcessorBuilderTest extends TestCase
     public function testAddDataTypeMask(): void
     {
         $processor = GdprProcessorBuilder::create()
-            ->addDataTypeMask('integer', '[INT]')
+            ->addDataTypeMask('integer', TestConstants::MASK_INT_BRACKETS)
             ->build();
 
         $record = new LogRecord(
@@ -174,7 +174,7 @@ final class GdprProcessorBuilderTest extends TestCase
 
         $result = $processor($record);
 
-        $this->assertSame('[INT]', $result->context['count']);
+        $this->assertSame(TestConstants::MASK_INT_BRACKETS, $result->context['count']);
     }
 
     public function testAddConditionalRule(): void
@@ -188,7 +188,7 @@ final class GdprProcessorBuilderTest extends TestCase
             datetime: new \DateTimeImmutable(),
             channel: TestConstants::CHANNEL_TEST,
             level: Level::Debug,
-            message: 'test message',
+            message: TestConstants::MESSAGE_TEST_LOWERCASE,
             context: []
         );
 
@@ -196,12 +196,12 @@ final class GdprProcessorBuilderTest extends TestCase
             datetime: new \DateTimeImmutable(),
             channel: TestConstants::CHANNEL_TEST,
             level: Level::Info,
-            message: 'test message',
+            message: TestConstants::MESSAGE_TEST_LOWERCASE,
             context: []
         );
 
         // Debug should not be masked
-        $this->assertSame('test message', $processor($debugRecord)->message);
+        $this->assertSame(TestConstants::MESSAGE_TEST_LOWERCASE, $processor($debugRecord)->message);
 
         // Info should be masked
         $this->assertSame(MaskConstants::MASK_GENERIC . ' message', $processor($infoRecord)->message);
@@ -357,7 +357,7 @@ final class GdprProcessorBuilderTest extends TestCase
             ->addFieldPath('secret', FieldMaskConfig::remove())
             ->addCallback('name', fn(mixed $v): string => strtoupper((string) $v))
             ->withMaxDepth(50)
-            ->addDataTypeMask('integer', '[INT]')
+            ->addDataTypeMask('integer', TestConstants::MASK_INT_BRACKETS)
             ->build();
 
         $this->assertInstanceOf(GdprProcessor::class, $processor);

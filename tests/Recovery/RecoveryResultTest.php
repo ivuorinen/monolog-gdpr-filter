@@ -8,6 +8,7 @@ use Ivuorinen\MonologGdprFilter\Audit\AuditContext;
 use Ivuorinen\MonologGdprFilter\Audit\ErrorContext;
 use Ivuorinen\MonologGdprFilter\Recovery\RecoveryResult;
 use PHPUnit\Framework\TestCase;
+use Tests\TestConstants;
 
 /**
  * Tests for RecoveryResult value object.
@@ -18,9 +19,9 @@ final class RecoveryResultTest extends TestCase
 {
     public function testSuccessCreation(): void
     {
-        $result = RecoveryResult::success('[MASKED]', 5.5);
+        $result = RecoveryResult::success(TestConstants::MASK_MASKED_BRACKETS, 5.5);
 
-        $this->assertSame('[MASKED]', $result->value);
+        $this->assertSame(TestConstants::MASK_MASKED_BRACKETS, $result->value);
         $this->assertSame(RecoveryResult::OUTCOME_SUCCESS, $result->outcome);
         $this->assertSame(1, $result->attempts);
         $this->assertSame(5.5, $result->totalDurationMs);
@@ -29,9 +30,9 @@ final class RecoveryResultTest extends TestCase
 
     public function testRecoveredCreation(): void
     {
-        $result = RecoveryResult::recovered('[MASKED]', 3, 25.0);
+        $result = RecoveryResult::recovered(TestConstants::MASK_MASKED_BRACKETS, 3, 25.0);
 
-        $this->assertSame('[MASKED]', $result->value);
+        $this->assertSame(TestConstants::MASK_MASKED_BRACKETS, $result->value);
         $this->assertSame(RecoveryResult::OUTCOME_RECOVERED, $result->outcome);
         $this->assertSame(3, $result->attempts);
         $this->assertSame(25.0, $result->totalDurationMs);
@@ -62,8 +63,8 @@ final class RecoveryResultTest extends TestCase
 
     public function testIsSuccess(): void
     {
-        $success = RecoveryResult::success('[MASKED]');
-        $recovered = RecoveryResult::recovered('[MASKED]', 2);
+        $success = RecoveryResult::success(TestConstants::MASK_MASKED_BRACKETS);
+        $recovered = RecoveryResult::recovered(TestConstants::MASK_MASKED_BRACKETS, 2);
         $error = ErrorContext::create('E', 'M');
         $fallback = RecoveryResult::fallback('[X]', 3, $error);
         $failed = RecoveryResult::failed('orig', 3, $error);
@@ -76,7 +77,7 @@ final class RecoveryResultTest extends TestCase
 
     public function testUsedFallback(): void
     {
-        $success = RecoveryResult::success('[MASKED]');
+        $success = RecoveryResult::success(TestConstants::MASK_MASKED_BRACKETS);
         $error = ErrorContext::create('E', 'M');
         $fallback = RecoveryResult::fallback('[X]', 3, $error);
         $failed = RecoveryResult::failed('orig', 3, $error);
@@ -88,7 +89,7 @@ final class RecoveryResultTest extends TestCase
 
     public function testIsFailed(): void
     {
-        $success = RecoveryResult::success('[MASKED]');
+        $success = RecoveryResult::success(TestConstants::MASK_MASKED_BRACKETS);
         $error = ErrorContext::create('E', 'M');
         $fallback = RecoveryResult::fallback('[X]', 3, $error);
         $failed = RecoveryResult::failed('orig', 3, $error);
@@ -100,8 +101,8 @@ final class RecoveryResultTest extends TestCase
 
     public function testNeededRetry(): void
     {
-        $firstTry = RecoveryResult::success('[MASKED]');
-        $secondTry = RecoveryResult::recovered('[MASKED]', 2);
+        $firstTry = RecoveryResult::success(TestConstants::MASK_MASKED_BRACKETS);
+        $secondTry = RecoveryResult::recovered(TestConstants::MASK_MASKED_BRACKETS, 2);
 
         $this->assertFalse($firstTry->neededRetry());
         $this->assertTrue($secondTry->neededRetry());
@@ -109,7 +110,7 @@ final class RecoveryResultTest extends TestCase
 
     public function testToAuditContextSuccess(): void
     {
-        $result = RecoveryResult::success('[MASKED]', 10.0);
+        $result = RecoveryResult::success(TestConstants::MASK_MASKED_BRACKETS, 10.0);
         $context = $result->toAuditContext(AuditContext::OP_REGEX);
 
         $this->assertSame(AuditContext::OP_REGEX, $context->operationType);
@@ -119,7 +120,7 @@ final class RecoveryResultTest extends TestCase
 
     public function testToAuditContextRecovered(): void
     {
-        $result = RecoveryResult::recovered('[MASKED]', 3, 30.0);
+        $result = RecoveryResult::recovered(TestConstants::MASK_MASKED_BRACKETS, 3, 30.0);
         $context = $result->toAuditContext(AuditContext::OP_FIELD_PATH);
 
         $this->assertSame(AuditContext::STATUS_RECOVERED, $context->status);
@@ -138,7 +139,7 @@ final class RecoveryResultTest extends TestCase
 
     public function testToArray(): void
     {
-        $result = RecoveryResult::success('[MASKED]', 15.123456);
+        $result = RecoveryResult::success(TestConstants::MASK_MASKED_BRACKETS, 15.123456);
         $array = $result->toArray();
 
         $this->assertArrayHasKey('outcome', $array);

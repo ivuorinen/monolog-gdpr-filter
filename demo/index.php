@@ -18,7 +18,7 @@ spl_autoload_register(function (string $class): void {
     if (str_starts_with($class, 'Ivuorinen\\MonologGdprFilter\\Demo\\')) {
         $file = __DIR__ . '/' . substr($class, strlen('Ivuorinen\\MonologGdprFilter\\Demo\\')) . '.php';
         if (file_exists($file)) {
-            require_once $file;
+            require $file;
         }
     }
 });
@@ -26,43 +26,41 @@ spl_autoload_register(function (string $class): void {
 $tester = new PatternTester();
 
 // Handle API requests
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['CONTENT_TYPE'])) {
-    if (str_contains($_SERVER['CONTENT_TYPE'], 'application/json')) {
-        header('Content-Type: application/json');
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['CONTENT_TYPE']) && str_contains($_SERVER['CONTENT_TYPE'], 'application/json')) {
+    header('Content-Type: application/json');
 
-        $input = json_decode(file_get_contents('php://input'), true);
+    $input = json_decode(file_get_contents('php://input'), true);
 
-        if (!is_array($input)) {
-            echo json_encode(['error' => 'Invalid JSON input']);
-            exit;
-        }
-
-        $action = $input['action'] ?? 'test';
-
-        $result = match ($action) {
-            'test_patterns' => $tester->testPatterns(
-                $input['text'] ?? '',
-                $input['patterns'] ?? []
-            ),
-            'test_processor' => $tester->testProcessor(
-                $input['message'] ?? '',
-                $input['context'] ?? [],
-                $input['patterns'] ?? [],
-                $input['field_paths'] ?? []
-            ),
-            'test_strategies' => $tester->testStrategies(
-                $input['message'] ?? '',
-                $input['context'] ?? [],
-                $input['patterns'] ?? []
-            ),
-            'validate_pattern' => $tester->validatePattern($input['pattern'] ?? ''),
-            'get_defaults' => ['patterns' => $tester->getDefaultPatterns()],
-            default => ['error' => 'Unknown action'],
-        };
-
-        echo json_encode($result, JSON_PRETTY_PRINT);
+    if (!is_array($input)) {
+        echo json_encode(['error' => 'Invalid JSON input']);
         exit;
     }
+
+    $action = $input['action'] ?? 'test';
+
+    $result = match ($action) {
+        'test_patterns' => $tester->testPatterns(
+            $input['text'] ?? '',
+            $input['patterns'] ?? []
+        ),
+        'test_processor' => $tester->testProcessor(
+            $input['message'] ?? '',
+            $input['context'] ?? [],
+            $input['patterns'] ?? [],
+            $input['field_paths'] ?? []
+        ),
+        'test_strategies' => $tester->testStrategies(
+            $input['message'] ?? '',
+            $input['context'] ?? [],
+            $input['patterns'] ?? []
+        ),
+        'validate_pattern' => $tester->validatePattern($input['pattern'] ?? ''),
+        'get_defaults' => ['patterns' => $tester->getDefaultPatterns()],
+        default => ['error' => 'Unknown action'],
+    };
+
+    echo json_encode($result, JSON_PRETTY_PRINT);
+    exit;
 }
 
 // Serve the HTML template

@@ -8,6 +8,7 @@ use Ivuorinen\MonologGdprFilter\MaskConstants;
 use Ivuorinen\MonologGdprFilter\SerializedDataProcessor;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Tests\TestConstants;
 
 #[CoversClass(SerializedDataProcessor::class)]
 final class SerializedDataProcessorTest extends TestCase
@@ -42,18 +43,18 @@ final class SerializedDataProcessorTest extends TestCase
     {
         $processor = $this->createProcessor();
 
-        $message = 'User data: {"email":"john@example.com","name":"John"}';
+        $message = 'User data: {"email":"' . TestConstants::EMAIL_JOHN . '","name":"John"}';
         $result = $processor->process($message);
 
         $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
-        $this->assertStringNotContainsString('john@example.com', $result);
+        $this->assertStringNotContainsString(TestConstants::EMAIL_JOHN, $result);
     }
 
     public function testProcessEmbeddedJsonPreservesStructure(): void
     {
         $processor = $this->createProcessor();
 
-        $message = 'Data: {"id":123,"email":"test@example.com"}';
+        $message = 'Data: {"id":123,"email":"' . TestConstants::EMAIL_TEST . '"}';
         $result = $processor->process($message);
 
         // Should still be valid JSON in the message
@@ -69,30 +70,28 @@ final class SerializedDataProcessorTest extends TestCase
     {
         $processor = $this->createProcessor();
 
-        $message = 'User: {"user":{"contact":{"email":"test@example.com"}}}';
+        $message = 'User: {"user":{"contact":{"email":"' . TestConstants::EMAIL_TEST . '"}}}';
         $result = $processor->process($message);
 
         $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
-        $this->assertStringNotContainsString('test@example.com', $result);
+        $this->assertStringNotContainsString(TestConstants::EMAIL_TEST, $result);
     }
 
     public function testProcessPrintROutput(): void
     {
         $processor = $this->createProcessor();
 
-        $printROutput = <<<'PRINT_R'
-Array
+        $printROutput = 'Array
 (
     [name] => John Doe
-    [email] => john@example.com
+    [email] => ' . TestConstants::EMAIL_JOHN . '
     [age] => 30
-)
-PRINT_R;
+)';
 
         $result = $processor->process($printROutput);
 
         $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
-        $this->assertStringNotContainsString('john@example.com', $result);
+        $this->assertStringNotContainsString(TestConstants::EMAIL_JOHN, $result);
         $this->assertStringContainsString('John Doe', $result); // Name not masked
     }
 
@@ -119,31 +118,29 @@ PRINT_R;
     {
         $processor = $this->createProcessor();
 
-        $varExportOutput = <<<'VAR_EXPORT'
-array (
+        $varExportOutput = "array (
   'name' => 'John Doe',
-  'email' => 'john@example.com',
+  'email' => '" . TestConstants::EMAIL_JOHN . "',
   'active' => true,
-)
-VAR_EXPORT;
+)";
 
         $result = $processor->process($varExportOutput);
 
         $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
-        $this->assertStringNotContainsString('john@example.com', $result);
+        $this->assertStringNotContainsString(TestConstants::EMAIL_JOHN, $result);
     }
 
     public function testProcessSerializeOutput(): void
     {
         $processor = $this->createProcessor();
 
-        $data = ['email' => 'test@example.com', 'name' => 'Test'];
+        $data = ['email' => TestConstants::EMAIL_TEST, 'name' => 'Test'];
         $serialized = serialize($data);
 
         $result = $processor->process($serialized);
 
         $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
-        $this->assertStringNotContainsString('test@example.com', $result);
+        $this->assertStringNotContainsString(TestConstants::EMAIL_TEST, $result);
     }
 
     public function testProcessSerializeOutputUpdatesLength(): void
@@ -151,7 +148,7 @@ VAR_EXPORT;
         $processor = $this->createProcessor();
 
         // test@example.com is 16 characters, so s:16:"test@example.com";
-        $email = 'test@example.com';
+        $email = TestConstants::EMAIL_TEST;
         $serialized = 's:' . strlen($email) . ':"' . $email . '";';
         $result = $processor->process($serialized);
 
@@ -165,7 +162,7 @@ VAR_EXPORT;
     {
         $processor = $this->createProcessor();
 
-        $message = 'Log entry: User {"email":"test@example.com"} performed action';
+        $message = 'Log entry: User {"email":"' . TestConstants::EMAIL_TEST . '"} performed action';
         $result = $processor->process($message);
 
         $this->assertStringContainsString('Log entry: User', $result);
@@ -182,7 +179,7 @@ VAR_EXPORT;
 
         $processor = $this->createProcessor($auditLogger);
 
-        $processor->process('{"email":"test@example.com"}');
+        $processor->process('{"email":"' . TestConstants::EMAIL_TEST . '"}');
 
         $this->assertNotEmpty($logs);
         $this->assertStringContainsString('json', $logs[0]['path']);
@@ -191,14 +188,14 @@ VAR_EXPORT;
     public function testSetAuditLogger(): void
     {
         $logs = [];
-        $auditLogger = function (string $path, mixed $original, mixed $masked) use (&$logs): void {
+        $auditLogger = function (string $path) use (&$logs): void {
             $logs[] = ['path' => $path];
         };
 
         $processor = $this->createProcessor();
         $processor->setAuditLogger($auditLogger);
 
-        $processor->process('{"email":"test@example.com"}');
+        $processor->process('{"email":"' . TestConstants::EMAIL_TEST . '"}');
 
         $this->assertNotEmpty($logs);
     }
@@ -239,11 +236,9 @@ VAR_EXPORT;
     {
         $processor = $this->createProcessor();
 
-        $varExportOutput = <<<'VAR_EXPORT'
-array (
-  "email" => "john@example.com",
-)
-VAR_EXPORT;
+        $varExportOutput = 'array (
+  "email" => "' . TestConstants::EMAIL_JOHN . '",
+)';
 
         $result = $processor->process($varExportOutput);
 

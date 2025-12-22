@@ -41,14 +41,14 @@ class PatternValidatorTest extends TestCase
     {
         $this->assertTrue(PatternValidator::isValid(TestConstants::PATTERN_DIGITS));
         $this->assertTrue(PatternValidator::isValid('/[a-z]+/i'));
-        $this->assertTrue(PatternValidator::isValid('/^test$/'));
+        $this->assertTrue(PatternValidator::isValid(TestConstants::PATTERN_VALID_SIMPLE));
     }
 
     #[Test]
     public function isValidReturnsFalseForInvalidPattern(): void
     {
         $this->assertFalse(PatternValidator::isValid('invalid'));
-        $this->assertFalse(PatternValidator::isValid('/unclosed'));
+        $this->assertFalse(PatternValidator::isValid(TestConstants::PATTERN_INVALID_UNCLOSED));
         $this->assertFalse(PatternValidator::isValid('//'));
     }
 
@@ -72,7 +72,7 @@ class PatternValidatorTest extends TestCase
     public function isValidDetectsNestedQuantifiers(): void
     {
         // hasDangerousPattern is private, test via isValid
-        $this->assertFalse(PatternValidator::isValid('/^(a+)+$/'));
+        $this->assertFalse(PatternValidator::isValid(TestConstants::PATTERN_REDOS_VULNERABLE));
         $this->assertFalse(PatternValidator::isValid('/(a*)*/'));
         $this->assertFalse(PatternValidator::isValid('/([a-zA-Z]+)*/'));
     }
@@ -82,8 +82,8 @@ class PatternValidatorTest extends TestCase
     {
         // hasDangerousPattern is private, test via isValid
         $this->assertTrue(PatternValidator::isValid(TestConstants::PATTERN_SSN_FORMAT));
-        $this->assertTrue(PatternValidator::isValid('/[a-z]+/'));
-        $this->assertTrue(PatternValidator::isValid('/^test$/'));
+        $this->assertTrue(PatternValidator::isValid(TestConstants::PATTERN_SAFE));
+        $this->assertTrue(PatternValidator::isValid(TestConstants::PATTERN_VALID_SIMPLE));
     }
 
     #[Test]
@@ -91,16 +91,16 @@ class PatternValidatorTest extends TestCase
     {
         $patterns = [
             TestConstants::PATTERN_DIGITS => 'mask1',
-            '/[a-z]+/' => 'mask2',
+            TestConstants::PATTERN_SAFE => 'mask2',
         ];
 
         PatternValidator::cachePatterns($patterns);
         $cache = PatternValidator::getCache();
 
         $this->assertArrayHasKey(TestConstants::PATTERN_DIGITS, $cache);
-        $this->assertArrayHasKey('/[a-z]+/', $cache);
+        $this->assertArrayHasKey(TestConstants::PATTERN_SAFE, $cache);
         $this->assertTrue($cache[TestConstants::PATTERN_DIGITS]);
-        $this->assertTrue($cache['/[a-z]+/']);
+        $this->assertTrue($cache[TestConstants::PATTERN_SAFE]);
     }
 
     #[Test]
@@ -232,12 +232,12 @@ class PatternValidatorTest extends TestCase
      *
      * @psalm-return array{
      *     'no delimiters': array{pattern: 'test'},
-     *     unclosed: array{pattern: '/unclosed'},
+     *     unclosed: array{pattern: TestConstants::PATTERN_INVALID_UNCLOSED},
      *     empty: array{pattern: '//'},
      *     'invalid bracket': array{pattern: '/[invalid/'},
      *     recursive: array{pattern: TestConstants::PATTERN_RECURSIVE},
      *     'named recursion': array{pattern: TestConstants::PATTERN_NAMED_RECURSION},
-     *     'nested quantifiers': array{pattern: '/^(a+)+$/'},
+     *     'nested quantifiers': array{pattern: TestConstants::PATTERN_REDOS_VULNERABLE},
      *     'invalid unicode': array{pattern: '/\x{10000000}/'}
      * }
      */
@@ -245,12 +245,12 @@ class PatternValidatorTest extends TestCase
     {
         return [
             'no delimiters' => ['pattern' => 'test'],
-            'unclosed' => ['pattern' => '/unclosed'],
+            'unclosed' => ['pattern' => TestConstants::PATTERN_INVALID_UNCLOSED],
             'empty' => ['pattern' => '//'],
             'invalid bracket' => ['pattern' => '/[invalid/'],
             'recursive' => ['pattern' => TestConstants::PATTERN_RECURSIVE],
             'named recursion' => ['pattern' => TestConstants::PATTERN_NAMED_RECURSION],
-            'nested quantifiers' => ['pattern' => '/^(a+)+$/'],
+            'nested quantifiers' => ['pattern' => TestConstants::PATTERN_REDOS_VULNERABLE],
             'invalid unicode' => ['pattern' => '/\x{10000000}/'],
         ];
     }
@@ -274,7 +274,7 @@ class PatternValidatorTest extends TestCase
 
         $this->assertTrue($validator->validate(TestConstants::PATTERN_DIGITS));
         $this->assertTrue($validator->validate('/[a-z]+/i'));
-        $this->assertTrue($validator->validate('/^test$/'));
+        $this->assertTrue($validator->validate(TestConstants::PATTERN_VALID_SIMPLE));
     }
 
     #[Test]
@@ -283,7 +283,7 @@ class PatternValidatorTest extends TestCase
         $validator = new PatternValidator();
 
         $this->assertFalse($validator->validate('invalid'));
-        $this->assertFalse($validator->validate('/unclosed'));
+        $this->assertFalse($validator->validate(TestConstants::PATTERN_INVALID_UNCLOSED));
         $this->assertFalse($validator->validate('//'));
     }
 
@@ -294,7 +294,7 @@ class PatternValidatorTest extends TestCase
 
         $this->assertFalse($validator->validate(TestConstants::PATTERN_RECURSIVE));
         $this->assertFalse($validator->validate(TestConstants::PATTERN_NAMED_RECURSION));
-        $this->assertFalse($validator->validate('/^(a+)+$/'));
+        $this->assertFalse($validator->validate(TestConstants::PATTERN_REDOS_VULNERABLE));
     }
 
     #[Test]
@@ -332,16 +332,16 @@ class PatternValidatorTest extends TestCase
         $validator = new PatternValidator();
         $patterns = [
             TestConstants::PATTERN_DIGITS => 'mask1',
-            '/[a-z]+/' => 'mask2',
+            TestConstants::PATTERN_SAFE => 'mask2',
         ];
 
         $validator->cacheAllPatterns($patterns);
         $cache = $validator->getInstanceCache();
 
         $this->assertArrayHasKey(TestConstants::PATTERN_DIGITS, $cache);
-        $this->assertArrayHasKey('/[a-z]+/', $cache);
+        $this->assertArrayHasKey(TestConstants::PATTERN_SAFE, $cache);
         $this->assertTrue($cache[TestConstants::PATTERN_DIGITS]);
-        $this->assertTrue($cache['/[a-z]+/']);
+        $this->assertTrue($cache[TestConstants::PATTERN_SAFE]);
     }
 
     #[Test]

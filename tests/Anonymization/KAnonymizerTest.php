@@ -22,7 +22,7 @@ final class KAnonymizerTest extends TestCase
         $record = ['name' => 'John', 'age' => 25];
         $result = $anonymizer->anonymize($record);
 
-        $this->assertSame('20-29', $result['age']);
+        $this->assertSame(TestConstants::AGE_RANGE_20_29, $result['age']);
         $this->assertSame('John', $result['name']);
     }
 
@@ -160,7 +160,7 @@ final class KAnonymizerTest extends TestCase
         $results = $anonymizer->anonymizeBatch($records);
 
         $this->assertCount(2, $results);
-        $this->assertSame('20-29', $results[0]['age']);
+        $this->assertSame(TestConstants::AGE_RANGE_20_29, $results[0]['age']);
         $this->assertSame('30-39', $results[1]['age']);
     }
 
@@ -179,13 +179,13 @@ final class KAnonymizerTest extends TestCase
         $this->assertCount(1, $logs);
         $this->assertSame('k-anonymity.age', $logs[0]['path']);
         $this->assertSame(25, $logs[0]['original']);
-        $this->assertSame('20-29', $logs[0][TestConstants::DATA_MASKED]);
+        $this->assertSame(TestConstants::AGE_RANGE_20_29, $logs[0][TestConstants::DATA_MASKED]);
     }
 
     public function testSetAuditLogger(): void
     {
         $logs = [];
-        $auditLogger = function (string $path, mixed $original, mixed $masked) use (&$logs): void {
+        $auditLogger = function (string $path) use (&$logs): void {
             $logs[] = ['path' => $path];
         };
 
@@ -227,7 +227,7 @@ final class KAnonymizerTest extends TestCase
     public function testCreateGdprDefaultWithAuditLogger(): void
     {
         $logs = [];
-        $auditLogger = function (string $path, mixed $original, mixed $masked) use (&$logs): void {
+        $auditLogger = function (string $path) use (&$logs): void {
             $logs[] = ['path' => $path];
         };
 
@@ -261,7 +261,7 @@ final class KAnonymizerTest extends TestCase
         $record = ['age' => 28, 'zip' => '12345', 'date' => '2024-06-15', 'name' => 'John'];
         $result = $anonymizer->anonymize($record);
 
-        $this->assertSame('20-29', $result['age']);
+        $this->assertSame(TestConstants::AGE_RANGE_20_29, $result['age']);
         $this->assertSame('12***', $result['zip']);
         $this->assertSame('2024', $result['date']);
         $this->assertSame('John', $result['name']);

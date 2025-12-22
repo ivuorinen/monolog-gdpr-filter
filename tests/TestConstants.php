@@ -158,6 +158,31 @@ final class TestConstants
     // Replacement Values
     public const REPLACEMENT_TEST = '[TEST]';
 
+    // Age range values
+    public const AGE_RANGE_20_29 = '20-29';
+
+    // Additional email variations
+    public const EMAIL_NEW = 'new@example.com';
+    public const EMAIL_JOHN = 'john@example.com';
+
+    // Mask placeholders used in tests (bracketed format)
+    public const MASK_REDACTED_BRACKETS = '[REDACTED]';
+    public const MASK_MASKED_BRACKETS = '[MASKED]';
+    public const MASK_EMAIL_BRACKETS = '[EMAIL]';
+    public const MASK_DIGITS_BRACKETS = '[DIGITS]';
+    public const MASK_INT_BRACKETS = '[INT]';
+    public const MASK_ALWAYS_THIS = '[ALWAYS_THIS]';
+
+    // Test values
+    public const VALUE_TEST = 'test value';
+    public const VALUE_SUFFIX = ' value';
+
+    // Additional pattern constants
+    public const PATTERN_VALID_SIMPLE = '/^test$/';
+    public const PATTERN_INVALID_UNCLOSED = '/unclosed';
+    public const PATTERN_REDOS_VULNERABLE = '/^(a+)+$/';
+    public const PATTERN_SAFE = '/[a-z]+/';
+
     /**
      * Prevent instantiation.
      *

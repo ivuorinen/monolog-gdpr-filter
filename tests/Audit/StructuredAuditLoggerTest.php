@@ -10,6 +10,7 @@ use Ivuorinen\MonologGdprFilter\Audit\StructuredAuditLogger;
 use Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger;
 use Ivuorinen\MonologGdprFilter\RateLimiter;
 use PHPUnit\Framework\TestCase;
+use Tests\TestConstants;
 
 /**
  * Tests for StructuredAuditLogger.
@@ -51,12 +52,12 @@ final class StructuredAuditLoggerTest extends TestCase
     {
         $logger = new StructuredAuditLogger($this->createBaseLogger());
 
-        $logger->log('user.email', 'john@example.com', '[MASKED]');
+        $logger->log('user.email', TestConstants::EMAIL_JOHN, TestConstants::MASK_MASKED_BRACKETS);
 
         $this->assertCount(1, $this->logs);
         $this->assertSame('user.email', $this->logs[0]['path']);
-        $this->assertSame('john@example.com', $this->logs[0]['original']);
-        $this->assertSame('[MASKED]', $this->logs[0]['masked']);
+        $this->assertSame(TestConstants::EMAIL_JOHN, $this->logs[0]['original']);
+        $this->assertSame(TestConstants::MASK_MASKED_BRACKETS, $this->logs[0]['masked']);
     }
 
     public function testLogWithContext(): void
@@ -64,7 +65,7 @@ final class StructuredAuditLoggerTest extends TestCase
         $logger = new StructuredAuditLogger($this->createBaseLogger());
         $context = AuditContext::success(AuditContext::OP_REGEX, 5.0);
 
-        $logger->log('user.email', 'john@example.com', '[MASKED]', $context);
+        $logger->log('user.email', TestConstants::EMAIL_JOHN, TestConstants::MASK_MASKED_BRACKETS, $context);
 
         $this->assertCount(1, $this->logs);
     }
@@ -107,8 +108,8 @@ final class StructuredAuditLoggerTest extends TestCase
 
         $logger->logRecovery(
             'user.email',
-            'john@example.com',
-            '[MASKED]',
+            TestConstants::EMAIL_JOHN,
+            TestConstants::MASK_MASKED_BRACKETS,
             AuditContext::OP_REGEX,
             2,
             25.0
@@ -123,14 +124,14 @@ final class StructuredAuditLoggerTest extends TestCase
 
         $logger->logSkipped(
             'user.public_name',
-            'John Doe',
+            TestConstants::NAME_FULL,
             AuditContext::OP_CONDITIONAL,
             'Field not in mask list'
         );
 
         $this->assertCount(1, $this->logs);
-        $this->assertSame('John Doe', $this->logs[0]['original']);
-        $this->assertSame('John Doe', $this->logs[0]['masked']);
+        $this->assertSame(TestConstants::NAME_FULL, $this->logs[0]['original']);
+        $this->assertSame(TestConstants::NAME_FULL, $this->logs[0]['masked']);
     }
 
     public function testWrapStaticFactory(): void
@@ -151,7 +152,7 @@ final class StructuredAuditLoggerTest extends TestCase
         );
         $logger = new StructuredAuditLogger($rateLimited);
 
-        $logger->log('user.email', 'john@example.com', '[MASKED]');
+        $logger->log('user.email', TestConstants::EMAIL_JOHN, TestConstants::MASK_MASKED_BRACKETS);
 
         $this->assertCount(1, $this->logs);
     }

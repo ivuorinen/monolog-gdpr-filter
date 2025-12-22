@@ -11,7 +11,7 @@ use Ivuorinen\MonologGdprFilter\Recovery\FailureMode;
 use Ivuorinen\MonologGdprFilter\Recovery\RecoveryResult;
 use Ivuorinen\MonologGdprFilter\Recovery\RetryStrategy;
 use PHPUnit\Framework\TestCase;
-use RuntimeException;
+use Tests\TestConstants;
 
 /**
  * Tests for RetryStrategy.
@@ -54,12 +54,12 @@ final class RetryStrategyTest extends TestCase
     public function testSuccessfulExecution(): void
     {
         $strategy = new RetryStrategy(maxAttempts: 3);
-        $operation = fn(): string => '[MASKED]';
+        $operation = fn(): string => TestConstants::MASK_MASKED_BRACKETS;
 
         $result = $strategy->execute($operation, 'original', 'test.path');
 
         $this->assertTrue($result->isSuccess());
-        $this->assertSame('[MASKED]', $result->value);
+        $this->assertSame(TestConstants::MASK_MASKED_BRACKETS, $result->value);
         $this->assertSame(1, $result->attempts);
         $this->assertSame(RecoveryResult::OUTCOME_SUCCESS, $result->outcome);
     }
@@ -76,15 +76,15 @@ final class RetryStrategyTest extends TestCase
         $operation = function () use (&$attemptCount): string {
             $attemptCount++;
             if ($attemptCount < 3) {
-                throw new RuntimeException('Temporary failure');
+                throw MaskingOperationFailedException::regexMaskingFailed('Temporary failure', '/test/', 'test');
             }
-            return '[MASKED]';
+            return TestConstants::MASK_MASKED_BRACKETS;
         };
 
         $result = $strategy->execute($operation, 'original', 'test.path');
 
         $this->assertTrue($result->isSuccess());
-        $this->assertSame('[MASKED]', $result->value);
+        $this->assertSame(TestConstants::MASK_MASKED_BRACKETS, $result->value);
         $this->assertSame(3, $result->attempts);
         $this->assertSame(RecoveryResult::OUTCOME_RECOVERED, $result->outcome);
     }
@@ -99,7 +99,7 @@ final class RetryStrategyTest extends TestCase
         );
 
         $operation = function (): never {
-            throw new RuntimeException('Permanent failure');
+            throw MaskingOperationFailedException::regexMaskingFailed('Permanent failure', '/test/', 'test');
         };
 
         $result = $strategy->execute($operation, 'original string', 'test.path');
@@ -118,7 +118,7 @@ final class RetryStrategyTest extends TestCase
         );
 
         $operation = function (): never {
-            throw new RuntimeException('Failure');
+            throw MaskingOperationFailedException::regexMaskingFailed('Failure', '/test/', 'test');
         };
 
         $result = $strategy->execute($operation, 'original', 'test.path');
@@ -134,7 +134,7 @@ final class RetryStrategyTest extends TestCase
         );
 
         $operation = function (): never {
-            throw new RuntimeException('Failure');
+            throw MaskingOperationFailedException::regexMaskingFailed('Failure', '/test/', 'test');
         };
 
         $result = $strategy->execute($operation, 'original', 'test.path');
@@ -150,7 +150,7 @@ final class RetryStrategyTest extends TestCase
         );
 
         $operation = function (): never {
-            throw new RuntimeException('Failure');
+            throw MaskingOperationFailedException::regexMaskingFailed('Failure', '/test/', 'test');
         };
 
         $result = $strategy->execute($operation, 'original', 'test.path');
@@ -213,7 +213,7 @@ final class RetryStrategyTest extends TestCase
     public function testIsRecoverableWithTransientError(): void
     {
         $strategy = new RetryStrategy();
-        $exception = new RuntimeException('Temporary failure');
+        $exception = MaskingOperationFailedException::regexMaskingFailed('Temporary failure', '/test/', 'test');
 
         $this->assertTrue($strategy->isRecoverable($exception));
     }
@@ -251,7 +251,7 @@ final class RetryStrategyTest extends TestCase
         );
 
         $operation = function (): never {
-            throw new RuntimeException('Failure');
+            throw MaskingOperationFailedException::regexMaskingFailed('Failure', '/test/', 'test');
         };
 
         $result = $strategy->execute($operation, 42, 'test.path');
@@ -267,7 +267,7 @@ final class RetryStrategyTest extends TestCase
         );
 
         $operation = function (): never {
-            throw new RuntimeException('Failure');
+            throw MaskingOperationFailedException::regexMaskingFailed('Failure', '/test/', 'test');
         };
 
         $result = $strategy->execute($operation, ['key' => 'value'], 'test.path');
@@ -297,7 +297,7 @@ final class RetryStrategyTest extends TestCase
         );
 
         $operation = function (): never {
-            throw new RuntimeException('Failure');
+            throw MaskingOperationFailedException::regexMaskingFailed('Failure', '/test/', 'test');
         };
 
         $strategy->execute($operation, 'original', 'test.path', $auditLogger);

@@ -9,6 +9,7 @@ use InvalidArgumentException;
 use Ivuorinen\MonologGdprFilter\Audit\ErrorContext;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use Tests\TestConstants;
 
 /**
  * Tests for ErrorContext value object.
@@ -78,7 +79,7 @@ final class ErrorContextTest extends TestCase
         $context = ErrorContext::create('DbError', $message);
 
         $this->assertStringNotContainsString('secret123', $context->message);
-        $this->assertStringContainsString('[REDACTED]', $context->message);
+        $this->assertStringContainsString(TestConstants::MASK_REDACTED_BRACKETS, $context->message);
     }
 
     public function testSanitizesApiKeysInMessage(): void
@@ -87,7 +88,7 @@ final class ErrorContextTest extends TestCase
         $context = ErrorContext::create('ApiError', $message);
 
         $this->assertStringNotContainsString('sk_live_1234567890', $context->message);
-        $this->assertStringContainsString('[REDACTED]', $context->message);
+        $this->assertStringContainsString(TestConstants::MASK_REDACTED_BRACKETS, $context->message);
     }
 
     public function testSanitizesTokensInMessage(): void
@@ -96,7 +97,7 @@ final class ErrorContextTest extends TestCase
         $context = ErrorContext::create('AuthError', $message);
 
         $this->assertStringNotContainsString('abc123def456', $context->message);
-        $this->assertStringContainsString('[REDACTED]', $context->message);
+        $this->assertStringContainsString(TestConstants::MASK_REDACTED_BRACKETS, $context->message);
     }
 
     public function testSanitizesTokenValueInMessage(): void
@@ -105,7 +106,7 @@ final class ErrorContextTest extends TestCase
         $context = ErrorContext::create('AuthError', $message);
 
         $this->assertStringNotContainsString('secret_value_here', $context->message);
-        $this->assertStringContainsString('[REDACTED]', $context->message);
+        $this->assertStringContainsString(TestConstants::MASK_REDACTED_BRACKETS, $context->message);
     }
 
     public function testSanitizesConnectionStrings(): void
@@ -114,7 +115,7 @@ final class ErrorContextTest extends TestCase
         $context = ErrorContext::create('ConnError', $message);
 
         $this->assertStringNotContainsString('password', $context->message);
-        $this->assertStringContainsString('[REDACTED]', $context->message);
+        $this->assertStringContainsString(TestConstants::MASK_REDACTED_BRACKETS, $context->message);
     }
 
     public function testSanitizesUserCredentials(): void
@@ -124,7 +125,7 @@ final class ErrorContextTest extends TestCase
 
         $this->assertStringNotContainsString('admin', $context->message);
         $this->assertStringNotContainsString('secret.internal.com', $context->message);
-        $this->assertStringContainsString('[REDACTED]', $context->message);
+        $this->assertStringContainsString(TestConstants::MASK_REDACTED_BRACKETS, $context->message);
     }
 
     public function testSanitizesFilePaths(): void
