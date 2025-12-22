@@ -310,8 +310,7 @@ class ConditionalMaskingTest extends TestCase
         // Create a custom rule that masks only logs with user_id > 1000
         $customRule = (
             function (LogRecord $record): bool {
-                $userId = $record->context[TestConstants::CONTEXT_USER_ID] ?? null;
-                return isset($userId) && $userId > 1000;
+                return ($record->context[TestConstants::CONTEXT_USER_ID] ?? 0) > 1000;
             }
         );
 
