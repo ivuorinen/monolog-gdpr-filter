@@ -21,6 +21,7 @@ use Ivuorinen\MonologGdprFilter\PatternValidator;
  * These tests measure and validate the performance improvements.
  *
  * @api
+ * @psalm-suppress DeprecatedMethod - Tests for deprecated PatternValidator API
  */
 class PerformanceBenchmarkTest extends TestCase
 {

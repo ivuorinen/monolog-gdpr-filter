@@ -73,6 +73,7 @@ monolog:
 Create environment-specific configurations:
 
 ### config/packages/dev/monolog.yaml
+
 ```yaml
 monolog:
     handlers:
@@ -84,6 +85,7 @@ monolog:
 ```
 
 ### config/packages/prod/monolog.yaml
+
 ```yaml
 monolog:
     handlers:

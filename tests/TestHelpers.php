@@ -199,6 +199,7 @@ trait TestHelpers
      */
     protected function clearPatternCache(): void
     {
+        /** @psalm-suppress DeprecatedMethod - Test helper for deprecated cache API */
         PatternValidator::clearCache();
     }
 

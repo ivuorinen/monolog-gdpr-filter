@@ -115,6 +115,7 @@ final class MaskingOrchestrator
         );
 
         // Pre-validate and cache patterns for better performance
+        /** @psalm-suppress DeprecatedMethod - Internal use of caching mechanism */
         PatternValidator::cachePatterns($patterns);
 
         return new self(

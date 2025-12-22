@@ -61,6 +61,7 @@ echo "Expected: 5 regular logs + rate limit warnings\n\n";
 echo "=== Example 2: Rate Limiting Profiles ===\n";
 
 $auditLogs2 = [];
+/** @psalm-suppress DeprecatedMethod - Example demonstrates deprecated factory method */
 $baseLogger2 = GdprProcessor::createArrayAuditLogger($auditLogs2, false);
 
 // Available profiles: 'strict', 'default', 'relaxed', 'testing'
@@ -80,6 +81,7 @@ echo "=== Example 3: GdprProcessor Helper Methods ===\n";
 
 $auditLogs3 = [];
 // Create rate-limited logger using GdprProcessor helper
+/** @psalm-suppress DeprecatedMethod - Example demonstrates deprecated factory methods */
 $rateLimitedAuditLogger = GdprProcessor::createRateLimitedAuditLogger(
     GdprProcessor::createArrayAuditLogger($auditLogs3, false),
     'default'

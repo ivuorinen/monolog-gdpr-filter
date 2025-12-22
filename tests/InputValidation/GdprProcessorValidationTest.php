@@ -21,6 +21,7 @@ use Tests\TestConstants;
  * Tests for the GdprProcessor class.
  *
  * @api
+ * @psalm-suppress DeprecatedMethod - Tests for deprecated validation methods
  */
 #[CoversClass(GdprProcessor::class)]
 class GdprProcessorValidationTest extends TestCase

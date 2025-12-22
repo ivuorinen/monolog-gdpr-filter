@@ -22,6 +22,7 @@ use Tests\TestHelpers;
  * Integration tests for GDPR processor with rate-limited audit logging.
  *
  * @api
+ * @psalm-suppress DeprecatedMethod - Tests for deprecated audit logger methods
  */
 class GdprProcessorRateLimitingIntegrationTest extends TestCase
 {

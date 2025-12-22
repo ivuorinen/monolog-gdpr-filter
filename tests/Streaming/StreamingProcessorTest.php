@@ -100,6 +100,7 @@ final class StreamingProcessorTest extends TestCase
 
         // Create temp file with test data containing 'test' to be masked
         $tempFile = tempnam(sys_get_temp_dir(), 'gdpr_test_');
+        $this->assertIsString($tempFile, 'Failed to create temp file');
         file_put_contents($tempFile, "test line 1\ntest line 2\ntest line 3\n");
 
         try {
@@ -122,6 +123,7 @@ final class StreamingProcessorTest extends TestCase
         $processor = new StreamingProcessor($this->createOrchestrator(), 10);
 
         $tempFile = tempnam(sys_get_temp_dir(), 'gdpr_test_');
+        $this->assertIsString($tempFile, 'Failed to create temp file');
         file_put_contents($tempFile, "test line 1\n\n\ntest line 2\n");
 
         try {
@@ -155,6 +157,7 @@ final class StreamingProcessorTest extends TestCase
         ];
 
         $outputFile = tempnam(sys_get_temp_dir(), 'gdpr_output_');
+        $this->assertIsString($outputFile, 'Failed to create temp file');
 
         try {
             $formatter = fn(array $record): string => $record['message'];

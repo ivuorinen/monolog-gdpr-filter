@@ -267,6 +267,7 @@ final class PatternValidator
     {
         foreach (array_keys($patterns) as $pattern) {
             if (!isset(self::$validPatternCache[$pattern])) {
+                /** @psalm-suppress DeprecatedMethod - Internal self-call within deprecated method */
                 self::$validPatternCache[$pattern] = self::isValid($pattern);
             }
         }
@@ -283,6 +284,7 @@ final class PatternValidator
     public static function validateAll(array $patterns): void
     {
         foreach (array_keys($patterns) as $pattern) {
+            /** @psalm-suppress DeprecatedMethod - Internal self-call within deprecated method */
             if (!self::isValid($pattern)) {
                 throw InvalidRegexPatternException::forPattern(
                     $pattern,

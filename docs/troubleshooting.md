@@ -41,16 +41,19 @@ composer require ivuorinen/monolog-gdpr-filter -vvv
 **Solutions:**
 
 1. Regenerate autoloader:
+
 ```bash
 composer dump-autoload
 ```
 
 2. Verify installation:
+
 ```bash
 composer show ivuorinen/monolog-gdpr-filter
 ```
 
 3. Check namespace in your code:
+
 ```php
 <?php
 // Correct
@@ -113,6 +116,7 @@ echo "Result: " . $result['message'] . "\n";
 **Solutions:**
 
 1. Add word boundaries:
+
 ```php
 <?php
 // Too broad
@@ -123,6 +127,7 @@ $pattern = '/\b\d{4}\b/';  // Matches standalone 4-digit numbers
 ```
 
 2. Use more specific patterns:
+
 ```php
 <?php
 // Too broad for credit cards
@@ -133,6 +138,7 @@ $pattern = '/\b(?:\d{4}[-\s]?){3}\d{4}\b/';
 ```
 
 3. Add negative lookahead/lookbehind:
+
 ```php
 <?php
 // Avoid matching dates that look like years
@@ -180,6 +186,7 @@ echo "1000 records: {$elapsed}s\n";
 **Solutions:**
 
 1. Reduce pattern count:
+
 ```php
 <?php
 // Only include patterns you need
@@ -187,6 +194,7 @@ $patterns = DefaultPatterns::emails() + DefaultPatterns::creditCards();
 ```
 
 2. Simplify complex patterns:
+
 ```php
 <?php
 // Slow: Complex pattern with many alternatives
@@ -197,6 +205,7 @@ $fast = '/\b[A-Z][a-z]{2,8}\b/';
 ```
 
 3. Limit recursion depth:
+
 ```php
 <?php
 $processor = new GdprProcessor($patterns, [], [], null, 5);  // Max depth 5
@@ -211,6 +220,7 @@ See [Performance Tuning Guide](performance-tuning.md) for detailed optimization 
 **Solutions:**
 
 1. Check for catastrophic backtracking:
+
 ```php
 <?php
 // Problematic pattern
@@ -221,6 +231,7 @@ $good = '/[^@]+@[^.]+\.[a-z]+/i';
 ```
 
 2. Add pattern timeout (PHP 7.3+):
+
 ```php
 <?php
 // Set PCRE backtrack limit
@@ -236,6 +247,7 @@ ini_set('pcre.backtrack_limit', '100000');
 **Solutions:**
 
 1. Use streaming for large files:
+
 ```php
 <?php
 use Ivuorinen\MonologGdprFilter\Streaming\StreamingProcessor;
@@ -252,12 +264,14 @@ foreach ($streaming->processFile($largefile, $lineParser) as $record) {
 ```
 
 2. Reduce recursion depth:
+
 ```php
 <?php
 $processor = new GdprProcessor($patterns, [], [], null, 3);
 ```
 
 3. Disable audit logging:
+
 ```php
 <?php
 $processor = new GdprProcessor($patterns, [], [], null);  // No audit logger
@@ -270,6 +284,7 @@ $processor = new GdprProcessor($patterns, [], [], null);  // No audit logger
 **Solutions:**
 
 1. Clear caches periodically:
+
 ```php
 <?php
 // In long-running workers
@@ -279,6 +294,7 @@ if ($processedCount % 10000 === 0) {
 ```
 
 2. Use fresh processor instances for batch jobs:
+
 ```php
 <?php
 foreach ($batches as $batch) {
@@ -299,6 +315,7 @@ foreach ($batches as $batch) {
 **Solutions:**
 
 1. Verify service provider registration:
+
 ```php
 <?php
 // config/app.php
@@ -308,6 +325,7 @@ foreach ($batches as $batch) {
 ```
 
 2. Check logging configuration:
+
 ```php
 <?php
 // config/logging.php
@@ -325,6 +343,7 @@ foreach ($batches as $batch) {
 ```
 
 3. Clear config cache:
+
 ```bash
 php artisan config:clear
 php artisan cache:clear
@@ -363,6 +382,7 @@ See [Symfony Integration Guide](symfony-integration.md) for detailed setup.
 **Solutions:**
 
 1. Verify audit logger is set:
+
 ```php
 <?php
 $auditLogs = [];
@@ -377,6 +397,7 @@ $processor = new GdprProcessor(
 ```
 
 2. Verify masking is actually occurring:
+
 ```php
 <?php
 // Audit is only called when data is actually masked
@@ -413,6 +434,7 @@ $rateLimitedLogger = new RateLimitedAuditLogger($baseLogger, $rateLimiter);
 **Cause:** The pattern has invalid regex syntax.
 
 **Solution:**
+
 ```php
 <?php
 // Test pattern before using
@@ -429,6 +451,7 @@ if (@preg_match($pattern, '') === false) {
 **Cause:** Nested data structure exceeds max depth.
 
 **Solutions:**
+
 ```php
 <?php
 // Increase max depth
@@ -450,6 +473,7 @@ $flatContext = iterator_to_array(
 **Cause:** An error occurred during masking.
 
 **Solution:** Enable recovery mode:
+
 ```php
 <?php
 use Ivuorinen\MonologGdprFilter\Recovery\FallbackMaskStrategy;
@@ -466,6 +490,7 @@ $fallback = new FallbackMaskStrategy(FailureMode::FAIL_SAFE);
 **Cause:** Invalid processor configuration.
 
 **Solution:** Validate configuration:
+
 ```php
 <?php
 use Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder;
@@ -484,11 +509,13 @@ try {
 If you're still experiencing issues:
 
 1. **Check the tests:** The test suite contains many usage examples:
+
    ```bash
    ls tests/
    ```
 
 2. **Enable debug mode:** Add verbose logging:
+
    ```php
    <?php
    $auditLogger = function ($path, $original, $masked): void {

@@ -347,7 +347,7 @@ class JsonMaskingTest extends TestCase
         $this->assertStringContainsString('{"valid":true}', $result);
 
         // No error logs should be generated for valid JSON
-        $errorLogs = array_filter($auditLogs, fn(array $log): bool => str_contains($log['path'], 'error'));
+        $errorLogs = array_filter($auditLogs, fn(array $log): bool => str_contains((string) $log['path'], 'error'));
         $this->assertEmpty($errorLogs);
     }
 

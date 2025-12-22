@@ -72,6 +72,7 @@ $logger->pushProcessor(new GdprProcessor(DefaultPatterns::all()));
 ```
 
 Logstash configuration:
+
 ```ruby
 input {
   tcp {
@@ -491,6 +492,7 @@ $logger->pushProcessor(function ($record) {
 ```
 
 Fluentd configuration:
+
 ```ruby
 <source>
   @type forward
@@ -526,6 +528,7 @@ $logger->pushProcessor(new GdprProcessor(DefaultPatterns::all()));
 ```
 
 Fluent Bit configuration:
+
 ```ini
 [INPUT]
     Name tail

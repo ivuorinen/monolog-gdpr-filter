@@ -53,6 +53,7 @@ echo "Throughput: {$perSecond:.0f} records/second\n";
 ```
 
 **Target benchmarks:**
+
 - Simple patterns: 50,000+ records/second
 - Complex patterns with nested context: 10,000+ records/second
 - With audit logging: 5,000+ records/second

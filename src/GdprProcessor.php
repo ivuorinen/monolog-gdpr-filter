@@ -66,6 +66,7 @@ class GdprProcessor implements ProcessorInterface
         );
 
         // Pre-validate and cache patterns for better performance
+        /** @psalm-suppress DeprecatedMethod - Internal use of caching mechanism */
         PatternValidator::cachePatterns($patterns);
 
         // Create orchestrator to handle actual masking work
@@ -256,6 +257,7 @@ class GdprProcessor implements ProcessorInterface
     public static function validatePatternsArray(array $patterns): void
     {
         try {
+            /** @psalm-suppress DeprecatedMethod - Wrapper for deprecated validation */
             PatternValidator::validateAll($patterns);
         } catch (InvalidRegexPatternException $e) {
             throw PatternValidationException::forMultiplePatterns(

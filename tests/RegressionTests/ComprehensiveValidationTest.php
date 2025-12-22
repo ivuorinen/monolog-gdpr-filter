@@ -38,6 +38,7 @@ use Tests\TestConstants;
  * 5. Laravel Integration - Fixed undefined variables and imports
  *
  * @psalm-api
+ * @psalm-suppress DeprecatedMethod - Tests for deprecated validation methods
  */
 #[CoversClass(GdprProcessor::class)]
 #[CoversClass(RateLimiter::class)]

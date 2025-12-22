@@ -16,6 +16,7 @@ use PHPUnit\Framework\TestCase;
  * Test PatternValidator functionality.
  *
  * @api
+ * @psalm-suppress DeprecatedMethod - Tests for deprecated static API
  */
 #[CoversClass(PatternValidator::class)]
 class PatternValidatorTest extends TestCase

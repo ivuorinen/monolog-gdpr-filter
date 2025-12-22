@@ -32,6 +32,7 @@ use stdClass;
  * Each test method corresponds to a specific bug that was identified and fixed.
  *
  * @psalm-api
+ * @psalm-suppress DeprecatedMethod - Tests for deprecated PatternValidator API
  */
 #[CoversClass(GdprProcessor::class)]
 #[CoversClass(RateLimiter::class)]

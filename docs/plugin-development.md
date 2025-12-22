@@ -215,7 +215,7 @@ $processor = GdprProcessorBuilder::create()
 
 Understanding execution order is critical for plugins that interact:
 
-```
+```text
 1. preProcessMessage()  - Plugins in priority order (10, 20, 30...)
 2. preProcessContext()  - Plugins in priority order (10, 20, 30...)
 3. [Core GdprProcessor masking]
