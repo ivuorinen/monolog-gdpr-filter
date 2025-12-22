@@ -207,7 +207,7 @@ final class RetryStrategy implements RecoveryStrategy
      */
     private function shouldContinueRetrying(?Throwable $exception, int $attempt): bool
     {
-        if ($exception === null || !$this->isRecoverable($exception)) {
+        if (!$exception instanceof \Throwable || !$this->isRecoverable($exception)) {
             return false;
         }
 

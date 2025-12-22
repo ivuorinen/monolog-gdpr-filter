@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger;
+use Ivuorinen\MonologGdprFilter\Exceptions\PatternValidationException;
+use Ivuorinen\MonologGdprFilter\MaskingOrchestrator;
 use Tests\TestConstants;
 use Ivuorinen\MonologGdprFilter\Exceptions\InvalidRegexPatternException;
 use Ivuorinen\MonologGdprFilter\DefaultPatterns;
@@ -334,7 +337,7 @@ class GdprProcessorTest extends TestCase
         /** @psalm-suppress DeprecatedMethod */
         $rateLimitedLogger = GdprProcessor::createRateLimitedAuditLogger($auditLogger, 'testing');
 
-        $this->assertInstanceOf(\Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger::class, $rateLimitedLogger);
+        $this->assertInstanceOf(RateLimitedAuditLogger::class, $rateLimitedLogger);
     }
 
     public function testCreateArrayAuditLoggerReturnsCallable(): void
@@ -355,7 +358,7 @@ class GdprProcessorTest extends TestCase
         /** @psalm-suppress DeprecatedMethod */
         $logger = GdprProcessor::createArrayAuditLogger($logStorage, true);
 
-        $this->assertInstanceOf(\Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger::class, $logger);
+        $this->assertInstanceOf(RateLimitedAuditLogger::class, $logger);
     }
 
     public function testValidatePatternsArraySucceedsWithValidPatterns(): void
@@ -372,7 +375,7 @@ class GdprProcessorTest extends TestCase
 
     public function testValidatePatternsArrayThrowsForInvalidPattern(): void
     {
-        $this->expectException(\Ivuorinen\MonologGdprFilter\Exceptions\PatternValidationException::class);
+        $this->expectException(PatternValidationException::class);
 
         $patterns = [
             '/[invalid/' => 'MASKED',
@@ -387,7 +390,7 @@ class GdprProcessorTest extends TestCase
 
         $orchestrator = $processor->getOrchestrator();
 
-        $this->assertInstanceOf(\Ivuorinen\MonologGdprFilter\MaskingOrchestrator::class, $orchestrator);
+        $this->assertInstanceOf(MaskingOrchestrator::class, $orchestrator);
     }
 
     public function testSetAuditLoggerUpdatesLogger(): void
