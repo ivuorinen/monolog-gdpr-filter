@@ -91,7 +91,7 @@ parameters:
         - '#Constant Tests\\.*::.* is unused#'
 
     # PHP version for analysis
-    phpVersion: 80200
+    phpVersion: 80400
 
     # Stub files for missing functions/classes
     stubFiles: []
