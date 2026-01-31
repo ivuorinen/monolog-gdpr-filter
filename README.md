@@ -32,7 +32,7 @@ custom callbacks, and advanced features like streaming, rate limiting, and k-ano
 
 ## Requirements
 
-- PHP 8.2 or higher
+- PHP 8.4 or higher
 - Monolog 3.x
 
 ## Installation

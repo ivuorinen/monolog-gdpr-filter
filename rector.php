@@ -57,7 +57,7 @@ return RectorConfig::configure()
         removeUnusedImports: true,  // This is generally safe
     )
     // Conservative PHP version targeting
-    ->withPhpVersion(80200)
+    ->withPhpVersion(80400)
     // Don't use prepared sets - they're too aggressive
     ->withPreparedSets(
         deadCode: false,           // Disable dead code removal
