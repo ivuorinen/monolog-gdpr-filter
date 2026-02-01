@@ -31,8 +31,8 @@
     "lint:tool:psalm": "./vendor/bin/psalm --show-info=true",
     "lint:tool:psalm:fix": "./vendor/bin/psalm --alter --issues=MissingReturnType,MissingParamType,MissingClosureReturnType",
     "lint:tool:rector": "./vendor/bin/rector",
-    "lint:tool:md:fix": "markdownlint -f '**/*.md'",
-    "lint:tool:md": "markdownlint '**/*.md'"
+    "lint:tool:md:fix": "npx -y markdownlint-cli -f '**/*.md'",
+    "lint:tool:md": "npx -y markdownlint-cli '**/*.md'"
   },
   "require": {
     "php": "^8.4",

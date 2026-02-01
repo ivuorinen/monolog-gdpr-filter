@@ -22,7 +22,7 @@ This guide helps diagnose and resolve common issues with the Monolog GDPR Filter
 
 ```bash
 # Check PHP version
-php -v  # Must be 8.2 or higher
+php -v  # Must be 8.4 or higher
 
 # Clear Composer cache
 composer clear-cache

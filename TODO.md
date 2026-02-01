@@ -9,7 +9,7 @@ This file tracks remaining issues, improvements, and feature requests for the mo
 - **141 PHP files** (60 source files, 81 test files)
 - **1,346 tests** with **100% success rate** (3,386 assertions)
 - **85.07% line coverage**, **88.31% method coverage**
-- **PHP 8.2+** with modern language features and strict type safety
+- **PHP 8.4+** with modern language features and strict type safety
 - **Zero Critical Issues**: All functionality-blocking bugs resolved
 - **Static Analysis**: All tools pass cleanly (Psalm, PHPStan, Rector, PHPCS)
 

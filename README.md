@@ -404,7 +404,7 @@ $processor = GdprProcessorBuilder::create()
 `GdprProcessor::getDefaultPatterns()` includes patterns for:
 
 | Category | Data Types |
-|----------|------------|
+| -------- | ---------- |
 | Personal IDs | Finnish SSN (HETU), US SSN, Passport numbers, National IDs |
 | Financial | Credit cards, IBAN, Bank account numbers |
 | Contact | Email addresses, Phone numbers (E.164) |
