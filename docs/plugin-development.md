@@ -28,7 +28,7 @@ Plugins extend the GDPR processor's functionality without modifying core code. U
 ### When to Use Plugins vs. Configuration
 
 | Scenario | Use Plugin | Use Configuration |
-|----------|-----------|-------------------|
+| -------- | --------- | ----------------- |
 | Add regex patterns | ✅ (via `getPatterns()`) | ✅ (via constructor) |
 | Custom transformation logic | ✅ | ❌ |
 | Conditional processing | ✅ | ❌ |
@@ -126,7 +126,7 @@ interface MaskingPluginInterface
 ### Method Reference
 
 | Method | Purpose | When Called |
-|--------|---------|-------------|
+| ------ | ------- | ----------- |
 | `getName()` | Unique identifier for debugging | On registration |
 | `preProcessContext()` | Modify context before masking | Before core masking |
 | `preProcessMessage()` | Modify message before masking | Before core masking |
@@ -266,7 +266,7 @@ class LowPriorityPlugin extends AbstractMaskingPlugin
 ### Recommended Priority Ranges
 
 | Range | Use Case | Example |
-|-------|----------|---------|
+| ----- | -------- | ------- |
 | 1-50 | Security/validation | Input sanitization |
 | 50-100 | Standard processing | Pattern masking |
 | 100-150 | Business logic | Domain-specific rules |

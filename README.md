@@ -32,7 +32,7 @@ custom callbacks, and advanced features like streaming, rate limiting, and k-ano
 
 ## Requirements
 
-- PHP 8.2 or higher
+- PHP 8.4 or higher
 - Monolog 3.x
 
 ## Installation
@@ -404,7 +404,7 @@ $processor = GdprProcessorBuilder::create()
 `GdprProcessor::getDefaultPatterns()` includes patterns for:
 
 | Category | Data Types |
-|----------|------------|
+| -------- | ---------- |
 | Personal IDs | Finnish SSN (HETU), US SSN, Passport numbers, National IDs |
 | Financial | Credit cards, IBAN, Bank account numbers |
 | Contact | Email addresses, Phone numbers (E.164) |

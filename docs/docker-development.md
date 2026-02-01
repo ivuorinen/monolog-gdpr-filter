@@ -26,7 +26,7 @@ docker compose exec php composer lint
 ### docker/Dockerfile
 
 ```dockerfile
-FROM php:8.2-cli-alpine
+FROM php:8.4-cli-alpine
 
 # Install system dependencies
 RUN apk add --no-cache \
@@ -90,9 +90,9 @@ services:
     tty: true
     command: tail -f /dev/null
 
-  # Optional: PHP 8.3 for testing compatibility
+  # Optional: PHP 8.5 for testing compatibility
   php83:
-    image: php:8.3-cli-alpine
+    image: php:8.5-cli-alpine
     volumes:
       - ..:/app
     working_dir: /app
@@ -253,7 +253,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php: ['8.2', '8.3']
+        php: ['8.4', '8.5']
 
     steps:
       - uses: actions/checkout@v4

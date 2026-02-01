@@ -9,8 +9,8 @@ field-level configuration, and custom callbacks. It is designed for easy integra
 
 ## Coding Conventions
 
-- **Language:** PHP 8.2+
-  - **PHP Version:** Ensure compatibility with PHP 8.2 and above.
+- **Language:** PHP 8.4+
+  - **PHP Version:** Ensure compatibility with PHP 8.4 and above.
 - **PSR Standards:** Follow PSR-12 for code style and autoloading.
 - **Testing:** Use PHPUnit for all tests. Place tests in the `tests/` directory. Run `composer test` to execute tests.
   - All tests should be written in a way that they can run independently.

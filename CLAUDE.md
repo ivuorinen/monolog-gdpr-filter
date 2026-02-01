@@ -82,7 +82,7 @@ The library can be integrated with Laravel in two ways:
 
 ## Code Standards
 
-- **PHP 8.2+** with strict types
+- **PHP 8.4+** with strict types
 - **PSR-12** coding standard (enforced by PHP_CodeSniffer)
 - **Psalm Level 5** static analysis with conservative configuration
 - **PHPStan Level 6** for additional code quality insights
