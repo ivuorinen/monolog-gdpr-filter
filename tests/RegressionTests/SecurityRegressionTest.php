@@ -74,7 +74,7 @@ class SecurityRegressionTest extends TestCase
     {
         $redosPatterns = [
             // Nested quantifiers - classic ReDoS
-            '/^(a+)+$/',
+            TestConstants::PATTERN_REDOS_VULNERABLE,
             '/^(a*)*$/',
             '/^(a+)*$/',
 

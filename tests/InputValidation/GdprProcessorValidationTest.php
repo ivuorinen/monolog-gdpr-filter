@@ -429,7 +429,7 @@ class GdprProcessorValidationTest extends TestCase
     {
         $processor = new GdprProcessor([], [
             TestConstants::FIELD_USER_EMAIL => FieldMaskConfig::remove(),
-            TestConstants::FIELD_USER_NAME => FieldMaskConfig::replace('[REDACTED]'),
+            TestConstants::FIELD_USER_NAME => FieldMaskConfig::replace(TestConstants::MASK_REDACTED_BRACKETS),
             'user.phone' => FieldMaskConfig::regexMask('/\d/', '*'),
             'metadata.ip' => 'simple_string_replacement'
         ]);

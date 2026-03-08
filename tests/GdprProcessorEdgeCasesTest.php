@@ -59,10 +59,10 @@ final class GdprProcessorEdgeCasesTest extends TestCase
         );
 
         // Call maskMessage directly
-        $result = $processor->maskMessage('test value');
+        $result = $processor->maskMessage(TestConstants::VALUE_TEST);
 
         // Should work normally
-        $this->assertSame(Mask::MASK_MASKED . ' value', $result);
+        $this->assertSame(Mask::MASK_MASKED . TestConstants::VALUE_SUFFIX, $result);
 
         // Now test with patterns that might cause issues
         // Note: It's hard to trigger preg_replace null return in normal usage
@@ -79,7 +79,7 @@ final class GdprProcessorEdgeCasesTest extends TestCase
         // Test recursiveMask with array
         $data = [
             'level1' => [
-                'level2' => 'secret data',
+                'level2' => TestConstants::MESSAGE_SECRET_DATA,
             ],
         ];
 

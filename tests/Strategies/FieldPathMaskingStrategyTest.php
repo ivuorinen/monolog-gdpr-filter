@@ -149,12 +149,12 @@ final class FieldPathMaskingStrategyTest extends TestCase
     public function maskAppliesStaticReplacementFromConfig(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            TestConstants::FIELD_USER_NAME => FieldMaskConfig::replace('[REDACTED]'),
+            TestConstants::FIELD_USER_NAME => FieldMaskConfig::replace(TestConstants::MASK_REDACTED_BRACKETS),
         ]);
 
         $result = $strategy->mask(TestConstants::NAME_FULL, TestConstants::FIELD_USER_NAME, $this->logRecord);
 
-        $this->assertSame('[REDACTED]', $result);
+        $this->assertSame(TestConstants::MASK_REDACTED_BRACKETS, $result);
     }
 
     #[Test]
@@ -328,7 +328,7 @@ final class FieldPathMaskingStrategyTest extends TestCase
     public function maskHandlesMultipleReplacementsInSameValue(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            'message' => FieldMaskConfig::regexMask(TestConstants::PATTERN_SSN_FORMAT, MaskConstants::MASK_SSN_PATTERN),
+            TestConstants::FIELD_MESSAGE => FieldMaskConfig::regexMask(TestConstants::PATTERN_SSN_FORMAT, MaskConstants::MASK_SSN_PATTERN),
         ]);
 
         $input = 'SSNs: 123-45-6789 and 987-65-4321';

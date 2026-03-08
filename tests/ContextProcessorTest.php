@@ -63,7 +63,7 @@ final class ContextProcessorTest extends TestCase
     {
         $regexProcessor = fn(string $val): string => $val;
         $processor = new ContextProcessor(
-            [TestConstants::CONTEXT_PASSWORD => FieldMaskConfig::replace('[REDACTED]')],
+            [TestConstants::CONTEXT_PASSWORD => FieldMaskConfig::replace(TestConstants::MASK_REDACTED_BRACKETS)],
             [],
             null,
             $regexProcessor
@@ -73,7 +73,7 @@ final class ContextProcessorTest extends TestCase
         $processed = $processor->maskFieldPaths($accessor);
 
         $this->assertSame([TestConstants::CONTEXT_PASSWORD], $processed);
-        $this->assertSame('[REDACTED]', $accessor->get(TestConstants::CONTEXT_PASSWORD));
+        $this->assertSame(TestConstants::MASK_REDACTED_BRACKETS, $accessor->get(TestConstants::CONTEXT_PASSWORD));
     }
 
     public function testMaskFieldPathsSkipsNonExistentPaths(): void

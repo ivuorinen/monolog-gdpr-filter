@@ -33,7 +33,7 @@ final class PluginAwareProcessorTest extends TestCase
         };
 
         $processor = GdprProcessorBuilder::create()
-            ->addPattern('/TEST/', '[MASKED]')
+            ->addPattern('/TEST/', MaskConstants::MASK_BRACKETS)
             ->addPlugin($plugin)
             ->buildWithPlugins();
 
@@ -48,7 +48,7 @@ final class PluginAwareProcessorTest extends TestCase
         $result = $processor($record);
 
         // Message should be uppercased, then 'TEST' should be masked
-        $this->assertStringContainsString('[MASKED]', $result->message);
+        $this->assertStringContainsString(TestConstants::MASK_MASKED_BRACKETS, $result->message);
     }
 
     public function testInvokeAppliesPostProcessing(): void
@@ -263,7 +263,7 @@ final class PluginAwareProcessorTest extends TestCase
             ->buildWithPlugins();
 
         $this->assertInstanceOf(PluginAwareProcessor::class, $processor);
-        $this->assertSame(MaskConstants::MASK_GENERIC . ' message', $processor->regExpMessage('test message'));
+        $this->assertSame(MaskConstants::MASK_GENERIC . ' message', $processor->regExpMessage(TestConstants::MESSAGE_TEST_LOWERCASE));
     }
 
     public function testRecursiveMaskDelegates(): void
@@ -282,9 +282,9 @@ final class PluginAwareProcessorTest extends TestCase
 
         $this->assertInstanceOf(PluginAwareProcessor::class, $processor);
 
-        $result = $processor->recursiveMask(['key' => 'test value']);
+        $result = $processor->recursiveMask(['key' => TestConstants::VALUE_TEST]);
 
-        $this->assertSame(MaskConstants::MASK_GENERIC . ' value', $result['key']);
+        $this->assertSame(MaskConstants::MASK_GENERIC . TestConstants::VALUE_SUFFIX, $result['key']);
     }
 
     public function testSetAuditLoggerDelegates(): void

@@ -43,7 +43,7 @@ final class StructuredAuditLoggerTest extends TestCase
             $this->logs[] = [
                 'path' => $path,
                 'original' => $original,
-                'masked' => $masked
+                TestConstants::DATA_MASKED => $masked
             ];
         };
     }
@@ -52,12 +52,12 @@ final class StructuredAuditLoggerTest extends TestCase
     {
         $logger = new StructuredAuditLogger($this->createBaseLogger());
 
-        $logger->log('user.email', TestConstants::EMAIL_JOHN, TestConstants::MASK_MASKED_BRACKETS);
+        $logger->log(TestConstants::FIELD_USER_EMAIL, TestConstants::EMAIL_JOHN, TestConstants::MASK_MASKED_BRACKETS);
 
         $this->assertCount(1, $this->logs);
-        $this->assertSame('user.email', $this->logs[0]['path']);
+        $this->assertSame(TestConstants::FIELD_USER_EMAIL, $this->logs[0]['path']);
         $this->assertSame(TestConstants::EMAIL_JOHN, $this->logs[0]['original']);
-        $this->assertSame(TestConstants::MASK_MASKED_BRACKETS, $this->logs[0]['masked']);
+        $this->assertSame(TestConstants::MASK_MASKED_BRACKETS, $this->logs[0][TestConstants::DATA_MASKED]);
     }
 
     public function testLogWithContext(): void
@@ -65,7 +65,7 @@ final class StructuredAuditLoggerTest extends TestCase
         $logger = new StructuredAuditLogger($this->createBaseLogger());
         $context = AuditContext::success(AuditContext::OP_REGEX, 5.0);
 
-        $logger->log('user.email', TestConstants::EMAIL_JOHN, TestConstants::MASK_MASKED_BRACKETS, $context);
+        $logger->log(TestConstants::FIELD_USER_EMAIL, TestConstants::EMAIL_JOHN, TestConstants::MASK_MASKED_BRACKETS, $context);
 
         $this->assertCount(1, $this->logs);
     }
@@ -76,7 +76,7 @@ final class StructuredAuditLoggerTest extends TestCase
 
         $logger->logSuccess(
             'user.ssn',
-            '123-45-6789',
+            TestConstants::SSN_US,
             '[SSN]',
             AuditContext::OP_REGEX,
             10.5
@@ -99,7 +99,7 @@ final class StructuredAuditLoggerTest extends TestCase
         );
 
         $this->assertCount(1, $this->logs);
-        $this->assertSame('[MASKING_FAILED]', $this->logs[0]['masked']);
+        $this->assertSame('[MASKING_FAILED]', $this->logs[0][TestConstants::DATA_MASKED]);
     }
 
     public function testLogRecovery(): void
@@ -107,7 +107,7 @@ final class StructuredAuditLoggerTest extends TestCase
         $logger = new StructuredAuditLogger($this->createBaseLogger());
 
         $logger->logRecovery(
-            'user.email',
+            TestConstants::FIELD_USER_EMAIL,
             TestConstants::EMAIL_JOHN,
             TestConstants::MASK_MASKED_BRACKETS,
             AuditContext::OP_REGEX,
@@ -131,14 +131,14 @@ final class StructuredAuditLoggerTest extends TestCase
 
         $this->assertCount(1, $this->logs);
         $this->assertSame(TestConstants::NAME_FULL, $this->logs[0]['original']);
-        $this->assertSame(TestConstants::NAME_FULL, $this->logs[0]['masked']);
+        $this->assertSame(TestConstants::NAME_FULL, $this->logs[0][TestConstants::DATA_MASKED]);
     }
 
     public function testWrapStaticFactory(): void
     {
         $logger = StructuredAuditLogger::wrap($this->createBaseLogger());
 
-        $logger->log('test.path', 'original', 'masked');
+        $logger->log('test.path', 'original', TestConstants::DATA_MASKED);
 
         $this->assertCount(1, $this->logs);
     }
@@ -152,7 +152,7 @@ final class StructuredAuditLoggerTest extends TestCase
         );
         $logger = new StructuredAuditLogger($rateLimited);
 
-        $logger->log('user.email', TestConstants::EMAIL_JOHN, TestConstants::MASK_MASKED_BRACKETS);
+        $logger->log(TestConstants::FIELD_USER_EMAIL, TestConstants::EMAIL_JOHN, TestConstants::MASK_MASKED_BRACKETS);
 
         $this->assertCount(1, $this->logs);
     }
@@ -177,7 +177,7 @@ final class StructuredAuditLoggerTest extends TestCase
         $wrapped = $logger->getWrappedLogger();
 
         // Verify the wrapped logger works by calling it
-        $wrapped('test.path', 'original', 'masked');
+        $wrapped('test.path', 'original', TestConstants::DATA_MASKED);
         $this->assertCount(1, $this->logs);
     }
 
@@ -188,7 +188,7 @@ final class StructuredAuditLoggerTest extends TestCase
             includeTimestamp: false
         );
 
-        $logger->log('test', 'original', 'masked');
+        $logger->log('test', 'original', TestConstants::DATA_MASKED);
 
         $this->assertCount(1, $this->logs);
     }
@@ -200,7 +200,7 @@ final class StructuredAuditLoggerTest extends TestCase
             includeDuration: false
         );
 
-        $logger->log('test', 'original', 'masked');
+        $logger->log('test', 'original', TestConstants::DATA_MASKED);
 
         $this->assertCount(1, $this->logs);
     }

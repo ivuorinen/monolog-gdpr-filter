@@ -28,22 +28,22 @@ final class ArrayAccessorInterfaceTest extends TestCase
     {
         $accessor = new DotArrayAccessor([
             'user' => [
-                'email' => TestConstants::EMAIL_TEST,
+                TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_TEST,
             ],
         ]);
 
-        $this->assertTrue($accessor->has('user.email'));
+        $this->assertTrue($accessor->has(TestConstants::FIELD_USER_EMAIL));
     }
 
     public function testHasReturnsFalseForMissingPath(): void
     {
         $accessor = new DotArrayAccessor([
             'user' => [
-                'email' => TestConstants::EMAIL_TEST,
+                TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_TEST,
             ],
         ]);
 
-        $this->assertFalse($accessor->has('user.name'));
+        $this->assertFalse($accessor->has(TestConstants::FIELD_USER_NAME));
         $this->assertFalse($accessor->has('nonexistent'));
     }
 
@@ -51,12 +51,12 @@ final class ArrayAccessorInterfaceTest extends TestCase
     {
         $accessor = new DotArrayAccessor([
             'user' => [
-                'email' => TestConstants::EMAIL_TEST,
+                TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_TEST,
                 'age' => 25,
             ],
         ]);
 
-        $this->assertSame(TestConstants::EMAIL_TEST, $accessor->get('user.email'));
+        $this->assertSame(TestConstants::EMAIL_TEST, $accessor->get(TestConstants::FIELD_USER_EMAIL));
         $this->assertSame(25, $accessor->get('user.age'));
     }
 
@@ -72,43 +72,43 @@ final class ArrayAccessorInterfaceTest extends TestCase
     {
         $accessor = new DotArrayAccessor([]);
 
-        $accessor->set('user.email', TestConstants::EMAIL_NEW);
+        $accessor->set(TestConstants::FIELD_USER_EMAIL, TestConstants::EMAIL_NEW);
 
-        $this->assertTrue($accessor->has('user.email'));
-        $this->assertSame(TestConstants::EMAIL_NEW, $accessor->get('user.email'));
+        $this->assertTrue($accessor->has(TestConstants::FIELD_USER_EMAIL));
+        $this->assertSame(TestConstants::EMAIL_NEW, $accessor->get(TestConstants::FIELD_USER_EMAIL));
     }
 
     public function testSetOverwritesExistingPath(): void
     {
         $accessor = new DotArrayAccessor([
-            'user' => ['email' => 'old@example.com'],
+            'user' => [TestConstants::CONTEXT_EMAIL => 'old@example.com'],
         ]);
 
-        $accessor->set('user.email', TestConstants::EMAIL_NEW);
+        $accessor->set(TestConstants::FIELD_USER_EMAIL, TestConstants::EMAIL_NEW);
 
-        $this->assertSame(TestConstants::EMAIL_NEW, $accessor->get('user.email'));
+        $this->assertSame(TestConstants::EMAIL_NEW, $accessor->get(TestConstants::FIELD_USER_EMAIL));
     }
 
     public function testDeleteRemovesPath(): void
     {
         $accessor = new DotArrayAccessor([
             'user' => [
-                'email' => TestConstants::EMAIL_TEST,
+                TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_TEST,
                 'name' => 'Test User',
             ],
         ]);
 
-        $accessor->delete('user.email');
+        $accessor->delete(TestConstants::FIELD_USER_EMAIL);
 
-        $this->assertFalse($accessor->has('user.email'));
-        $this->assertTrue($accessor->has('user.name'));
+        $this->assertFalse($accessor->has(TestConstants::FIELD_USER_EMAIL));
+        $this->assertTrue($accessor->has(TestConstants::FIELD_USER_NAME));
     }
 
     public function testAllReturnsCompleteArray(): void
     {
         $data = [
             'user' => [
-                'email' => TestConstants::EMAIL_TEST,
+                TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_TEST,
                 'profile' => [
                     'bio' => 'Hello world',
                 ],

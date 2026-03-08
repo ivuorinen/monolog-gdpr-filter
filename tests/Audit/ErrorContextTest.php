@@ -111,10 +111,10 @@ final class ErrorContextTest extends TestCase
 
     public function testSanitizesConnectionStrings(): void
     {
-        $message = 'Failed: redis://admin:password@localhost:6379';
+        $message = 'Failed: redis://admin:' . TestConstants::CONTEXT_PASSWORD . '@localhost:6379';
         $context = ErrorContext::create('ConnError', $message);
 
-        $this->assertStringNotContainsString('password', $context->message);
+        $this->assertStringNotContainsString(TestConstants::CONTEXT_PASSWORD, $context->message);
         $this->assertStringContainsString(TestConstants::MASK_REDACTED_BRACKETS, $context->message);
     }
 
@@ -141,7 +141,7 @@ final class ErrorContextTest extends TestCase
     {
         $context = new ErrorContext(
             errorType: 'TestError',
-            message: 'Test message',
+            message: TestConstants::MESSAGE_DEFAULT,
             code: 100,
             file: '/test/file.php',
             line: 50,
@@ -151,14 +151,14 @@ final class ErrorContextTest extends TestCase
         $array = $context->toArray();
 
         $this->assertArrayHasKey('error_type', $array);
-        $this->assertArrayHasKey('message', $array);
+        $this->assertArrayHasKey(TestConstants::FIELD_MESSAGE, $array);
         $this->assertArrayHasKey('code', $array);
         $this->assertArrayHasKey('file', $array);
         $this->assertArrayHasKey('line', $array);
         $this->assertArrayHasKey('metadata', $array);
 
         $this->assertSame('TestError', $array['error_type']);
-        $this->assertSame('Test message', $array['message']);
+        $this->assertSame(TestConstants::MESSAGE_DEFAULT, $array[TestConstants::FIELD_MESSAGE]);
         $this->assertSame(100, $array['code']);
     }
 

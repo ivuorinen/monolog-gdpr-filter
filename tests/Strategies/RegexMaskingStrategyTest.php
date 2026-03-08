@@ -64,7 +64,7 @@ final class RegexMaskingStrategyTest extends TestCase
         $this->expectException(InvalidRegexPatternException::class);
         $this->expectExceptionMessage('catastrophic backtracking');
 
-        new RegexMaskingStrategy(['/^(a+)+$/' => MaskConstants::MASK_GENERIC]);
+        new RegexMaskingStrategy([TestConstants::PATTERN_REDOS_VULNERABLE => MaskConstants::MASK_GENERIC]);
     }
 
     #[Test]
@@ -124,7 +124,7 @@ final class RegexMaskingStrategyTest extends TestCase
     public function maskHandlesArrayValues(): void
     {
         $strategy = new RegexMaskingStrategy([
-            '/"email":"[^"]+"/' => '"email":"' . MaskConstants::MASK_EMAIL_PATTERN . '"',
+            '/"' . TestConstants::CONTEXT_EMAIL . '":"[^"]+"/' => '"' . TestConstants::CONTEXT_EMAIL . '":"' . MaskConstants::MASK_EMAIL_PATTERN . '"',
         ]);
 
         $input = [TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_TEST];
@@ -277,7 +277,7 @@ final class RegexMaskingStrategyTest extends TestCase
     {
         $strategy = new RegexMaskingStrategy([
             TestConstants::PATTERN_SSN_FORMAT => MaskConstants::MASK_SSN_PATTERN,
-            '/[a-z]+/' => 'REDACTED',
+            TestConstants::PATTERN_SAFE => 'REDACTED',
         ]);
 
         $this->assertTrue($strategy->validate());
@@ -334,7 +334,7 @@ final class RegexMaskingStrategyTest extends TestCase
             '/REPLACED/' => 'FINAL',
         ]);
 
-        $result = $strategy->mask('test value', 'field', $this->logRecord);
+        $result = $strategy->mask(TestConstants::VALUE_TEST, 'field', $this->logRecord);
 
         $this->assertSame('FINAL value', $result);
     }

@@ -70,9 +70,9 @@ class FieldMaskConfigValidationTest extends TestCase
     public function regexMaskThrowsExceptionForIncompleteRegexPattern(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
-        $this->expectExceptionMessage("Invalid regex pattern '/unclosed'");
+        $this->expectExceptionMessage("Invalid regex pattern '" . TestConstants::PATTERN_INVALID_UNCLOSED . "'");
 
-        FieldMaskConfig::regexMask('/unclosed');
+        FieldMaskConfig::regexMask(TestConstants::PATTERN_INVALID_UNCLOSED);
     }
 
     #[Test]
@@ -217,7 +217,7 @@ class FieldMaskConfigValidationTest extends TestCase
     #[Test]
     public function toArrayAndFromArrayRoundTripWorksCorrectly(): void
     {
-        $original = FieldMaskConfig::replace('[REDACTED]');
+        $original = FieldMaskConfig::replace(TestConstants::MASK_REDACTED_BRACKETS);
         $array = $original->toArray();
         $restored = FieldMaskConfig::fromArray($array);
 

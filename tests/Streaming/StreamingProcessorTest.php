@@ -25,13 +25,13 @@ final class StreamingProcessorTest extends TestCase
         $processor = new StreamingProcessor($this->createOrchestrator(), 10);
 
         $records = [
-            ['message' => 'test message', 'context' => []],
+            [TestConstants::FIELD_MESSAGE => TestConstants::MESSAGE_TEST_LOWERCASE, 'context' => []],
         ];
 
         $results = iterator_to_array($processor->processStream($records));
 
         $this->assertCount(1, $results);
-        $this->assertSame(MaskConstants::MASK_GENERIC . ' message', $results[0]['message']);
+        $this->assertSame(MaskConstants::MASK_GENERIC . ' message', $results[0][TestConstants::FIELD_MESSAGE]);
     }
 
     public function testProcessStreamMultipleRecords(): void
@@ -39,9 +39,9 @@ final class StreamingProcessorTest extends TestCase
         $processor = new StreamingProcessor($this->createOrchestrator(), 10);
 
         $records = [
-            ['message' => 'test one', 'context' => []],
-            ['message' => 'test two', 'context' => []],
-            ['message' => 'test three', 'context' => []],
+            [TestConstants::FIELD_MESSAGE => 'test one', 'context' => []],
+            [TestConstants::FIELD_MESSAGE => 'test two', 'context' => []],
+            [TestConstants::FIELD_MESSAGE => 'test three', 'context' => []],
         ];
 
         $results = iterator_to_array($processor->processStream($records));
@@ -54,11 +54,11 @@ final class StreamingProcessorTest extends TestCase
         $processor = new StreamingProcessor($this->createOrchestrator(), 2);
 
         $records = [
-            ['message' => 'test 1', 'context' => []],
-            ['message' => 'test 2', 'context' => []],
-            ['message' => 'test 3', 'context' => []],
-            ['message' => 'test 4', 'context' => []],
-            ['message' => 'test 5', 'context' => []],
+            [TestConstants::FIELD_MESSAGE => 'test 1', 'context' => []],
+            [TestConstants::FIELD_MESSAGE => 'test 2', 'context' => []],
+            [TestConstants::FIELD_MESSAGE => 'test 3', 'context' => []],
+            [TestConstants::FIELD_MESSAGE => 'test 4', 'context' => []],
+            [TestConstants::FIELD_MESSAGE => 'test 5', 'context' => []],
         ];
 
         $results = iterator_to_array($processor->processStream($records));
@@ -71,12 +71,12 @@ final class StreamingProcessorTest extends TestCase
         $processor = new StreamingProcessor($this->createOrchestrator(), 10);
 
         $records = [
-            ['message' => 'message', 'context' => ['key' => 'test value']],
+            [TestConstants::FIELD_MESSAGE => TestConstants::FIELD_MESSAGE, 'context' => ['key' => TestConstants::VALUE_TEST]],
         ];
 
         $results = iterator_to_array($processor->processStream($records));
 
-        $this->assertSame(MaskConstants::MASK_GENERIC . ' value', $results[0]['context']['key']);
+        $this->assertSame(MaskConstants::MASK_GENERIC . TestConstants::VALUE_SUFFIX, $results[0]['context']['key']);
     }
 
     public function testProcessStreamWithGenerator(): void
@@ -84,9 +84,9 @@ final class StreamingProcessorTest extends TestCase
         $processor = new StreamingProcessor($this->createOrchestrator(), 2);
 
         $generator = (function () {
-            yield ['message' => 'test a', 'context' => []];
-            yield ['message' => 'test b', 'context' => []];
-            yield ['message' => 'test c', 'context' => []];
+            yield [TestConstants::FIELD_MESSAGE => 'test a', 'context' => []];
+            yield [TestConstants::FIELD_MESSAGE => 'test b', 'context' => []];
+            yield [TestConstants::FIELD_MESSAGE => 'test c', 'context' => []];
         })();
 
         $results = iterator_to_array($processor->processStream($generator));
@@ -104,7 +104,7 @@ final class StreamingProcessorTest extends TestCase
         file_put_contents($tempFile, "test line 1\ntest line 2\ntest line 3\n");
 
         try {
-            $lineParser = fn(string $line): array => ['message' => $line, 'context' => []];
+            $lineParser = fn(string $line): array => [TestConstants::FIELD_MESSAGE => $line, 'context' => []];
 
             $results = [];
             foreach ($processor->processFile($tempFile, $lineParser) as $result) {
@@ -112,7 +112,7 @@ final class StreamingProcessorTest extends TestCase
             }
 
             $this->assertCount(3, $results);
-            $this->assertStringContainsString(MaskConstants::MASK_GENERIC, $results[0]['message']);
+            $this->assertStringContainsString(MaskConstants::MASK_GENERIC, $results[0][TestConstants::FIELD_MESSAGE]);
         } finally {
             unlink($tempFile);
         }
@@ -127,7 +127,7 @@ final class StreamingProcessorTest extends TestCase
         file_put_contents($tempFile, "test line 1\n\n\ntest line 2\n");
 
         try {
-            $lineParser = fn(string $line): array => ['message' => $line, 'context' => []];
+            $lineParser = fn(string $line): array => [TestConstants::FIELD_MESSAGE => $line, 'context' => []];
 
             $results = iterator_to_array($processor->processFile($tempFile, $lineParser));
 
@@ -144,7 +144,7 @@ final class StreamingProcessorTest extends TestCase
         $this->expectException(StreamingOperationFailedException::class);
         $this->expectExceptionMessage('Cannot open input file for streaming:');
 
-        iterator_to_array($processor->processFile('/nonexistent/path/file.log', fn(string $l): array => ['message' => $l, 'context' => []]));
+        iterator_to_array($processor->processFile('/nonexistent/path/file.log', fn(string $l): array => [TestConstants::FIELD_MESSAGE => $l, 'context' => []]));
     }
 
     public function testProcessToFile(): void
@@ -152,15 +152,15 @@ final class StreamingProcessorTest extends TestCase
         $processor = new StreamingProcessor($this->createOrchestrator(), 10);
 
         $records = [
-            ['message' => 'test line 1', 'context' => []],
-            ['message' => 'test line 2', 'context' => []],
+            [TestConstants::FIELD_MESSAGE => 'test line 1', 'context' => []],
+            [TestConstants::FIELD_MESSAGE => 'test line 2', 'context' => []],
         ];
 
         $outputFile = tempnam(sys_get_temp_dir(), 'gdpr_output_');
         $this->assertIsString($outputFile, 'Failed to create temp file');
 
         try {
-            $formatter = fn(array $record): string => $record['message'];
+            $formatter = fn(array $record): string => $record[TestConstants::FIELD_MESSAGE];
             $count = $processor->processToFile($records, $outputFile, $formatter);
 
             $this->assertSame(2, $count);
@@ -188,15 +188,15 @@ final class StreamingProcessorTest extends TestCase
         $processor = new StreamingProcessor($this->createOrchestrator(), 10);
 
         $records = [
-            ['message' => 'test masked', 'context' => []],
-            ['message' => 'no sensitive data', 'context' => []],
-            ['message' => 'another test here', 'context' => []],
+            [TestConstants::FIELD_MESSAGE => 'test masked', 'context' => []],
+            [TestConstants::FIELD_MESSAGE => 'no sensitive data', 'context' => []],
+            [TestConstants::FIELD_MESSAGE => 'another test here', 'context' => []],
         ];
 
         $stats = $processor->getStatistics($records);
 
         $this->assertSame(3, $stats['processed']);
-        $this->assertGreaterThan(0, $stats['masked']); // At least some should be masked
+        $this->assertGreaterThan(0, $stats[TestConstants::DATA_MASKED]); // At least some should be masked
     }
 
     public function testSetAuditLogger(): void
@@ -209,7 +209,7 @@ final class StreamingProcessorTest extends TestCase
         $processor = new StreamingProcessor($this->createOrchestrator(), 1);
         $processor->setAuditLogger($auditLogger);
 
-        $records = [['message' => 'test', 'context' => []]];
+        $records = [[TestConstants::FIELD_MESSAGE => 'test', 'context' => []]];
         iterator_to_array($processor->processStream($records));
 
         $this->assertNotEmpty($logs);
@@ -235,7 +235,7 @@ final class StreamingProcessorTest extends TestCase
 
         $records = [];
         for ($i = 1; $i <= 500; $i++) {
-            $records[] = ['message' => "test record {$i}", 'context' => []];
+            $records[] = [TestConstants::FIELD_MESSAGE => "test record {$i}", 'context' => []];
         }
 
         $count = 0;

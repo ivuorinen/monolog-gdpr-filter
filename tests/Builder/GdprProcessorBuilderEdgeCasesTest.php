@@ -292,7 +292,7 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
             #[\Override]
             public function getFieldPaths(): array
             {
-                return ['secret.key' => FieldMaskConfig::replace('[REDACTED]')];
+                return ['secret.key' => FieldMaskConfig::replace(TestConstants::MASK_REDACTED_BRACKETS)];
             }
         };
 
@@ -303,7 +303,7 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
         $record = $this->createLogRecord('Test', ['secret' => ['key' => 'sensitive-value']]);
         $processed = $processor($record);
 
-        $this->assertSame('[REDACTED]', $processed->context['secret']['key']);
+        $this->assertSame(TestConstants::MASK_REDACTED_BRACKETS, $processed->context['secret']['key']);
     }
 
     #[Test]
@@ -313,16 +313,16 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
 
         $processor = GdprProcessorBuilder::create()
             ->withArrayAccessorFactory($factory)
-            ->addFieldPath('user.email', MaskConstants::MASK_EMAIL)
+            ->addFieldPath(TestConstants::FIELD_USER_EMAIL, MaskConstants::MASK_EMAIL)
             ->build();
 
         $record = $this->createLogRecord('Test', [
-            'user' => ['email' => 'test@example.com'],
+            'user' => [TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_TEST],
         ]);
 
         $processed = $processor($record);
 
-        $this->assertSame(MaskConstants::MASK_EMAIL, $processed->context['user']['email']);
+        $this->assertSame(MaskConstants::MASK_EMAIL, $processed->context['user'][TestConstants::CONTEXT_EMAIL]);
     }
 
     #[Test]
@@ -330,13 +330,13 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
     {
         $processor = GdprProcessorBuilder::create()
             ->withMaxDepth(2)
-            ->addPattern('/secret/', TestConstants::MASK_MASKED_BRACKETS)
+            ->addPattern(TestConstants::PATTERN_SECRET, TestConstants::MASK_MASKED_BRACKETS)
             ->build();
 
         $record = $this->createLogRecord('Test', [
             'level1' => [
                 'level2' => [
-                    'level3' => 'secret data',
+                    'level3' => TestConstants::MESSAGE_SECRET_DATA,
                 ],
             ],
         ]);
@@ -353,13 +353,13 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
         $auditLogs = [];
 
         $processor = GdprProcessorBuilder::create()
-            ->addFieldPath('password', MaskConstants::MASK_REDACTED)
+            ->addFieldPath(TestConstants::CONTEXT_PASSWORD, MaskConstants::MASK_REDACTED)
             ->withAuditLogger(function ($path, $original, $masked) use (&$auditLogs): void {
-                $auditLogs[] = ['path' => $path, 'original' => $original, 'masked' => $masked];
+                $auditLogs[] = ['path' => $path, 'original' => $original, TestConstants::DATA_MASKED => $masked];
             })
             ->build();
 
-        $record = $this->createLogRecord('Test', ['password' => 'secret123']);
+        $record = $this->createLogRecord('Test', [TestConstants::CONTEXT_PASSWORD => 'secret123']);
         $processor($record);
 
         $this->assertNotEmpty($auditLogs);
@@ -390,21 +390,21 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
     {
         $processor = GdprProcessorBuilder::create()
             ->addFieldPaths([
-                'user.email' => MaskConstants::MASK_EMAIL,
+                TestConstants::FIELD_USER_EMAIL => MaskConstants::MASK_EMAIL,
                 'user.phone' => MaskConstants::MASK_PHONE,
             ])
             ->build();
 
         $record = $this->createLogRecord('Test', [
             'user' => [
-                'email' => 'test@example.com',
+                TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_TEST,
                 'phone' => '555-1234',
             ],
         ]);
 
         $processed = $processor($record);
 
-        $this->assertSame(MaskConstants::MASK_EMAIL, $processed->context['user']['email']);
+        $this->assertSame(MaskConstants::MASK_EMAIL, $processed->context['user'][TestConstants::CONTEXT_EMAIL]);
         $this->assertSame(MaskConstants::MASK_PHONE, $processed->context['user']['phone']);
     }
 
@@ -413,15 +413,15 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
     {
         $processor = GdprProcessorBuilder::create()
             ->addPatterns([
-                '/\d{3}-\d{2}-\d{4}/' => '[SSN]',
-                '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/' => '[EMAIL]',
+                TestConstants::PATTERN_SSN_FORMAT => '[SSN]',
+                TestConstants::PATTERN_EMAIL_FULL => TestConstants::MASK_EMAIL_BRACKETS,
             ])
             ->build();
 
-        $record = $this->createLogRecord('SSN: 123-45-6789, Email: user@example.com');
+        $record = $this->createLogRecord('SSN: ' . TestConstants::SSN_US . ', Email: ' . TestConstants::EMAIL_USER);
         $processed = $processor($record);
 
         $this->assertStringContainsString('[SSN]', $processed->message);
-        $this->assertStringContainsString('[EMAIL]', $processed->message);
+        $this->assertStringContainsString(TestConstants::MASK_EMAIL_BRACKETS, $processed->message);
     }
 }

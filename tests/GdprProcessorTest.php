@@ -284,7 +284,7 @@ class GdprProcessorTest extends TestCase
         $validPatterns = [
             TestConstants::PATTERN_TEST => 'REPLACED',
             TestConstants::PATTERN_DIGITS => 'NUMBER',
-            '/[a-z]+/' => 'LETTERS'
+            TestConstants::PATTERN_SAFE => 'LETTERS'
         ];
 
         $processor = $this->createProcessor($validPatterns);

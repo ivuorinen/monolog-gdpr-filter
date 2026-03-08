@@ -146,14 +146,14 @@ final class DataTypeMaskingStrategyComprehensiveTest extends TestCase
 
     public function testMaskWithObjectValueJsonMask(): void
     {
-        $strategy = new DataTypeMaskingStrategy(['object' => '{"masked":"data"}']);
+        $strategy = new DataTypeMaskingStrategy(['object' => '{"' . TestConstants::DATA_MASKED . '":"data"}']);
 
         $record = $this->createLogRecord('Test');
 
         $obj = (object)['original' => 'value'];
         $result = $strategy->mask($obj, 'field', $record);
 
-        $expected = (object)['masked' => 'data'];
+        $expected = (object)[TestConstants::DATA_MASKED => 'data'];
         $this->assertEquals($expected, $result);
     }
 
@@ -411,7 +411,7 @@ final class DataTypeMaskingStrategyComprehensiveTest extends TestCase
             'double' => 'D',
             'boolean' => '1',  // Boolean uses filter_var, so '1' becomes true
             'array' => '["MASKED"]',  // JSON array
-            'object' => '{"masked":"value"}',  // JSON object
+            'object' => '{"' . TestConstants::DATA_MASKED . '":"value"}',  // JSON object
             'NULL' => 'N',
         ]);
 
@@ -422,7 +422,7 @@ final class DataTypeMaskingStrategyComprehensiveTest extends TestCase
         $this->assertSame('D', $strategy->mask(3.14, 'f', $record));
         $this->assertTrue($strategy->mask(true, 'f', $record)); // Boolean conversion
         $this->assertSame(['MASKED'], $strategy->mask([], 'f', $record));
-        $this->assertEquals((object)['masked' => 'value'], $strategy->mask((object)[], 'f', $record));
+        $this->assertEquals((object)[TestConstants::DATA_MASKED => 'value'], $strategy->mask((object)[], 'f', $record));
         $this->assertSame('N', $strategy->mask(null, 'f', $record));
     }
 }

@@ -59,7 +59,7 @@ final class ConditionalMaskingStrategyComprehensiveTest extends TestCase
 
             public function getName(): string
             {
-                return 'Test Strategy';
+                return TestConstants::STRATEGY_TEST;
             }
 
             public function validate(): bool

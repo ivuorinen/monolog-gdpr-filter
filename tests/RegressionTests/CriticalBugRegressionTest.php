@@ -84,7 +84,7 @@ class CriticalBugRegressionTest extends TestCase
         $testCases = [
             'integer' => 42,
             'double' => 3.14,
-            'string' => 'test string',
+            'string' => TestConstants::MESSAGE_TEST_STRING,
             'boolean_true' => true,
             'boolean_false' => false,
             'null' => null,

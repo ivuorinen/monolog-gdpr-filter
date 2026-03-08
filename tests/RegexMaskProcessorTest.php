@@ -177,7 +177,7 @@ class RegexMaskProcessorTest extends TestCase
         foreach ($testHetu as $hetu) {
             $record = $this->logEntry()->with(message: 'ID: ' . $hetu);
             $result = ($this->processor)($record)->toArray();
-            $this->assertSame("ID: " . Mask::MASK_MASKED, $result["message"]);
+            $this->assertSame("ID: " . Mask::MASK_MASKED, $result[TestConstants::FIELD_MESSAGE]);
         }
     }
 
@@ -208,7 +208,7 @@ class RegexMaskProcessorTest extends TestCase
             context: ["user" => ["ssn" => "not-a-hetu"]],
         );
         $result = ($this->processor)($record)->toArray();
-        $this->assertSame("No sensitive data here", $result["message"]);
+        $this->assertSame("No sensitive data here", $result[TestConstants::FIELD_MESSAGE]);
         $this->assertSame(self::GDPR_REPLACEMENT, $result["context"]["user"]["ssn"]);
     }
 

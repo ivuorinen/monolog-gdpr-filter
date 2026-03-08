@@ -286,7 +286,7 @@ final class RetryStrategyTest extends TestCase
             $auditLogs[] = [
                 'path' => $path,
                 'original' => $original,
-                'masked' => $masked
+                TestConstants::DATA_MASKED => $masked
             ];
         };
 

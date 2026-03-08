@@ -48,18 +48,18 @@ final class ConditionalRuleFactoryInstanceTest extends TestCase
     public function testContextFieldRuleWithPresentField(): void
     {
         $factory = new ConditionalRuleFactory();
-        $rule = $factory->contextFieldRule('user_id');
+        $rule = $factory->contextFieldRule(TestConstants::CONTEXT_USER_ID);
 
-        $record = $this->createLogRecord('Test message', ['user_id' => 123]);
+        $record = $this->createLogRecord(TestConstants::MESSAGE_DEFAULT, [TestConstants::CONTEXT_USER_ID => 123]);
         $this->assertTrue($rule($record));
     }
 
     public function testContextFieldRuleWithMissingField(): void
     {
         $factory = new ConditionalRuleFactory();
-        $rule = $factory->contextFieldRule('user_id');
+        $rule = $factory->contextFieldRule(TestConstants::CONTEXT_USER_ID);
 
-        $record = $this->createLogRecord('Test message', []);
+        $record = $this->createLogRecord(TestConstants::MESSAGE_DEFAULT, []);
         $this->assertFalse($rule($record));
     }
 
@@ -185,14 +185,14 @@ final class ConditionalRuleFactoryInstanceTest extends TestCase
         $instanceFactory = new ConditionalRuleFactory();
 
         // Create rules using both methods
-        $instanceFieldRule = $instanceFactory->contextFieldRule('user.email');
-        $staticFieldRule = ConditionalRuleFactory::createContextFieldRule('user.email');
+        $instanceFieldRule = $instanceFactory->contextFieldRule(TestConstants::FIELD_USER_EMAIL);
+        $staticFieldRule = ConditionalRuleFactory::createContextFieldRule(TestConstants::FIELD_USER_EMAIL);
 
         $instanceValueRule = $instanceFactory->contextValueRule('type', 'admin');
         $staticValueRule = ConditionalRuleFactory::createContextValueRule('type', 'admin');
 
         $record = $this->createLogRecord('Test', [
-            'user' => ['email' => 'test@example.com'],
+            'user' => [TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_TEST],
             'type' => 'admin',
         ]);
 

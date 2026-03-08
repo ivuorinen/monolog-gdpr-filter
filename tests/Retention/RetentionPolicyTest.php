@@ -7,6 +7,7 @@ namespace Tests\Retention;
 use Ivuorinen\MonologGdprFilter\Retention\RetentionPolicy;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Tests\TestConstants;
 
 #[CoversClass(RetentionPolicy::class)]
 final class RetentionPolicyTest extends TestCase
@@ -48,9 +49,9 @@ final class RetentionPolicyTest extends TestCase
 
     public function testGetFieldsCustom(): void
     {
-        $policy = new RetentionPolicy('test', 30, RetentionPolicy::ACTION_DELETE, ['email', 'phone']);
+        $policy = new RetentionPolicy('test', 30, RetentionPolicy::ACTION_DELETE, [TestConstants::CONTEXT_EMAIL, 'phone']);
 
-        $this->assertSame(['email', 'phone'], $policy->getFields());
+        $this->assertSame([TestConstants::CONTEXT_EMAIL, 'phone'], $policy->getFields());
     }
 
     public function testIsWithinRetentionRecent(): void
@@ -119,12 +120,12 @@ final class RetentionPolicyTest extends TestCase
 
     public function testAnonymizeFactory(): void
     {
-        $policy = RetentionPolicy::anonymize('user_data', 90, ['email', 'name']);
+        $policy = RetentionPolicy::anonymize('user_data', 90, [TestConstants::CONTEXT_EMAIL, 'name']);
 
         $this->assertSame('user_data', $policy->getName());
         $this->assertSame(90, $policy->getRetentionDays());
         $this->assertSame(RetentionPolicy::ACTION_ANONYMIZE, $policy->getAction());
-        $this->assertSame(['email', 'name'], $policy->getFields());
+        $this->assertSame([TestConstants::CONTEXT_EMAIL, 'name'], $policy->getFields());
     }
 
     public function testActionConstants(): void

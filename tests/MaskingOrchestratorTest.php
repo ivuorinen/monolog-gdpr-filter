@@ -25,7 +25,7 @@ final class MaskingOrchestratorTest extends TestCase
 
         $result = $orchestrator->process('This is a test message', []);
 
-        $this->assertSame('This is a ' . MaskConstants::MASK_GENERIC . ' message', $result['message']);
+        $this->assertSame('This is a ' . MaskConstants::MASK_GENERIC . ' message', $result[TestConstants::FIELD_MESSAGE]);
         $this->assertSame([], $result['context']);
     }
 
@@ -35,9 +35,9 @@ final class MaskingOrchestratorTest extends TestCase
             [TestConstants::PATTERN_TEST => MaskConstants::MASK_GENERIC]
         );
 
-        $result = $orchestrator->process('message', ['key' => TestConstants::VALUE_TEST]);
+        $result = $orchestrator->process(TestConstants::FIELD_MESSAGE, ['key' => TestConstants::VALUE_TEST]);
 
-        $this->assertSame('message', $result['message']);
+        $this->assertSame(TestConstants::FIELD_MESSAGE, $result[TestConstants::FIELD_MESSAGE]);
         $this->assertSame(MaskConstants::MASK_GENERIC . TestConstants::VALUE_SUFFIX, $result['context']['key']);
     }
 
@@ -48,7 +48,7 @@ final class MaskingOrchestratorTest extends TestCase
             [TestConstants::CONTEXT_EMAIL => FieldMaskConfig::replace(TestConstants::MASK_EMAIL_BRACKETS)]
         );
 
-        $result = $orchestrator->process('message', [TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_TEST]);
+        $result = $orchestrator->process(TestConstants::FIELD_MESSAGE, [TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_TEST]);
 
         $this->assertSame(TestConstants::MASK_EMAIL_BRACKETS, $result['context'][TestConstants::CONTEXT_EMAIL]);
     }
@@ -61,7 +61,7 @@ final class MaskingOrchestratorTest extends TestCase
             ['name' => fn(mixed $val): string => strtoupper((string) $val)]
         );
 
-        $result = $orchestrator->process('message', ['name' => 'john']);
+        $result = $orchestrator->process(TestConstants::FIELD_MESSAGE, ['name' => 'john']);
 
         $this->assertSame('JOHN', $result['context']['name']);
     }
@@ -115,7 +115,7 @@ final class MaskingOrchestratorTest extends TestCase
             [TestConstants::PATTERN_TEST => MaskConstants::MASK_GENERIC]
         );
 
-        $result = $orchestrator->recursiveMask('test string');
+        $result = $orchestrator->recursiveMask(TestConstants::MESSAGE_TEST_STRING);
 
         $this->assertSame(MaskConstants::MASK_GENERIC . ' string', $result);
     }
@@ -136,7 +136,7 @@ final class MaskingOrchestratorTest extends TestCase
     public function testCreateWithValidParameters(): void
     {
         $orchestrator = MaskingOrchestrator::create(
-            [TestConstants::PATTERN_DIGITS => '[DIGITS]'],
+            [TestConstants::PATTERN_DIGITS => TestConstants::MASK_DIGITS_BRACKETS],
             [],
             [],
             null,
@@ -178,7 +178,7 @@ final class MaskingOrchestratorTest extends TestCase
 
         $orchestrator = new MaskingOrchestrator(
             [],
-            ['field' => FieldMaskConfig::replace('[MASKED]')]
+            ['field' => FieldMaskConfig::replace(MaskConstants::MASK_BRACKETS)]
         );
 
         $orchestrator->setAuditLogger($auditLogger);
@@ -218,11 +218,11 @@ final class MaskingOrchestratorTest extends TestCase
             [
                 TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_TEST,
                 'name' => 'john',
-                'message' => 'test'
+                TestConstants::FIELD_MESSAGE => 'test'
             ]
         );
 
-        $this->assertSame('Hello ' . MaskConstants::MASK_GENERIC, $result['message']);
+        $this->assertSame('Hello ' . MaskConstants::MASK_GENERIC, $result[TestConstants::FIELD_MESSAGE]);
         $this->assertSame(TestConstants::MASK_EMAIL_BRACKETS, $result['context'][TestConstants::CONTEXT_EMAIL]);
         $this->assertSame('JOHN', $result['context']['name']);
     }
@@ -235,12 +235,12 @@ final class MaskingOrchestratorTest extends TestCase
             [],
             null,
             100,
-            ['integer' => '[INT]']
+            ['integer' => TestConstants::MASK_INT_BRACKETS]
         );
 
         $result = $orchestrator->processContext(['count' => 42]);
 
-        $this->assertSame('[INT]', $result['count']);
+        $this->assertSame(TestConstants::MASK_INT_BRACKETS, $result['count']);
     }
 
     public function testProcessContextWithRemoveConfig(): void

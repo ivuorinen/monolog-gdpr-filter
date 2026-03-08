@@ -58,7 +58,7 @@ final class GdprProcessorBuilderTest extends TestCase
     {
         $patterns = [
             TestConstants::PATTERN_DIGITS => TestConstants::MASK_DIGITS_BRACKETS,
-            TestConstants::PATTERN_TEST => '[TEST]',
+            TestConstants::PATTERN_TEST => TestConstants::REPLACEMENT_TEST,
         ];
 
         $builder = GdprProcessorBuilder::create()->addPatterns($patterns);
@@ -70,7 +70,7 @@ final class GdprProcessorBuilderTest extends TestCase
     {
         $builder = GdprProcessorBuilder::create()
             ->addPattern(TestConstants::PATTERN_DIGITS, TestConstants::MASK_DIGITS_BRACKETS)
-            ->setPatterns([TestConstants::PATTERN_TEST => '[TEST]']);
+            ->setPatterns([TestConstants::PATTERN_TEST => TestConstants::REPLACEMENT_TEST]);
 
         $patterns = $builder->getPatterns();
 
@@ -82,7 +82,7 @@ final class GdprProcessorBuilderTest extends TestCase
     public function testAddFieldPath(): void
     {
         $builder = GdprProcessorBuilder::create()
-            ->addFieldPath(TestConstants::CONTEXT_EMAIL, FieldMaskConfig::replace('[EMAIL]'));
+            ->addFieldPath(TestConstants::CONTEXT_EMAIL, FieldMaskConfig::replace(TestConstants::MASK_EMAIL_BRACKETS));
 
         $this->assertArrayHasKey(TestConstants::CONTEXT_EMAIL, $builder->getFieldPaths());
     }
@@ -90,7 +90,7 @@ final class GdprProcessorBuilderTest extends TestCase
     public function testAddFieldPaths(): void
     {
         $fieldPaths = [
-            TestConstants::CONTEXT_EMAIL => FieldMaskConfig::replace('[EMAIL]'),
+            TestConstants::CONTEXT_EMAIL => FieldMaskConfig::replace(TestConstants::MASK_EMAIL_BRACKETS),
             TestConstants::CONTEXT_PASSWORD => FieldMaskConfig::remove(),
         ];
 
@@ -128,7 +128,7 @@ final class GdprProcessorBuilderTest extends TestCase
         };
 
         $processor = GdprProcessorBuilder::create()
-            ->addFieldPath('field', FieldMaskConfig::replace('[MASKED]'))
+            ->addFieldPath('field', FieldMaskConfig::replace(MaskConstants::MASK_BRACKETS))
             ->withAuditLogger($auditLogger)
             ->build();
 
@@ -229,7 +229,7 @@ final class GdprProcessorBuilderTest extends TestCase
 
             public function getPatterns(): array
             {
-                return ['/secret/' => '[SECRET]'];
+                return [TestConstants::PATTERN_SECRET => '[SECRET]'];
             }
         };
 
@@ -297,7 +297,7 @@ final class GdprProcessorBuilderTest extends TestCase
 
             public function getPatterns(): array
             {
-                return ['/secret/' => '[SECRET]'];
+                return [TestConstants::PATTERN_SECRET => '[SECRET]'];
             }
         };
 

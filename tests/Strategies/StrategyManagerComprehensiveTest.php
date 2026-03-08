@@ -122,9 +122,9 @@ final class StrategyManagerComprehensiveTest extends TestCase
         $manager = new StrategyManager();
         $record = $this->createLogRecord('Test');
 
-        $result = $manager->maskValue('test value', 'field', $record);
+        $result = $manager->maskValue(TestConstants::VALUE_TEST, 'field', $record);
 
-        $this->assertSame('test value', $result);
+        $this->assertSame(TestConstants::VALUE_TEST, $result);
     }
 
     public function testMaskValueAppliesFirstApplicableStrategy(): void
@@ -137,7 +137,7 @@ final class StrategyManagerComprehensiveTest extends TestCase
         $manager = new StrategyManager([$lowPrio, $highPrio]);
         $record = $this->createLogRecord('Test');
 
-        $result = $manager->maskValue('secret data', 'field', $record);
+        $result = $manager->maskValue(TestConstants::MESSAGE_SECRET_DATA, 'field', $record);
 
         // High priority strategy should be applied
         $this->assertStringContainsString('HIGH', $result);
@@ -206,7 +206,7 @@ final class StrategyManagerComprehensiveTest extends TestCase
         $manager = new StrategyManager([$strategy]);
         $record = $this->createLogRecord('Test');
 
-        $result = $manager->hasApplicableStrategy('secret data', 'field', $record);
+        $result = $manager->hasApplicableStrategy(TestConstants::MESSAGE_SECRET_DATA, 'field', $record);
 
         $this->assertTrue($result);
     }

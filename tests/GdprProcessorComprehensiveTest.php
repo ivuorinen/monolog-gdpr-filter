@@ -175,7 +175,7 @@ final class GdprProcessorComprehensiveTest extends TestCase
         // Should not throw exception
         GdprProcessor::validatePatternsArray([
             TestConstants::PATTERN_DIGITS => Mask::MASK_MASKED,
-            '/[a-z]+/' => Mask::MASK_REDACTED,
+            TestConstants::PATTERN_SAFE => Mask::MASK_REDACTED,
         ]);
 
         $this->assertTrue(true);
@@ -202,7 +202,7 @@ final class GdprProcessorComprehensiveTest extends TestCase
         $data = [
             'level1' => [
                 'level2' => [
-                    'value' => 'secret data',
+                    'value' => TestConstants::MESSAGE_SECRET_DATA,
                 ],
             ],
         ];

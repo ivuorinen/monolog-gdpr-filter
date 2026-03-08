@@ -70,7 +70,7 @@ final class DataTypeMaskingStrategyTest extends TestCase
     {
         $strategy = new DataTypeMaskingStrategy(['string' => MaskConstants::MASK_GENERIC]);
 
-        $this->assertTrue($strategy->shouldApply('test string', 'field', $this->logRecord));
+        $this->assertTrue($strategy->shouldApply(TestConstants::MESSAGE_TEST_STRING, 'field', $this->logRecord));
     }
 
     #[Test]
@@ -177,7 +177,7 @@ final class DataTypeMaskingStrategyTest extends TestCase
     #[Test]
     public function maskAppliesArrayMaskJsonArray(): void
     {
-        $strategy = new DataTypeMaskingStrategy(['array' => '["masked"]']);
+        $strategy = new DataTypeMaskingStrategy(['array' => '["' . TestConstants::DATA_MASKED . '"]']);
 
         $result = $strategy->mask(['original'], 'field', $this->logRecord);
 
@@ -209,13 +209,13 @@ final class DataTypeMaskingStrategyTest extends TestCase
     #[Test]
     public function maskAppliesObjectMaskJsonObject(): void
     {
-        $strategy = new DataTypeMaskingStrategy(['object' => '{"masked":"data"}']);
+        $strategy = new DataTypeMaskingStrategy(['object' => '{"' . TestConstants::DATA_MASKED . '":"data"}']);
 
         $obj = (object) ['original' => 'value'];
         $result = $strategy->mask($obj, 'field', $this->logRecord);
 
         $this->assertIsObject($result);
-        $this->assertEquals((object) ['masked' => 'data'], $result);
+        $this->assertEquals((object) [TestConstants::DATA_MASKED => 'data'], $result);
     }
 
     #[Test]
@@ -227,7 +227,7 @@ final class DataTypeMaskingStrategyTest extends TestCase
         $result = $strategy->mask($obj, 'field', $this->logRecord);
 
         $this->assertIsObject($result);
-        $this->assertEquals((object) ['masked' => 'MASKED'], $result);
+        $this->assertEquals((object) [TestConstants::DATA_MASKED => 'MASKED'], $result);
     }
 
     #[Test]

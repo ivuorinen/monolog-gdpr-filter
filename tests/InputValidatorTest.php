@@ -84,7 +84,7 @@ final class InputValidatorTest extends TestCase
     {
         InputValidator::validatePatterns([
             TestConstants::PATTERN_SSN_FORMAT => MaskConstants::MASK_SSN_PATTERN,
-            '/[a-z]+/' => 'REDACTED',
+            TestConstants::PATTERN_SAFE => 'REDACTED',
         ]);
 
         $this->assertTrue(true);

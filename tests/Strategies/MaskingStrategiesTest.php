@@ -127,11 +127,11 @@ class MaskingStrategiesTest extends TestCase
         $this->assertSame(80, $strategy->getPriority());
 
         // Test shouldApply
-        $this->assertTrue($strategy->shouldApply('john@example.com', TestConstants::FIELD_USER_EMAIL, $logRecord));
+        $this->assertTrue($strategy->shouldApply(TestConstants::EMAIL_JOHN, TestConstants::FIELD_USER_EMAIL, $logRecord));
         $this->assertFalse($strategy->shouldApply('some value', 'other.field', $logRecord));
 
         // Test static replacement
-        $masked = $strategy->mask('john@example.com', TestConstants::FIELD_USER_EMAIL, $logRecord);
+        $masked = $strategy->mask(TestConstants::EMAIL_JOHN, TestConstants::FIELD_USER_EMAIL, $logRecord);
         $this->assertEquals(MaskConstants::MASK_EMAIL, $masked);
 
         // Test removal (returns null)
@@ -336,7 +336,7 @@ class MaskingStrategiesTest extends TestCase
             #[\Override]
             public function getName(): string
             {
-                return 'Test Strategy';
+                return TestConstants::STRATEGY_TEST;
             }
 
             // Expose protected methods for testing
