@@ -63,7 +63,7 @@ final class StrategyEdgeCasesTest extends TestCase
     {
         return [
             'nested plus quantifier' => [TestConstants::PATTERN_REDOS_VULNERABLE],
-            'nested star quantifier' => ['/^(a*)*$/'],
+            'nested star quantifier' => [TestConstants::PATTERN_REDOS_NESTED_STAR],
             'plus with repetition' => ['/^(a+){1,10}$/'],
             'star with repetition' => ['/^(a*){1,10}$/'],
             'identical alternation with star' => ['/(.*|.*)x/'],
@@ -77,7 +77,7 @@ final class StrategyEdgeCasesTest extends TestCase
     public function regexStrategySafePatternsPasses(): void
     {
         $strategy = new RegexMaskingStrategy([
-            TestConstants::PATTERN_SSN_FORMAT => '[SSN]',
+            TestConstants::PATTERN_SSN_FORMAT => TestConstants::MASK_SSN_BRACKETS,
             '/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/' => TestConstants::MASK_EMAIL_BRACKETS,
             '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/' => '[CARD]',
         ]);
@@ -268,7 +268,7 @@ final class StrategyEdgeCasesTest extends TestCase
     {
         $strategy = new FieldPathMaskingStrategy([
             TestConstants::FIELD_USER_EMAIL => FieldMaskConfig::replace(MaskConstants::MASK_EMAIL_PATTERN),
-            'user.ssn' => FieldMaskConfig::remove(),
+            TestConstants::FIELD_USER_SSN => FieldMaskConfig::remove(),
         ]);
 
         $this->assertTrue($strategy->validate());
@@ -278,7 +278,7 @@ final class StrategyEdgeCasesTest extends TestCase
     public function fieldPathStrategyValidateWithValidRegexConfig(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            'user.data' => FieldMaskConfig::regexMask(TestConstants::PATTERN_DIGITS, MaskConstants::MASK_BRACKETS),
+            TestConstants::FIELD_USER_DATA => FieldMaskConfig::regexMask(TestConstants::PATTERN_DIGITS, MaskConstants::MASK_BRACKETS),
         ]);
 
         $this->assertTrue($strategy->validate());
@@ -372,10 +372,10 @@ final class StrategyEdgeCasesTest extends TestCase
     public function fieldPathStrategyMaskAppliesRegexConfig(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            'user.ssn' => FieldMaskConfig::regexMask(TestConstants::PATTERN_SSN_FORMAT, '[SSN]'),
+            TestConstants::FIELD_USER_SSN => FieldMaskConfig::regexMask(TestConstants::PATTERN_SSN_FORMAT, TestConstants::MASK_SSN_BRACKETS),
         ]);
 
-        $result = $strategy->mask('SSN: 123-45-6789', 'user.ssn', $this->logRecord);
+        $result = $strategy->mask('SSN: 123-45-6789', TestConstants::FIELD_USER_SSN, $this->logRecord);
 
         $this->assertSame('SSN: [SSN]', $result);
     }

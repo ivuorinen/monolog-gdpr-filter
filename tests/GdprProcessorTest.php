@@ -58,7 +58,7 @@ class GdprProcessorTest extends TestCase
     {
         $patterns = DefaultPatterns::get();
         $fieldPaths = [
-            'user.ssn' => FieldMaskConfig::remove(),
+            TestConstants::FIELD_USER_SSN => FieldMaskConfig::remove(),
         ];
         $processor = $this->createProcessor($patterns, $fieldPaths);
         $record = new LogRecord(

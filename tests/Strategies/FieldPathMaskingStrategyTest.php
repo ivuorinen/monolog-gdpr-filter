@@ -138,9 +138,9 @@ final class FieldPathMaskingStrategyTest extends TestCase
             TestConstants::PATTERN_SSN_FORMAT,
             MaskConstants::MASK_SSN_PATTERN
         );
-        $strategy = new FieldPathMaskingStrategy(['user.ssn' => $ssnConfig]);
+        $strategy = new FieldPathMaskingStrategy([TestConstants::FIELD_USER_SSN => $ssnConfig]);
 
-        $result = $strategy->mask(TestConstants::SSN_US, 'user.ssn', $this->logRecord);
+        $result = $strategy->mask(TestConstants::SSN_US, TestConstants::FIELD_USER_SSN, $this->logRecord);
 
         $this->assertSame(MaskConstants::MASK_SSN_PATTERN, $result);
     }
@@ -238,7 +238,7 @@ final class FieldPathMaskingStrategyTest extends TestCase
         $strategy = new FieldPathMaskingStrategy([
             TestConstants::FIELD_USER_EMAIL => MaskConstants::MASK_EMAIL_PATTERN,
             TestConstants::FIELD_USER_PASSWORD => FieldMaskConfig::remove(),
-            'user.ssn' => $ssnConfig,
+            TestConstants::FIELD_USER_SSN => $ssnConfig,
         ]);
 
         $this->assertTrue($strategy->validate());

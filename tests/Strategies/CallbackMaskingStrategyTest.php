@@ -58,13 +58,13 @@ final class CallbackMaskingStrategyTest extends TestCase
         $callback = function (): never {
             throw new RuleExecutionException('Callback failed');
         };
-        $strategy = new CallbackMaskingStrategy('user.data', $callback);
+        $strategy = new CallbackMaskingStrategy(TestConstants::FIELD_USER_DATA, $callback);
         $record = $this->createLogRecord();
 
         $this->expectException(MaskingOperationFailedException::class);
         $this->expectExceptionMessage('Callback threw exception');
 
-        $strategy->mask('value', 'user.data', $record);
+        $strategy->mask('value', TestConstants::FIELD_USER_DATA, $record);
     }
 
     public function testShouldApplyWithExactMatch(): void
@@ -153,10 +153,10 @@ final class CallbackMaskingStrategyTest extends TestCase
 
     public function testConstantFactoryMethod(): void
     {
-        $strategy = CallbackMaskingStrategy::constant('user.ssn', MaskConstants::MASK_SSN_PATTERN);
+        $strategy = CallbackMaskingStrategy::constant(TestConstants::FIELD_USER_SSN, MaskConstants::MASK_SSN_PATTERN);
         $record = $this->createLogRecord();
 
-        $result = $strategy->mask(TestConstants::SSN_US, 'user.ssn', $record);
+        $result = $strategy->mask(TestConstants::SSN_US, TestConstants::FIELD_USER_SSN, $record);
 
         $this->assertSame(MaskConstants::MASK_SSN_PATTERN, $result);
     }
@@ -225,10 +225,10 @@ final class CallbackMaskingStrategyTest extends TestCase
             return TestConstants::MASK_MASKED_BRACKETS;
         };
 
-        $strategy = new CallbackMaskingStrategy('user.data', $callback);
+        $strategy = new CallbackMaskingStrategy(TestConstants::FIELD_USER_DATA, $callback);
         $record = $this->createLogRecord();
 
-        $strategy->mask(['key' => 'value'], 'user.data', $record);
+        $strategy->mask(['key' => 'value'], TestConstants::FIELD_USER_DATA, $record);
 
         $this->assertSame($receivedValue, ['key' => 'value']);
     }
@@ -236,10 +236,10 @@ final class CallbackMaskingStrategyTest extends TestCase
     public function testCallbackCanReturnNonString(): void
     {
         $callback = fn(mixed $value): array => [TestConstants::DATA_MASKED => true];
-        $strategy = new CallbackMaskingStrategy('user.data', $callback);
+        $strategy = new CallbackMaskingStrategy(TestConstants::FIELD_USER_DATA, $callback);
         $record = $this->createLogRecord();
 
-        $result = $strategy->mask(['key' => 'value'], 'user.data', $record);
+        $result = $strategy->mask(['key' => 'value'], TestConstants::FIELD_USER_DATA, $record);
 
         $this->assertSame([TestConstants::DATA_MASKED => true], $result);
     }

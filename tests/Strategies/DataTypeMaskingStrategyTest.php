@@ -107,11 +107,11 @@ final class DataTypeMaskingStrategyTest extends TestCase
     #[Test]
     public function maskAppliesStringMask(): void
     {
-        $strategy = new DataTypeMaskingStrategy(['string' => 'REDACTED']);
+        $strategy = new DataTypeMaskingStrategy(['string' => TestConstants::MASK_REDACTED_PLAIN]);
 
         $result = $strategy->mask('sensitive data', 'field', $this->logRecord);
 
-        $this->assertSame('REDACTED', $result);
+        $this->assertSame(TestConstants::MASK_REDACTED_PLAIN, $result);
     }
 
     #[Test]

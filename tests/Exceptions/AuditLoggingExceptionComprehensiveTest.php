@@ -98,14 +98,14 @@ final class AuditLoggingExceptionComprehensiveTest extends TestCase
         $value = ['data' => 'test'];
 
         $exception = AuditLoggingException::serializationFailed(
-            'user.data',
+            TestConstants::FIELD_USER_DATA,
             $value,
             'JSON encoding failed'
         );
 
         $this->assertInstanceOf(AuditLoggingException::class, $exception);
         $message = $exception->getMessage();
-        $this->assertStringContainsString('user.data', $message);
+        $this->assertStringContainsString(TestConstants::FIELD_USER_DATA, $message);
         $this->assertStringContainsString('JSON encoding failed', $message);
         $this->assertStringContainsString('serialization_failure', $message);
     }

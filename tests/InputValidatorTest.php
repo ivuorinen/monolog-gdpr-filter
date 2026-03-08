@@ -84,7 +84,7 @@ final class InputValidatorTest extends TestCase
     {
         InputValidator::validatePatterns([
             TestConstants::PATTERN_SSN_FORMAT => MaskConstants::MASK_SSN_PATTERN,
-            TestConstants::PATTERN_SAFE => 'REDACTED',
+            TestConstants::PATTERN_SAFE => TestConstants::MASK_REDACTED_PLAIN,
         ]);
 
         $this->assertTrue(true);
@@ -140,7 +140,7 @@ final class InputValidatorTest extends TestCase
         InputValidator::validateFieldPaths([
             TestConstants::FIELD_USER_EMAIL => MaskConstants::MASK_EMAIL_PATTERN,
             TestConstants::FIELD_USER_PASSWORD => FieldMaskConfig::remove(),
-            'user.ssn' => $ssnConfig,
+            TestConstants::FIELD_USER_SSN => $ssnConfig,
         ]);
 
         $this->assertTrue(true);
@@ -297,7 +297,7 @@ final class InputValidatorTest extends TestCase
         InputValidator::validateDataTypeMasks([
             'integer' => MaskConstants::MASK_GENERIC,
             'double' => MaskConstants::MASK_GENERIC,
-            'string' => 'REDACTED',
+            'string' => TestConstants::MASK_REDACTED_PLAIN,
             'boolean' => MaskConstants::MASK_GENERIC,
             'NULL' => 'null',
             'array' => '[]',

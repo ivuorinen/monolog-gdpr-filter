@@ -40,7 +40,7 @@ class RegexMaskProcessorTest extends TestCase
             "/\b\d{6}[-+A]?\d{3}[A-Z]\b/u" => Mask::MASK_MASKED,
         ];
         $fieldPaths = [
-            "user.ssn" => self::GDPR_REPLACEMENT,
+            TestConstants::FIELD_USER_SSN => self::GDPR_REPLACEMENT,
             "order.total" => FieldMaskConfig::useProcessorPatterns(),
         ];
         $this->processor = new GdprProcessor($patterns, $fieldPaths);
@@ -49,7 +49,7 @@ class RegexMaskProcessorTest extends TestCase
     public function testRemoveFieldRemovesKey(): void
     {
         $patterns = DefaultPatterns::get();
-        $fieldPaths = ["user.ssn" => FieldMaskConfig::remove()];
+        $fieldPaths = [TestConstants::FIELD_USER_SSN => FieldMaskConfig::remove()];
         $processor = new GdprProcessor($patterns, $fieldPaths);
         $record = $this->logEntry()->with(
             message: "Remove SSN",

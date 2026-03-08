@@ -315,7 +315,7 @@ class SecuritySanitizerTest extends TestCase
     #[Test]
     public function preservesPublicIpAddresses(): void
     {
-        $message = 'External server at 8.8.8.8 responded';
+        $message = 'External server at ' . TestConstants::IP_ADDRESS_PUBLIC . ' responded';
         $sanitized = SecuritySanitizer::sanitizeErrorMessage($message);
 
         $this->assertStringContainsString(TestConstants::IP_ADDRESS_PUBLIC, $sanitized);

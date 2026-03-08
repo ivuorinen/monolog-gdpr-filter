@@ -413,7 +413,7 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
     {
         $processor = GdprProcessorBuilder::create()
             ->addPatterns([
-                TestConstants::PATTERN_SSN_FORMAT => '[SSN]',
+                TestConstants::PATTERN_SSN_FORMAT => TestConstants::MASK_SSN_BRACKETS,
                 TestConstants::PATTERN_EMAIL_FULL => TestConstants::MASK_EMAIL_BRACKETS,
             ])
             ->build();
@@ -421,7 +421,7 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
         $record = $this->createLogRecord('SSN: ' . TestConstants::SSN_US . ', Email: ' . TestConstants::EMAIL_USER);
         $processed = $processor($record);
 
-        $this->assertStringContainsString('[SSN]', $processed->message);
+        $this->assertStringContainsString(TestConstants::MASK_SSN_BRACKETS, $processed->message);
         $this->assertStringContainsString(TestConstants::MASK_EMAIL_BRACKETS, $processed->message);
     }
 }

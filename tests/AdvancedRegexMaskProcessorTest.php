@@ -35,7 +35,7 @@ class AdvancedRegexMaskProcessorTest extends TestCase
         ];
 
         $fieldPaths = [
-            "user.ssn" => "[GDPR]",
+            TestConstants::FIELD_USER_SSN => "[GDPR]",
             "payment.card" => "[CC]",
             "contact.email" => FieldMaskConfig::useProcessorPatterns(), // use regex-masked
             "metadata.session" => "[SESSION]",

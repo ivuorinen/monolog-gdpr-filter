@@ -155,7 +155,6 @@ class ComprehensiveValidationTest extends TestCase
             $rateLimiter->isAllowed('memory_test_key_' . $i);
         }
 
-        memory_get_usage(true);
         $initialStats = RateLimiter::getMemoryStats();
 
         // Phase 2: Wait for cleanup window and trigger cleanup

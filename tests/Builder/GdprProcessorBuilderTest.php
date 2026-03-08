@@ -229,7 +229,7 @@ final class GdprProcessorBuilderTest extends TestCase
 
             public function getPatterns(): array
             {
-                return [TestConstants::PATTERN_SECRET => '[SECRET]'];
+                return [TestConstants::PATTERN_SECRET => TestConstants::MASK_SECRET_BRACKETS];
             }
         };
 
@@ -297,7 +297,7 @@ final class GdprProcessorBuilderTest extends TestCase
 
             public function getPatterns(): array
             {
-                return [TestConstants::PATTERN_SECRET => '[SECRET]'];
+                return [TestConstants::PATTERN_SECRET => TestConstants::MASK_SECRET_BRACKETS];
             }
         };
 

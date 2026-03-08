@@ -75,15 +75,15 @@ final class StructuredAuditLoggerTest extends TestCase
         $logger = new StructuredAuditLogger($this->createBaseLogger());
 
         $logger->logSuccess(
-            'user.ssn',
+            TestConstants::FIELD_USER_SSN,
             TestConstants::SSN_US,
-            '[SSN]',
+            TestConstants::MASK_SSN_BRACKETS,
             AuditContext::OP_REGEX,
             10.5
         );
 
         $this->assertCount(1, $this->logs);
-        $this->assertSame('user.ssn', $this->logs[0]['path']);
+        $this->assertSame(TestConstants::FIELD_USER_SSN, $this->logs[0]['path']);
     }
 
     public function testLogFailure(): void
@@ -92,7 +92,7 @@ final class StructuredAuditLoggerTest extends TestCase
         $error = ErrorContext::create('RegexError', 'Pattern failed');
 
         $logger->logFailure(
-            'user.data',
+            TestConstants::FIELD_USER_DATA,
             'sensitive value',
             AuditContext::OP_REGEX,
             $error

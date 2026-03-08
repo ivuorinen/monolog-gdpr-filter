@@ -7,6 +7,7 @@ namespace Tests\Exceptions;
 use Ivuorinen\MonologGdprFilter\Exceptions\MaskingOperationFailedException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Tests\TestConstants;
 
 #[CoversClass(MaskingOperationFailedException::class)]
 final class MaskingOperationFailedExceptionTest extends TestCase
@@ -77,7 +78,7 @@ final class MaskingOperationFailedExceptionTest extends TestCase
         $previous = new \RuntimeException('Inner error');
 
         $exception = MaskingOperationFailedException::fieldPathMaskingFailed(
-            'user.data',
+            TestConstants::FIELD_USER_DATA,
             ['complex' => 'value'],
             'Failed',
             $previous

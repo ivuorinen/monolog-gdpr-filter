@@ -80,7 +80,7 @@ final class MaskingOrchestratorTest extends TestCase
     public function testRegExpMessageMasksPatterns(): void
     {
         $orchestrator = new MaskingOrchestrator(
-            [TestConstants::PATTERN_SSN_FORMAT => '[SSN]']
+            [TestConstants::PATTERN_SSN_FORMAT => TestConstants::MASK_SSN_BRACKETS]
         );
 
         $result = $orchestrator->regExpMessage('SSN: 123-45-6789');
