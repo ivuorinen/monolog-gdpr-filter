@@ -20,9 +20,9 @@
       "@lint:tool:md:fix",
       "@lint:tool:ec:fix"
     ],
-    "test": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --coverage-text",
-    "test:coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --coverage-text --coverage-html=coverage",
-    "test:ci": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --teamcity --coverage-clover=coverage.xml",
+    "test": "./vendor/bin/phpunit --coverage-text",
+    "test:coverage": "./vendor/bin/phpunit --coverage-text --coverage-html=coverage",
+    "test:ci": "./vendor/bin/phpunit --teamcity --coverage-clover=coverage.xml",
     "lint:tool:ec": "./vendor/bin/ec *.md *.json *.yml *.yaml *.xml *.php",
     "lint:tool:ec:fix": "./vendor/bin/ec *.md *.json *.yml *.yaml *.xml *.php --fix",
     "lint:tool:phpcs": "./vendor/bin/phpcs src/ tests/ examples/ config/ rector.php --warning-severity=0",
