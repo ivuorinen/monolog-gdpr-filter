@@ -199,6 +199,24 @@ final class StreamingProcessorTest extends TestCase
         $this->assertSame(2, $stats[TestConstants::DATA_MASKED]);
     }
 
+    public function testGetStatisticsDoesNotTriggerAuditLogger(): void
+    {
+        $auditCalled = false;
+        $auditLogger = function () use (&$auditCalled): void {
+            $auditCalled = true;
+        };
+
+        $processor = new StreamingProcessor($this->createOrchestrator(), 10, $auditLogger);
+
+        $records = [
+            [TestConstants::FIELD_MESSAGE => TestConstants::DATA_TEST_DATA, 'context' => []],
+        ];
+
+        $processor->getStatistics($records);
+
+        $this->assertFalse($auditCalled);
+    }
+
     public function testSetAuditLogger(): void
     {
         $logs = [];

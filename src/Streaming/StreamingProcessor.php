@@ -176,18 +176,12 @@ final class StreamingProcessor
     {
         $stats = ['processed' => 0, 'masked' => 0, 'errors' => 0];
 
-        $originals = [];
         foreach ($records as $record) {
-            $originals[] = $record;
-        }
-
-        $index = 0;
-        foreach ($this->processStream($originals) as $processed) {
             $stats['processed']++;
-            if ($processed !== $originals[$index]) {
+            $processed = $this->orchestrator->process($record['message'], $record['context']);
+            if ($processed !== $record) {
                 $stats['masked']++;
             }
-            $index++;
         }
 
         return $stats;
