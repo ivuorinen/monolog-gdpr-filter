@@ -228,13 +228,13 @@ class CustomExceptionsTest extends TestCase
     public function testAuditLoggingExceptionSerializationFailed(): void
     {
         $exception = AuditLoggingException::serializationFailed(
-            'user.data',
+            TestConstants::FIELD_USER_DATA,
             ['circular' => 'reference'],
             'Circular reference detected'
         );
 
         $this->assertStringContainsString(
-            "Audit data serialization failed for path 'user.data'",
+            "Audit data serialization failed for path '" . TestConstants::FIELD_USER_DATA . "'",
             $exception->getMessage()
         );
         $this->assertStringContainsString('Circular reference detected', $exception->getMessage());

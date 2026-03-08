@@ -33,7 +33,7 @@ class GdprProcessorMethodsTest extends TestCase
         ];
         $fieldPaths = [
             TestConstants::FIELD_USER_EMAIL => FieldMaskConfig::useProcessorPatterns(),
-            'user.ssn' => FieldMaskConfig::remove(),
+            TestConstants::FIELD_USER_SSN => FieldMaskConfig::remove(),
             'user.card' => FieldMaskConfig::replace('MASKED'),
         ];
         $context = [
@@ -75,7 +75,7 @@ class GdprProcessorMethodsTest extends TestCase
     {
         $patterns = [];
         $fieldPaths = [
-            'user.ssn' => FieldMaskConfig::remove(),
+            TestConstants::FIELD_USER_SSN => FieldMaskConfig::remove(),
         ];
         $context = ['user' => ['ssn' => self::TEST_HETU]];
 

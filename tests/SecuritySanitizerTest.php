@@ -6,6 +6,7 @@ namespace Tests;
 
 use Ivuorinen\MonologGdprFilter\MaskConstants;
 use Ivuorinen\MonologGdprFilter\SecuritySanitizer;
+use Tests\TestConstants;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -314,10 +315,10 @@ class SecuritySanitizerTest extends TestCase
     #[Test]
     public function preservesPublicIpAddresses(): void
     {
-        $message = 'External server at 8.8.8.8 responded';
+        $message = 'External server at ' . TestConstants::IP_ADDRESS_PUBLIC . ' responded';
         $sanitized = SecuritySanitizer::sanitizeErrorMessage($message);
 
-        $this->assertStringContainsString('8.8.8.8', $sanitized);
+        $this->assertStringContainsString(TestConstants::IP_ADDRESS_PUBLIC, $sanitized);
     }
 
     #[Test]

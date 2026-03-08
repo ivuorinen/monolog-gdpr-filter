@@ -40,7 +40,7 @@ class RegexMaskProcessorTest extends TestCase
             "/\b\d{6}[-+A]?\d{3}[A-Z]\b/u" => Mask::MASK_MASKED,
         ];
         $fieldPaths = [
-            "user.ssn" => self::GDPR_REPLACEMENT,
+            TestConstants::FIELD_USER_SSN => self::GDPR_REPLACEMENT,
             "order.total" => FieldMaskConfig::useProcessorPatterns(),
         ];
         $this->processor = new GdprProcessor($patterns, $fieldPaths);
@@ -49,7 +49,7 @@ class RegexMaskProcessorTest extends TestCase
     public function testRemoveFieldRemovesKey(): void
     {
         $patterns = DefaultPatterns::get();
-        $fieldPaths = ["user.ssn" => FieldMaskConfig::remove()];
+        $fieldPaths = [TestConstants::FIELD_USER_SSN => FieldMaskConfig::remove()];
         $processor = new GdprProcessor($patterns, $fieldPaths);
         $record = $this->logEntry()->with(
             message: "Remove SSN",
@@ -177,7 +177,7 @@ class RegexMaskProcessorTest extends TestCase
         foreach ($testHetu as $hetu) {
             $record = $this->logEntry()->with(message: 'ID: ' . $hetu);
             $result = ($this->processor)($record)->toArray();
-            $this->assertSame("ID: " . Mask::MASK_MASKED, $result["message"]);
+            $this->assertSame("ID: " . Mask::MASK_MASKED, $result[TestConstants::FIELD_MESSAGE]);
         }
     }
 
@@ -208,7 +208,7 @@ class RegexMaskProcessorTest extends TestCase
             context: ["user" => ["ssn" => "not-a-hetu"]],
         );
         $result = ($this->processor)($record)->toArray();
-        $this->assertSame("No sensitive data here", $result["message"]);
+        $this->assertSame("No sensitive data here", $result[TestConstants::FIELD_MESSAGE]);
         $this->assertSame(self::GDPR_REPLACEMENT, $result["context"]["user"]["ssn"]);
     }
 

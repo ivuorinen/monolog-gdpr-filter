@@ -115,7 +115,7 @@ final class RecursiveProcessorTest extends TestCase
         $dataTypeMasker = new DataTypeMasker([]);
         $processor = new RecursiveProcessor($regexProcessor, $dataTypeMasker, null, 10);
 
-        $data = ['field1' => 'secret data', 'field2' => TestConstants::DATA_PUBLIC];
+        $data = ['field1' => TestConstants::MESSAGE_SECRET_DATA, 'field2' => TestConstants::DATA_PUBLIC];
         $result = $processor->processStandardArray($data, 0);
 
         $this->assertSame('*** data', $result['field1']);
@@ -128,7 +128,7 @@ final class RecursiveProcessorTest extends TestCase
         $dataTypeMasker = new DataTypeMasker([]);
         $processor = new RecursiveProcessor($regexProcessor, $dataTypeMasker, null, 10);
 
-        $result = $processor->processValue('test string', 0);
+        $result = $processor->processValue(TestConstants::MESSAGE_TEST_STRING, 0);
 
         $this->assertSame('*** string', $result);
     }
@@ -158,7 +158,7 @@ final class RecursiveProcessorTest extends TestCase
 
     public function testProcessStringValueWithRegexMatch(): void
     {
-        $regexProcessor = fn(string $val): string => str_replace(TestConstants::CONTEXT_PASSWORD, '[REDACTED]', $val);
+        $regexProcessor = fn(string $val): string => str_replace(TestConstants::CONTEXT_PASSWORD, TestConstants::MASK_REDACTED_BRACKETS, $val);
         $dataTypeMasker = new DataTypeMasker([]);
         $processor = new RecursiveProcessor($regexProcessor, $dataTypeMasker, null, 10);
 
@@ -198,7 +198,7 @@ final class RecursiveProcessorTest extends TestCase
         $dataTypeMasker = new DataTypeMasker([]);
         $processor = new RecursiveProcessor($regexProcessor, $dataTypeMasker, null, 10);
 
-        $result = $processor->processArrayValue(['key' => 'secret data'], 0);
+        $result = $processor->processArrayValue(['key' => TestConstants::MESSAGE_SECRET_DATA], 0);
 
         $this->assertIsArray($result);
         $this->assertSame('*** data', $result['key']);

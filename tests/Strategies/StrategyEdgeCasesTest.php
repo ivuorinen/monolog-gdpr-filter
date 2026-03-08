@@ -17,6 +17,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Tests\TestConstants;
 
 /**
  * Edge case tests for masking strategies to improve coverage.
@@ -35,7 +36,7 @@ final class StrategyEdgeCasesTest extends TestCase
             datetime: new DateTimeImmutable(),
             channel: 'test',
             level: Level::Info,
-            message: 'Test message',
+            message: TestConstants::MESSAGE_DEFAULT,
             context: [],
         );
     }
@@ -61,8 +62,8 @@ final class StrategyEdgeCasesTest extends TestCase
     public static function redosPatternProvider(): array
     {
         return [
-            'nested plus quantifier' => ['/^(a+)+$/'],
-            'nested star quantifier' => ['/^(a*)*$/'],
+            'nested plus quantifier' => [TestConstants::PATTERN_REDOS_VULNERABLE],
+            'nested star quantifier' => [TestConstants::PATTERN_REDOS_NESTED_STAR],
             'plus with repetition' => ['/^(a+){1,10}$/'],
             'star with repetition' => ['/^(a*){1,10}$/'],
             'identical alternation with star' => ['/(.*|.*)x/'],
@@ -76,9 +77,9 @@ final class StrategyEdgeCasesTest extends TestCase
     public function regexStrategySafePatternsPasses(): void
     {
         $strategy = new RegexMaskingStrategy([
-            '/\d{3}-\d{2}-\d{4}/' => '[SSN]',
-            '/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/' => '[EMAIL]',
-            '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/' => '[CARD]',
+            TestConstants::PATTERN_SSN_FORMAT => TestConstants::MASK_SSN_BRACKETS,
+            TestConstants::PATTERN_EMAIL_SIMPLE => TestConstants::MASK_EMAIL_BRACKETS,
+            TestConstants::PATTERN_CREDIT_CARD => TestConstants::MASK_CARD_BRACKETS,
         ]);
 
         $this->assertInstanceOf(RegexMaskingStrategy::class, $strategy);
@@ -153,7 +154,7 @@ final class StrategyEdgeCasesTest extends TestCase
         $result = $strategy->mask($obj, 'field', $this->logRecord);
 
         $this->assertIsObject($result);
-        $this->assertEquals((object) ['masked' => '{invalid json'], $result);
+        $this->assertEquals((object) [TestConstants::DATA_MASKED => '{invalid json'], $result);
     }
 
     #[Test]
@@ -165,7 +166,7 @@ final class StrategyEdgeCasesTest extends TestCase
         $result = $strategy->mask($obj, 'field', $this->logRecord);
 
         $this->assertIsObject($result);
-        $this->assertEquals((object) ['masked' => '["array"]'], $result);
+        $this->assertEquals((object) [TestConstants::DATA_MASKED => '["array"]'], $result);
     }
 
     #[Test]
@@ -256,7 +257,7 @@ final class StrategyEdgeCasesTest extends TestCase
     public function fieldPathStrategyValidateWithValidStringConfig(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            'user.email' => MaskConstants::MASK_EMAIL_PATTERN,
+            TestConstants::FIELD_USER_EMAIL => MaskConstants::MASK_EMAIL_PATTERN,
         ]);
 
         $this->assertTrue($strategy->validate());
@@ -266,8 +267,8 @@ final class StrategyEdgeCasesTest extends TestCase
     public function fieldPathStrategyValidateWithFieldMaskConfig(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            'user.email' => FieldMaskConfig::replace(MaskConstants::MASK_EMAIL_PATTERN),
-            'user.ssn' => FieldMaskConfig::remove(),
+            TestConstants::FIELD_USER_EMAIL => FieldMaskConfig::replace(MaskConstants::MASK_EMAIL_PATTERN),
+            TestConstants::FIELD_USER_SSN => FieldMaskConfig::remove(),
         ]);
 
         $this->assertTrue($strategy->validate());
@@ -277,7 +278,7 @@ final class StrategyEdgeCasesTest extends TestCase
     public function fieldPathStrategyValidateWithValidRegexConfig(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            'user.data' => FieldMaskConfig::regexMask('/\d+/', '[MASKED]'),
+            TestConstants::FIELD_USER_DATA => FieldMaskConfig::regexMask(TestConstants::PATTERN_DIGITS, MaskConstants::MASK_BRACKETS),
         ]);
 
         $this->assertTrue($strategy->validate());
@@ -338,7 +339,7 @@ final class StrategyEdgeCasesTest extends TestCase
     public function fieldPathStrategyShouldApplyReturnsFalseForMissingPath(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            'user.email' => MaskConstants::MASK_EMAIL_PATTERN,
+            TestConstants::FIELD_USER_EMAIL => MaskConstants::MASK_EMAIL_PATTERN,
         ]);
 
         $this->assertFalse($strategy->shouldApply('value', 'other.path', $this->logRecord));
@@ -348,11 +349,11 @@ final class StrategyEdgeCasesTest extends TestCase
     public function fieldPathStrategyShouldApplyReturnsTrueForWildcardMatch(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            'user.*' => MaskConstants::MASK_GENERIC,
+            TestConstants::PATH_USER_WILDCARD => MaskConstants::MASK_GENERIC,
         ]);
 
-        $this->assertTrue($strategy->shouldApply('value', 'user.email', $this->logRecord));
-        $this->assertTrue($strategy->shouldApply('value', 'user.name', $this->logRecord));
+        $this->assertTrue($strategy->shouldApply('value', TestConstants::FIELD_USER_EMAIL, $this->logRecord));
+        $this->assertTrue($strategy->shouldApply('value', TestConstants::FIELD_USER_NAME, $this->logRecord));
     }
 
     #[Test]
@@ -371,19 +372,19 @@ final class StrategyEdgeCasesTest extends TestCase
     public function fieldPathStrategyMaskAppliesRegexConfig(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            'user.ssn' => FieldMaskConfig::regexMask('/\d{3}-\d{2}-\d{4}/', '[SSN]'),
+            TestConstants::FIELD_USER_SSN => FieldMaskConfig::regexMask(TestConstants::PATTERN_SSN_FORMAT, TestConstants::MASK_SSN_BRACKETS),
         ]);
 
-        $result = $strategy->mask('SSN: 123-45-6789', 'user.ssn', $this->logRecord);
+        $result = $strategy->mask('SSN: 123-45-6789', TestConstants::FIELD_USER_SSN, $this->logRecord);
 
-        $this->assertSame('SSN: [SSN]', $result);
+        $this->assertSame(TestConstants::EXPECTED_SSN_MASKED, $result);
     }
 
     #[Test]
     public function fieldPathStrategyMaskHandlesArrayValue(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            'data' => FieldMaskConfig::regexMask('/\d+/', '[NUM]'),
+            'data' => FieldMaskConfig::regexMask(TestConstants::PATTERN_DIGITS, '[NUM]'),
         ]);
 
         $result = $strategy->mask(['count' => '123 items'], 'data', $this->logRecord);
@@ -396,7 +397,7 @@ final class StrategyEdgeCasesTest extends TestCase
     public function fieldPathStrategyMaskReturnsValueWhenNoConfigMatch(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            'user.email' => MaskConstants::MASK_EMAIL_PATTERN,
+            TestConstants::FIELD_USER_EMAIL => MaskConstants::MASK_EMAIL_PATTERN,
         ]);
 
         $result = $strategy->mask('original', 'other.field', $this->logRecord);
@@ -408,7 +409,7 @@ final class StrategyEdgeCasesTest extends TestCase
     public function fieldPathStrategyGetNameReturnsCorrectFormat(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            'user.email' => MaskConstants::MASK_EMAIL_PATTERN,
+            TestConstants::FIELD_USER_EMAIL => MaskConstants::MASK_EMAIL_PATTERN,
             'user.phone' => MaskConstants::MASK_PHONE,
         ]);
 
@@ -421,7 +422,7 @@ final class StrategyEdgeCasesTest extends TestCase
     public function fieldPathStrategyGetConfigurationReturnsAllSettings(): void
     {
         $config = [
-            'user.email' => FieldMaskConfig::replace('[EMAIL]'),
+            TestConstants::FIELD_USER_EMAIL => FieldMaskConfig::replace(TestConstants::MASK_EMAIL_BRACKETS),
         ];
         $strategy = new FieldPathMaskingStrategy($config);
 

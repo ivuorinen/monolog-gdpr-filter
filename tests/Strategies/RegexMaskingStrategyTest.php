@@ -64,7 +64,7 @@ final class RegexMaskingStrategyTest extends TestCase
         $this->expectException(InvalidRegexPatternException::class);
         $this->expectExceptionMessage('catastrophic backtracking');
 
-        new RegexMaskingStrategy(['/^(a+)+$/' => MaskConstants::MASK_GENERIC]);
+        new RegexMaskingStrategy([TestConstants::PATTERN_REDOS_VULNERABLE => MaskConstants::MASK_GENERIC]);
     }
 
     #[Test]
@@ -124,7 +124,7 @@ final class RegexMaskingStrategyTest extends TestCase
     public function maskHandlesArrayValues(): void
     {
         $strategy = new RegexMaskingStrategy([
-            '/"email":"[^"]+"/' => '"email":"' . MaskConstants::MASK_EMAIL_PATTERN . '"',
+            '/"' . TestConstants::CONTEXT_EMAIL . '":"[^"]+"/' => '"' . TestConstants::CONTEXT_EMAIL . '":"' . MaskConstants::MASK_EMAIL_PATTERN . '"',
         ]);
 
         $input = [TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_TEST];
@@ -208,12 +208,12 @@ final class RegexMaskingStrategyTest extends TestCase
     {
         $strategy = new RegexMaskingStrategy(
             patterns: [TestConstants::PATTERN_DIGITS => MaskConstants::MASK_GENERIC],
-            includePaths: ['user.ssn', 'user.phone']
+            includePaths: [TestConstants::FIELD_USER_SSN, 'user.phone']
         );
 
         $this->assertTrue($strategy->shouldApply(
             TestConstants::DATA_NUMBER_STRING,
-            'user.ssn',
+            TestConstants::FIELD_USER_SSN,
             $this->logRecord
         ));
         $this->assertTrue($strategy->shouldApply(
@@ -236,7 +236,7 @@ final class RegexMaskingStrategyTest extends TestCase
             includePaths: [TestConstants::PATH_USER_WILDCARD]
         );
 
-        $this->assertTrue($strategy->shouldApply(TestConstants::DATA_NUMBER_STRING, 'user.ssn', $this->logRecord));
+        $this->assertTrue($strategy->shouldApply(TestConstants::DATA_NUMBER_STRING, TestConstants::FIELD_USER_SSN, $this->logRecord));
         $this->assertTrue($strategy->shouldApply(TestConstants::DATA_NUMBER_STRING, 'user.phone', $this->logRecord));
         $this->assertFalse($strategy->shouldApply(TestConstants::DATA_NUMBER_STRING, 'admin.id', $this->logRecord));
     }
@@ -277,7 +277,7 @@ final class RegexMaskingStrategyTest extends TestCase
     {
         $strategy = new RegexMaskingStrategy([
             TestConstants::PATTERN_SSN_FORMAT => MaskConstants::MASK_SSN_PATTERN,
-            '/[a-z]+/' => 'REDACTED',
+            TestConstants::PATTERN_SAFE => TestConstants::MASK_REDACTED_PLAIN,
         ]);
 
         $this->assertTrue($strategy->validate());
@@ -297,7 +297,7 @@ final class RegexMaskingStrategyTest extends TestCase
     public function getConfigurationReturnsFullConfiguration(): void
     {
         $patterns = [TestConstants::PATTERN_DIGITS => MaskConstants::MASK_GENERIC];
-        $includePaths = ['user.ssn'];
+        $includePaths = [TestConstants::FIELD_USER_SSN];
         $excludePaths = ['debug.*'];
 
         $strategy = new RegexMaskingStrategy(
@@ -334,7 +334,7 @@ final class RegexMaskingStrategyTest extends TestCase
             '/REPLACED/' => 'FINAL',
         ]);
 
-        $result = $strategy->mask('test value', 'field', $this->logRecord);
+        $result = $strategy->mask(TestConstants::VALUE_TEST, 'field', $this->logRecord);
 
         $this->assertSame('FINAL value', $result);
     }
@@ -367,13 +367,13 @@ final class RegexMaskingStrategyTest extends TestCase
     public function maskHandlesMultilinePatterns(): void
     {
         $strategy = new RegexMaskingStrategy([
-            '/^line\d+$/m' => 'REDACTED',
+            '/^line\d+$/m' => TestConstants::MASK_REDACTED_PLAIN,
         ]);
 
         $input = "line1\nother\nline2";
         $result = $strategy->mask($input, 'field', $this->logRecord);
 
-        $this->assertStringContainsString('REDACTED', $result);
+        $this->assertStringContainsString(TestConstants::MASK_REDACTED_PLAIN, $result);
         $this->assertStringContainsString('other', $result);
     }
 }

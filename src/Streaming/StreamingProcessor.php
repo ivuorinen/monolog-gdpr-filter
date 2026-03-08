@@ -176,10 +176,10 @@ final class StreamingProcessor
     {
         $stats = ['processed' => 0, 'masked' => 0, 'errors' => 0];
 
-        foreach ($this->processStream($records) as $record) {
+        foreach ($records as $record) {
             $stats['processed']++;
-            // Count if any masking occurred (simple heuristic)
-            if (str_contains($record['message'], '***') || str_contains($record['message'], '[')) {
+            $processed = $this->orchestrator->process($record['message'], $record['context']);
+            if ($processed !== $record) {
                 $stats['masked']++;
             }
         }

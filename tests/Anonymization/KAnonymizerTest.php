@@ -19,11 +19,11 @@ final class KAnonymizerTest extends TestCase
         $anonymizer = new KAnonymizer();
         $anonymizer->registerAgeStrategy('age');
 
-        $record = ['name' => 'John', 'age' => 25];
+        $record = ['name' => TestConstants::NAME_FIRST, 'age' => 25];
         $result = $anonymizer->anonymize($record);
 
         $this->assertSame(TestConstants::AGE_RANGE_20_29, $result['age']);
-        $this->assertSame('John', $result['name']);
+        $this->assertSame(TestConstants::NAME_FIRST, $result['name']);
     }
 
     public function testAnonymizeWithAgeStrategyDifferentRanges(): void
@@ -84,7 +84,7 @@ final class KAnonymizerTest extends TestCase
         $anonymizer = new KAnonymizer();
         $anonymizer->registerLocationStrategy('zip_code', 3);
 
-        $record = ['zip_code' => '12345'];
+        $record = ['zip_code' => TestConstants::DATA_NUMBER_STRING];
         $result = $anonymizer->anonymize($record);
 
         $this->assertSame('123**', $result['zip_code']);
@@ -115,17 +115,17 @@ final class KAnonymizerTest extends TestCase
     public function testAnonymizeWithCustomStrategy(): void
     {
         $anonymizer = new KAnonymizer();
-        $anonymizer->registerCustomStrategy('email', fn(mixed $v): string => explode('@', (string) $v)[1] ?? 'unknown');
+        $anonymizer->registerCustomStrategy(TestConstants::CONTEXT_EMAIL, fn(mixed $v): string => explode('@', (string) $v)[1] ?? 'unknown');
 
-        $record = ['email' => 'john@example.com'];
+        $record = [TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_JOHN];
         $result = $anonymizer->anonymize($record);
 
-        $this->assertSame('example.com', $result['email']);
+        $this->assertSame(TestConstants::DOMAIN, $result[TestConstants::CONTEXT_EMAIL]);
     }
 
     public function testRegisterStrategy(): void
     {
-        $strategy = new GeneralizationStrategy(fn(mixed $v): string => 'masked', 'test');
+        $strategy = new GeneralizationStrategy(fn(mixed $v): string => TestConstants::DATA_MASKED, 'test');
 
         $anonymizer = new KAnonymizer();
         $anonymizer->registerStrategy('field', $strategy);
@@ -133,7 +133,7 @@ final class KAnonymizerTest extends TestCase
         $record = ['field' => 'value'];
         $result = $anonymizer->anonymize($record);
 
-        $this->assertSame('masked', $result['field']);
+        $this->assertSame(TestConstants::DATA_MASKED, $result['field']);
     }
 
     public function testAnonymizeIgnoresMissingFields(): void
@@ -141,10 +141,10 @@ final class KAnonymizerTest extends TestCase
         $anonymizer = new KAnonymizer();
         $anonymizer->registerAgeStrategy('age');
 
-        $record = ['name' => 'John'];
+        $record = ['name' => TestConstants::NAME_FIRST];
         $result = $anonymizer->anonymize($record);
 
-        $this->assertSame(['name' => 'John'], $result);
+        $this->assertSame(['name' => TestConstants::NAME_FIRST], $result);
     }
 
     public function testAnonymizeBatch(): void
@@ -153,7 +153,7 @@ final class KAnonymizerTest extends TestCase
         $anonymizer->registerAgeStrategy('age');
 
         $records = [
-            ['name' => 'John', 'age' => 25],
+            ['name' => TestConstants::NAME_FIRST, 'age' => 25],
             ['name' => 'Jane', 'age' => 32],
         ];
 
@@ -258,13 +258,13 @@ final class KAnonymizerTest extends TestCase
         $anonymizer->registerLocationStrategy('zip', 2);
         $anonymizer->registerDateStrategy('date', 'year');
 
-        $record = ['age' => 28, 'zip' => '12345', 'date' => '2024-06-15', 'name' => 'John'];
+        $record = ['age' => 28, 'zip' => TestConstants::DATA_NUMBER_STRING, 'date' => '2024-06-15', 'name' => TestConstants::NAME_FIRST];
         $result = $anonymizer->anonymize($record);
 
         $this->assertSame(TestConstants::AGE_RANGE_20_29, $result['age']);
         $this->assertSame('12***', $result['zip']);
         $this->assertSame('2024', $result['date']);
-        $this->assertSame('John', $result['name']);
+        $this->assertSame(TestConstants::NAME_FIRST, $result['name']);
     }
 
     public function testFluentInterface(): void

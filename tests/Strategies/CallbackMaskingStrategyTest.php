@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Strategies;
 
 use Ivuorinen\MonologGdprFilter\Exceptions\MaskingOperationFailedException;
+use Ivuorinen\MonologGdprFilter\MaskConstants;
 use Ivuorinen\MonologGdprFilter\Exceptions\RuleExecutionException;
 use Ivuorinen\MonologGdprFilter\Strategies\CallbackMaskingStrategy;
 use PHPUnit\Framework\TestCase;
@@ -23,9 +24,9 @@ final class CallbackMaskingStrategyTest extends TestCase
     public function testBasicConstruction(): void
     {
         $callback = fn(mixed $value): string => TestConstants::MASK_MASKED_BRACKETS;
-        $strategy = new CallbackMaskingStrategy('user.email', $callback);
+        $strategy = new CallbackMaskingStrategy(TestConstants::FIELD_USER_EMAIL, $callback);
 
-        $this->assertSame('user.email', $strategy->getFieldPath());
+        $this->assertSame(TestConstants::FIELD_USER_EMAIL, $strategy->getFieldPath());
         $this->assertTrue($strategy->isExactMatch());
         $this->assertSame(50, $strategy->getPriority());
     }
@@ -33,10 +34,10 @@ final class CallbackMaskingStrategyTest extends TestCase
     public function testMaskWithSimpleCallback(): void
     {
         $callback = fn(mixed $value): string => TestConstants::MASK_MASKED_BRACKETS;
-        $strategy = new CallbackMaskingStrategy('user.email', $callback);
+        $strategy = new CallbackMaskingStrategy(TestConstants::FIELD_USER_EMAIL, $callback);
         $record = $this->createLogRecord();
 
-        $result = $strategy->mask('john@example.com', 'user.email', $record);
+        $result = $strategy->mask(TestConstants::EMAIL_JOHN, TestConstants::FIELD_USER_EMAIL, $record);
 
         $this->assertSame(TestConstants::MASK_MASKED_BRACKETS, $result);
     }
@@ -44,10 +45,10 @@ final class CallbackMaskingStrategyTest extends TestCase
     public function testMaskWithTransformingCallback(): void
     {
         $callback = fn(mixed $value): string => strtoupper((string) $value);
-        $strategy = new CallbackMaskingStrategy('user.name', $callback);
+        $strategy = new CallbackMaskingStrategy(TestConstants::FIELD_USER_NAME, $callback);
         $record = $this->createLogRecord();
 
-        $result = $strategy->mask('john', 'user.name', $record);
+        $result = $strategy->mask('john', TestConstants::FIELD_USER_NAME, $record);
 
         $this->assertSame('JOHN', $result);
     }
@@ -57,27 +58,27 @@ final class CallbackMaskingStrategyTest extends TestCase
         $callback = function (): never {
             throw new RuleExecutionException('Callback failed');
         };
-        $strategy = new CallbackMaskingStrategy('user.data', $callback);
+        $strategy = new CallbackMaskingStrategy(TestConstants::FIELD_USER_DATA, $callback);
         $record = $this->createLogRecord();
 
         $this->expectException(MaskingOperationFailedException::class);
         $this->expectExceptionMessage('Callback threw exception');
 
-        $strategy->mask('value', 'user.data', $record);
+        $strategy->mask('value', TestConstants::FIELD_USER_DATA, $record);
     }
 
     public function testShouldApplyWithExactMatch(): void
     {
         $callback = fn(mixed $value): string => TestConstants::MASK_MASKED_BRACKETS;
         $strategy = new CallbackMaskingStrategy(
-            'user.email',
+            TestConstants::FIELD_USER_EMAIL,
             $callback,
             exactMatch: true
         );
         $record = $this->createLogRecord();
 
-        $this->assertTrue($strategy->shouldApply('value', 'user.email', $record));
-        $this->assertFalse($strategy->shouldApply('value', 'user.name', $record));
+        $this->assertTrue($strategy->shouldApply('value', TestConstants::FIELD_USER_EMAIL, $record));
+        $this->assertFalse($strategy->shouldApply('value', TestConstants::FIELD_USER_NAME, $record));
         $this->assertFalse($strategy->shouldApply('value', 'user.email.work', $record));
     }
 
@@ -85,32 +86,32 @@ final class CallbackMaskingStrategyTest extends TestCase
     {
         $callback = fn(mixed $value): string => TestConstants::MASK_MASKED_BRACKETS;
         $strategy = new CallbackMaskingStrategy(
-            'user.*',
+            TestConstants::PATH_USER_WILDCARD,
             $callback,
             exactMatch: false
         );
         $record = $this->createLogRecord();
 
-        $this->assertTrue($strategy->shouldApply('value', 'user.email', $record));
-        $this->assertTrue($strategy->shouldApply('value', 'user.name', $record));
+        $this->assertTrue($strategy->shouldApply('value', TestConstants::FIELD_USER_EMAIL, $record));
+        $this->assertTrue($strategy->shouldApply('value', TestConstants::FIELD_USER_NAME, $record));
         $this->assertFalse($strategy->shouldApply('value', 'admin.email', $record));
     }
 
     public function testGetName(): void
     {
         $callback = fn(mixed $value): string => TestConstants::MASK_MASKED_BRACKETS;
-        $strategy = new CallbackMaskingStrategy('user.email', $callback);
+        $strategy = new CallbackMaskingStrategy(TestConstants::FIELD_USER_EMAIL, $callback);
 
         $name = $strategy->getName();
 
         $this->assertStringContainsString('Callback Masking', $name);
-        $this->assertStringContainsString('user.email', $name);
+        $this->assertStringContainsString(TestConstants::FIELD_USER_EMAIL, $name);
     }
 
     public function testValidate(): void
     {
         $callback = fn(mixed $value): string => TestConstants::MASK_MASKED_BRACKETS;
-        $strategy = new CallbackMaskingStrategy('user.email', $callback);
+        $strategy = new CallbackMaskingStrategy(TestConstants::FIELD_USER_EMAIL, $callback);
 
         $this->assertTrue($strategy->validate());
     }
@@ -119,7 +120,7 @@ final class CallbackMaskingStrategyTest extends TestCase
     {
         $callback = fn(mixed $value): string => TestConstants::MASK_MASKED_BRACKETS;
         $strategy = new CallbackMaskingStrategy(
-            'user.email',
+            TestConstants::FIELD_USER_EMAIL,
             $callback,
             75,
             false
@@ -130,7 +131,7 @@ final class CallbackMaskingStrategyTest extends TestCase
         $this->assertArrayHasKey('field_path', $config);
         $this->assertArrayHasKey('exact_match', $config);
         $this->assertArrayHasKey('priority', $config);
-        $this->assertSame('user.email', $config['field_path']);
+        $this->assertSame(TestConstants::FIELD_USER_EMAIL, $config['field_path']);
         $this->assertFalse($config['exact_match']);
         $this->assertSame(75, $config['priority']);
     }
@@ -138,7 +139,7 @@ final class CallbackMaskingStrategyTest extends TestCase
     public function testForPathsFactoryMethod(): void
     {
         $callback = fn(mixed $value): string => TestConstants::MASK_MASKED_BRACKETS;
-        $paths = ['user.email', 'admin.email', 'contact.email'];
+        $paths = [TestConstants::FIELD_USER_EMAIL, 'admin.email', 'contact.email'];
 
         $strategies = CallbackMaskingStrategy::forPaths($paths, $callback);
 
@@ -152,20 +153,20 @@ final class CallbackMaskingStrategyTest extends TestCase
 
     public function testConstantFactoryMethod(): void
     {
-        $strategy = CallbackMaskingStrategy::constant('user.ssn', '***-**-****');
+        $strategy = CallbackMaskingStrategy::constant(TestConstants::FIELD_USER_SSN, MaskConstants::MASK_SSN_PATTERN);
         $record = $this->createLogRecord();
 
-        $result = $strategy->mask('123-45-6789', 'user.ssn', $record);
+        $result = $strategy->mask(TestConstants::SSN_US, TestConstants::FIELD_USER_SSN, $record);
 
-        $this->assertSame('***-**-****', $result);
+        $this->assertSame(MaskConstants::MASK_SSN_PATTERN, $result);
     }
 
     public function testHashFactoryMethod(): void
     {
-        $strategy = CallbackMaskingStrategy::hash('user.password', 'sha256', 8);
+        $strategy = CallbackMaskingStrategy::hash(TestConstants::FIELD_USER_PASSWORD, 'sha256', 8);
         $record = $this->createLogRecord();
 
-        $result = $strategy->mask('secret123', 'user.password', $record);
+        $result = $strategy->mask('secret123', TestConstants::FIELD_USER_PASSWORD, $record);
 
         $this->assertIsString($result);
         $this->assertSame(11, strlen($result));
@@ -174,24 +175,24 @@ final class CallbackMaskingStrategyTest extends TestCase
 
     public function testHashWithNoTruncation(): void
     {
-        $strategy = CallbackMaskingStrategy::hash('user.password', 'md5', 0);
+        $strategy = CallbackMaskingStrategy::hash(TestConstants::FIELD_USER_PASSWORD, 'md5', 0);
         $record = $this->createLogRecord();
 
-        $result = $strategy->mask('test', 'user.password', $record);
+        $result = $strategy->mask('test', TestConstants::FIELD_USER_PASSWORD, $record);
 
         $this->assertSame(32, strlen((string) $result));
     }
 
     public function testPartialFactoryMethod(): void
     {
-        $strategy = CallbackMaskingStrategy::partial('user.email', 2, 4);
+        $strategy = CallbackMaskingStrategy::partial(TestConstants::FIELD_USER_EMAIL, 2, 4);
         $record = $this->createLogRecord();
 
-        $result = $strategy->mask('john@example.com', 'user.email', $record);
+        $result = $strategy->mask(TestConstants::EMAIL_JOHN, TestConstants::FIELD_USER_EMAIL, $record);
 
         $this->assertStringStartsWith('jo', $result);
         $this->assertStringEndsWith('.com', $result);
-        $this->assertStringContainsString('***', $result);
+        $this->assertStringContainsString(MaskConstants::MASK_GENERIC, $result);
     }
 
     public function testPartialWithShortString(): void
@@ -201,7 +202,7 @@ final class CallbackMaskingStrategyTest extends TestCase
 
         $result = $strategy->mask('abc', 'user.code', $record);
 
-        $this->assertSame('***', $result);
+        $this->assertSame(MaskConstants::MASK_GENERIC, $result);
     }
 
     public function testPartialWithCustomMaskChar(): void
@@ -224,29 +225,29 @@ final class CallbackMaskingStrategyTest extends TestCase
             return TestConstants::MASK_MASKED_BRACKETS;
         };
 
-        $strategy = new CallbackMaskingStrategy('user.data', $callback);
+        $strategy = new CallbackMaskingStrategy(TestConstants::FIELD_USER_DATA, $callback);
         $record = $this->createLogRecord();
 
-        $strategy->mask(['key' => 'value'], 'user.data', $record);
+        $strategy->mask(['key' => 'value'], TestConstants::FIELD_USER_DATA, $record);
 
         $this->assertSame($receivedValue, ['key' => 'value']);
     }
 
     public function testCallbackCanReturnNonString(): void
     {
-        $callback = fn(mixed $value): array => ['masked' => true];
-        $strategy = new CallbackMaskingStrategy('user.data', $callback);
+        $callback = fn(mixed $value): array => [TestConstants::DATA_MASKED => true];
+        $strategy = new CallbackMaskingStrategy(TestConstants::FIELD_USER_DATA, $callback);
         $record = $this->createLogRecord();
 
-        $result = $strategy->mask(['key' => 'value'], 'user.data', $record);
+        $result = $strategy->mask(['key' => 'value'], TestConstants::FIELD_USER_DATA, $record);
 
-        $this->assertSame(['masked' => true], $result);
+        $this->assertSame([TestConstants::DATA_MASKED => true], $result);
     }
 
     public function testCustomPriority(): void
     {
         $callback = fn(mixed $value): string => TestConstants::MASK_MASKED_BRACKETS;
-        $strategy = new CallbackMaskingStrategy('user.email', $callback, 100);
+        $strategy = new CallbackMaskingStrategy(TestConstants::FIELD_USER_EMAIL, $callback, 100);
 
         $this->assertSame(100, $strategy->getPriority());
     }

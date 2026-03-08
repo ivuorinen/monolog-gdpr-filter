@@ -8,6 +8,7 @@ use Ivuorinen\MonologGdprFilter\Contracts\MaskingPluginInterface;
 use Ivuorinen\MonologGdprFilter\Plugins\AbstractMaskingPlugin;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Tests\TestConstants;
 
 #[CoversClass(AbstractMaskingPlugin::class)]
 final class AbstractMaskingPluginTest extends TestCase
@@ -92,7 +93,7 @@ final class AbstractMaskingPluginTest extends TestCase
             }
         };
 
-        $message = 'test message';
+        $message = TestConstants::MESSAGE_TEST_LOWERCASE;
         $result = $plugin->preProcessMessage($message);
 
         $this->assertSame($message, $result);
@@ -107,7 +108,7 @@ final class AbstractMaskingPluginTest extends TestCase
             }
         };
 
-        $message = 'test message';
+        $message = TestConstants::MESSAGE_TEST_LOWERCASE;
         $result = $plugin->postProcessMessage($message);
 
         $this->assertSame($message, $result);
@@ -185,13 +186,13 @@ final class AbstractMaskingPluginTest extends TestCase
 
             public function getPatterns(): array
             {
-                return ['/secret/' => '[REDACTED]'];
+                return [TestConstants::PATTERN_SECRET => TestConstants::MASK_REDACTED_BRACKETS];
             }
         };
 
         $patterns = $plugin->getPatterns();
 
-        $this->assertArrayHasKey('/secret/', $patterns);
-        $this->assertSame('[REDACTED]', $patterns['/secret/']);
+        $this->assertArrayHasKey(TestConstants::PATTERN_SECRET, $patterns);
+        $this->assertSame(TestConstants::MASK_REDACTED_BRACKETS, $patterns[TestConstants::PATTERN_SECRET]);
     }
 }

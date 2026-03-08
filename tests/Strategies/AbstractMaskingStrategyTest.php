@@ -58,7 +58,7 @@ final class AbstractMaskingStrategyTest extends TestCase
              */
             public function getName(): string
             {
-                return 'Test Strategy';
+                return TestConstants::STRATEGY_TEST;
             }
 
             /**
@@ -123,8 +123,8 @@ final class AbstractMaskingStrategyTest extends TestCase
     #[Test]
     public function valueToStringConvertsStringAsIs(): void
     {
-        $result = $this->strategy->testValueToString('test string');
-        $this->assertSame('test string', $result);
+        $result = $this->strategy->testValueToString(TestConstants::MESSAGE_TEST_STRING);
+        $this->assertSame(TestConstants::MESSAGE_TEST_STRING, $result);
     }
 
     #[Test]
@@ -159,7 +159,7 @@ final class AbstractMaskingStrategyTest extends TestCase
     public function valueToStringConvertsArray(): void
     {
         $result = $this->strategy->testValueToString(['key' => 'value']);
-        $this->assertSame('{"key":"value"}', $result);
+        $this->assertSame(TestConstants::JSON_KEY_VALUE, $result);
     }
 
     #[Test]
@@ -256,7 +256,7 @@ final class AbstractMaskingStrategyTest extends TestCase
         $conditions = [
             'level' => 'Error',
             'channel' => 'test-channel',
-            'message' => TestConstants::MESSAGE_TEST_LOWERCASE,
+            TestConstants::FIELD_MESSAGE => TestConstants::MESSAGE_TEST_LOWERCASE,
             TestConstants::CONTEXT_USER_ID => 123,
         ];
 
@@ -323,7 +323,7 @@ final class AbstractMaskingStrategyTest extends TestCase
     public function generateValuePreviewHandlesNonStringValues(): void
     {
         $preview = $this->strategy->testGenerateValuePreview(['key' => 'value']);
-        $this->assertSame('{"key":"value"}', $preview);
+        $this->assertSame(TestConstants::JSON_KEY_VALUE, $preview);
     }
 
     #[Test]
@@ -383,8 +383,8 @@ final class AbstractMaskingStrategyTest extends TestCase
     #[Test]
     public function preserveValueTypeConvertsBackToArray(): void
     {
-        $result = $this->strategy->testPreserveValueType(['original' => 'value'], '{"masked":"data"}');
-        $this->assertSame(['masked' => 'data'], $result);
+        $result = $this->strategy->testPreserveValueType(['original' => 'value'], '{"' . TestConstants::DATA_MASKED . '":"data"}');
+        $this->assertSame([TestConstants::DATA_MASKED => 'data'], $result);
         $this->assertIsArray($result);
     }
 
@@ -392,10 +392,10 @@ final class AbstractMaskingStrategyTest extends TestCase
     public function preserveValueTypeConvertsBackToObject(): void
     {
         $original = (object) ['original' => 'value'];
-        $result = $this->strategy->testPreserveValueType($original, '{"masked":"data"}');
+        $result = $this->strategy->testPreserveValueType($original, '{"' . TestConstants::DATA_MASKED . '":"data"}');
 
         $this->assertIsObject($result);
-        $this->assertEquals((object) ['masked' => 'data'], $result);
+        $this->assertEquals((object) [TestConstants::DATA_MASKED => 'data'], $result);
     }
 
     #[Test]

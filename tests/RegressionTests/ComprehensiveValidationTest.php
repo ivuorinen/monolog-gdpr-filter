@@ -126,9 +126,6 @@ class ComprehensiveValidationTest extends TestCase
 
             $this->assertInstanceOf(LogRecord::class, $result);
             $this->assertArrayHasKey('test_value', $result->context);
-
-            // Log successful processing for each type
-            error_log('✅ Successfully processed PHP type: ' . $typeName);
         }
 
         $this->assertCount(
@@ -158,7 +155,6 @@ class ComprehensiveValidationTest extends TestCase
             $rateLimiter->isAllowed('memory_test_key_' . $i);
         }
 
-        memory_get_usage(true);
         $initialStats = RateLimiter::getMemoryStats();
 
         // Phase 2: Wait for cleanup window and trigger cleanup
@@ -196,12 +192,6 @@ class ComprehensiveValidationTest extends TestCase
             $cleanupStats['total_keys'],
             'Keys should not accumulate indefinitely'
         );
-
-        error_log(sprintf(
-            '✅ Memory management working: Keys before=%d, after=%d',
-            $initialStats['total_keys'],
-            $cleanupStats['total_keys']
-        ));
     }
 
     /**
@@ -226,50 +216,27 @@ class ComprehensiveValidationTest extends TestCase
         ];
 
         $caughtCount = 0;
-        $totalPatterns = count($definitelyDangerousPatterns) + count($possiblyDangerousPatterns);
 
         // Test definitely dangerous patterns
-        foreach ($definitelyDangerousPatterns as $pattern => $description) {
+        foreach (array_keys($definitelyDangerousPatterns) as $pattern) {
             try {
                 PatternValidator::validateAll([sprintf('/%s/', $pattern) => TestConstants::DATA_MASKED]);
-                error_log(sprintf(
-                    '⚠️  Pattern not caught: %s (%s)',
-                    $pattern,
-                    $description
-                ));
             } catch (Throwable) {
                 $caughtCount++;
-                error_log(sprintf(
-                    '✅ Caught dangerous pattern: %s (%s)',
-                    $pattern,
-                    $description
-                ));
             }
         }
 
         // Test possibly dangerous patterns (implementation may vary)
-        foreach ($possiblyDangerousPatterns as $pattern => $description) {
+        foreach (array_keys($possiblyDangerousPatterns) as $pattern) {
             try {
                 PatternValidator::validateAll([sprintf('/%s/', $pattern) => TestConstants::DATA_MASKED]);
-                error_log(sprintf(
-                    'ℹ️  Pattern allowed: %s (%s)',
-                    $pattern,
-                    $description
-                ));
             } catch (Throwable) {
                 $caughtCount++;
-                error_log(sprintf(
-                    '✅ Caught potentially dangerous pattern: %s (%s)',
-                    $pattern,
-                    $description
-                ));
             }
         }
 
         // At least some dangerous patterns should be caught
         $this->assertGreaterThan(0, $caughtCount, 'ReDoS protection should catch at least some dangerous patterns');
-
-        error_log(sprintf('✅ ReDoS protection caught %d/%d dangerous patterns', $caughtCount, $totalPatterns));
     }
 
     /**
@@ -367,17 +334,10 @@ class ComprehensiveValidationTest extends TestCase
             }
 
             if ($sensitiveTermsFound !== []) {
-                error_log(sprintf(
-                    "⚠️  Scenario '%s': Sensitive terms still present: ",
-                    $scenario
-                ) . implode(', ', $sensitiveTermsFound));
-                error_log(
-                    '    Full message: ' . $loggedMessage
-                );
-            } else {
-                error_log(sprintf(
-                    "✅ Scenario '%s': No sensitive terms found in sanitized message",
-                    $scenario
+                $this->fail(sprintf(
+                    "Scenario '%s': %d sensitive term(s) still present in masked output",
+                    $scenario,
+                    count($sensitiveTermsFound)
                 ));
             }
 
@@ -424,8 +384,6 @@ class ComprehensiveValidationTest extends TestCase
         if ($json === false) {
             $this->fail('RateLimiter::getMemoryStats() returned false');
         }
-
-        error_log("✅ Rate limiter statistics: " . $json);
     }
 
     /**
@@ -484,19 +442,8 @@ class ComprehensiveValidationTest extends TestCase
                     $memoryIncrease,
                     'Memory usage should be reasonable for ' . $name
                 );
-
-                error_log(sprintf(
-                    "✅ Safely processed extreme value '%s' in %ss using %d bytes",
-                    $name,
-                    $processingTime,
-                    $memoryIncrease
-                ));
             } catch (Throwable $e) {
                 // Some extreme values might cause controlled exceptions
-                error_log(sprintf(
-                    "ℹ️  Extreme value '%s' caused controlled exception: ",
-                    $name
-                ) . $e->getMessage());
                 $this->assertInstanceOf(Throwable::class, $e);
             }
         }
@@ -528,8 +475,8 @@ class ComprehensiveValidationTest extends TestCase
         $processor = $this->createProcessor(
             patterns: [
                 '/\b\d{3}-\d{2}-\d{4}\b/' => MaskConstants::MASK_USSSN,
-                '/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/' => MaskConstants::MASK_EMAIL,
-                '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/' => MaskConstants::MASK_CC,
+                TestConstants::PATTERN_EMAIL_SIMPLE => MaskConstants::MASK_EMAIL,
+                TestConstants::PATTERN_CREDIT_CARD => MaskConstants::MASK_CC,
             ],
             fieldPaths: [
                 TestConstants::FIELD_USER_PASSWORD => FieldMaskConfig::remove(),
@@ -618,11 +565,6 @@ class ComprehensiveValidationTest extends TestCase
         // Rate limiter should provide stats
         $stats = $rateLimitedLogger->getRateLimitStats();
         $this->assertIsArray($stats);
-
-        error_log(
-            "✅ Complete integration test passed with "
-            . count($this->auditLog) . " audit log entries"
-        );
     }
 
     /**
@@ -645,9 +587,6 @@ class ComprehensiveValidationTest extends TestCase
         // Clean up any static state
         PatternValidator::clearCache();
         RateLimiter::clearAll();
-
-        // Log final validation summary
-        error_log("🎯 Comprehensive validation completed successfully");
 
         parent::tearDown();
     }

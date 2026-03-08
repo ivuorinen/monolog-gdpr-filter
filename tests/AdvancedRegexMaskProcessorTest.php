@@ -35,7 +35,7 @@ class AdvancedRegexMaskProcessorTest extends TestCase
         ];
 
         $fieldPaths = [
-            "user.ssn" => "[GDPR]",
+            TestConstants::FIELD_USER_SSN => "[GDPR]",
             "payment.card" => "[CC]",
             "contact.email" => FieldMaskConfig::useProcessorPatterns(), // use regex-masked
             "metadata.session" => "[SESSION]",
@@ -48,7 +48,7 @@ class AdvancedRegexMaskProcessorTest extends TestCase
     {
         $record = $this->logEntry()->with(message: "Card: 1234567812345678");
         $result = ($this->processor)($record)->toArray();
-        $this->assertSame("Card: " . MaskConstants::MASK_CC, $result["message"]);
+        $this->assertSame("Card: " . MaskConstants::MASK_CC, $result[TestConstants::FIELD_MESSAGE]);
     }
 
     public function testMaskEmailInMessage(): void
@@ -56,7 +56,7 @@ class AdvancedRegexMaskProcessorTest extends TestCase
         $record = $this->logEntry()->with(message: "Email: user@example.com");
 
         $result = ($this->processor)($record)->toArray();
-        $this->assertSame("Email: " . MaskConstants::MASK_EMAIL, $result["message"]);
+        $this->assertSame("Email: " . MaskConstants::MASK_EMAIL, $result[TestConstants::FIELD_MESSAGE]);
     }
 
     public function testContextFieldPathReplacements(): void

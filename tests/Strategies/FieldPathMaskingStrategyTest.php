@@ -138,9 +138,9 @@ final class FieldPathMaskingStrategyTest extends TestCase
             TestConstants::PATTERN_SSN_FORMAT,
             MaskConstants::MASK_SSN_PATTERN
         );
-        $strategy = new FieldPathMaskingStrategy(['user.ssn' => $ssnConfig]);
+        $strategy = new FieldPathMaskingStrategy([TestConstants::FIELD_USER_SSN => $ssnConfig]);
 
-        $result = $strategy->mask(TestConstants::SSN_US, 'user.ssn', $this->logRecord);
+        $result = $strategy->mask(TestConstants::SSN_US, TestConstants::FIELD_USER_SSN, $this->logRecord);
 
         $this->assertSame(MaskConstants::MASK_SSN_PATTERN, $result);
     }
@@ -149,12 +149,12 @@ final class FieldPathMaskingStrategyTest extends TestCase
     public function maskAppliesStaticReplacementFromConfig(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            TestConstants::FIELD_USER_NAME => FieldMaskConfig::replace('[REDACTED]'),
+            TestConstants::FIELD_USER_NAME => FieldMaskConfig::replace(TestConstants::MASK_REDACTED_BRACKETS),
         ]);
 
         $result = $strategy->mask(TestConstants::NAME_FULL, TestConstants::FIELD_USER_NAME, $this->logRecord);
 
-        $this->assertSame('[REDACTED]', $result);
+        $this->assertSame(TestConstants::MASK_REDACTED_BRACKETS, $result);
     }
 
     #[Test]
@@ -238,7 +238,7 @@ final class FieldPathMaskingStrategyTest extends TestCase
         $strategy = new FieldPathMaskingStrategy([
             TestConstants::FIELD_USER_EMAIL => MaskConstants::MASK_EMAIL_PATTERN,
             TestConstants::FIELD_USER_PASSWORD => FieldMaskConfig::remove(),
-            'user.ssn' => $ssnConfig,
+            TestConstants::FIELD_USER_SSN => $ssnConfig,
         ]);
 
         $this->assertTrue($strategy->validate());
@@ -328,7 +328,7 @@ final class FieldPathMaskingStrategyTest extends TestCase
     public function maskHandlesMultipleReplacementsInSameValue(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            'message' => FieldMaskConfig::regexMask(TestConstants::PATTERN_SSN_FORMAT, MaskConstants::MASK_SSN_PATTERN),
+            TestConstants::FIELD_MESSAGE => FieldMaskConfig::regexMask(TestConstants::PATTERN_SSN_FORMAT, MaskConstants::MASK_SSN_PATTERN),
         ]);
 
         $input = 'SSNs: 123-45-6789 and 987-65-4321';

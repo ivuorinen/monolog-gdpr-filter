@@ -30,7 +30,7 @@ final class FieldPathMaskingStrategyEnhancedTest extends TestCase
         $this->expectException(MaskingOperationFailedException::class);
         $this->expectExceptionMessage('Regex pattern is null');
 
-        $strategy->mask('test value', 'field', $record);
+        $strategy->mask(TestConstants::VALUE_TEST, 'field', $record);
     }
 
     public function testApplyStaticReplacementWithNullReplacement(): void

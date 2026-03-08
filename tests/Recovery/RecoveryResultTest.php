@@ -41,9 +41,9 @@ final class RecoveryResultTest extends TestCase
     public function testFallbackCreation(): void
     {
         $error = ErrorContext::create('TestError', 'Failed to mask');
-        $result = RecoveryResult::fallback('[REDACTED]', 3, $error, 50.0);
+        $result = RecoveryResult::fallback(TestConstants::MASK_REDACTED_BRACKETS, 3, $error, 50.0);
 
-        $this->assertSame('[REDACTED]', $result->value);
+        $this->assertSame(TestConstants::MASK_REDACTED_BRACKETS, $result->value);
         $this->assertSame(RecoveryResult::OUTCOME_FALLBACK, $result->outcome);
         $this->assertSame(3, $result->attempts);
         $this->assertSame($error, $result->lastError);

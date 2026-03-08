@@ -28,7 +28,7 @@ class JsonMaskingTest extends TestCase
             TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL
         ]);
 
-        $message = 'User data: {"email": "user@example.com", "name": "John Doe"}';
+        $message = 'User data: {"' . TestConstants::CONTEXT_EMAIL . '": "' . TestConstants::EMAIL_USER . '", "name": "' . TestConstants::NAME_FULL . '"}';
         $result = $processor->regExpMessage($message);
 
         $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
@@ -47,7 +47,7 @@ class JsonMaskingTest extends TestCase
             TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL
         ]);
 
-        $message = 'Users: [{"email": "admin@example.com"}, {"email": "user@test.com"}]';
+        $message = 'Users: [{"' . TestConstants::CONTEXT_EMAIL . '": "' . TestConstants::EMAIL_ADMIN . '"}, {"' . TestConstants::CONTEXT_EMAIL . '": "user@test.com"}]';
         $result = $processor->regExpMessage($message);
 
         $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
@@ -69,7 +69,7 @@ class JsonMaskingTest extends TestCase
         ]);
 
         $message = 'Complex data: {"user": {"contact": '
-            . '{"email": "nested@example.com", "ssn": "' . TestConstants::SSN_US . '"}, "id": 42}}';
+            . '{"' . TestConstants::CONTEXT_EMAIL . '": "nested@example.com", "ssn": "' . TestConstants::SSN_US . '"}, "id": 42}}';
         $result = $processor->regExpMessage($message);
 
         $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
@@ -91,7 +91,7 @@ class JsonMaskingTest extends TestCase
             TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL
         ]);
 
-        $message = 'Request: {"email": "req@example.com"} Response: {"email": "resp@test.com", "status": "ok"}';
+        $message = 'Request: {"' . TestConstants::CONTEXT_EMAIL . '": "req@example.com"} Response: {"' . TestConstants::CONTEXT_EMAIL . '": "resp@test.com", "status": "ok"}';
         $result = $processor->regExpMessage($message);
 
         $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
@@ -135,7 +135,7 @@ class JsonMaskingTest extends TestCase
             TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL
         ]);
 
-        $message = 'Data: {"email": "user@example.com", "message": "Hello \"world\"", "unicode": "café ñoño"}';
+        $message = 'Data: {"' . TestConstants::CONTEXT_EMAIL . '": "' . TestConstants::EMAIL_USER . '", "' . TestConstants::FIELD_MESSAGE . '": "Hello \"world\"", "unicode": "café ñoño"}';
         $result = $processor->regExpMessage($message);
 
         $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
@@ -159,7 +159,7 @@ class JsonMaskingTest extends TestCase
             ['integer' => MaskConstants::MASK_INT, 'string' => MaskConstants::MASK_STRING]
         );
 
-        $message = 'Data: {"email": "user@example.com", "id": 12345, "active": true}';
+        $message = 'Data: {"' . TestConstants::CONTEXT_EMAIL . '": "' . TestConstants::EMAIL_USER . '", "id": 12345, "active": true}';
         $result = $processor->regExpMessage($message);
 
         $extractedJson = $this->extractJsonFromMessage($result);
@@ -187,7 +187,7 @@ class JsonMaskingTest extends TestCase
             $auditLogger
         );
 
-        $message = 'User: {"email": "test@example.com", "name": "Test User"}';
+        $message = 'User: {"' . TestConstants::CONTEXT_EMAIL . '": "' . TestConstants::EMAIL_TEST . '", "name": "Test User"}';
         $result = $processor->regExpMessage($message);
 
         $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
@@ -218,7 +218,7 @@ class JsonMaskingTest extends TestCase
             new DateTimeImmutable(),
             'test',
             Level::Info,
-            'API Response: {"user": {"email": "api@example.com"}, "status": "success"}',
+            'API Response: {"user": {"' . TestConstants::CONTEXT_EMAIL . '": "api@example.com"}, "status": "success"}',
             []
         );
 
@@ -253,7 +253,7 @@ class JsonMaskingTest extends TestCase
             new DateTimeImmutable(),
             'test',
             Level::Error,
-            'Error data: {"email": "error@example.com"}',
+            'Error data: {"' . TestConstants::CONTEXT_EMAIL . '": "error@example.com"}',
             []
         );
 
@@ -266,7 +266,7 @@ class JsonMaskingTest extends TestCase
             new DateTimeImmutable(),
             'test',
             Level::Info,
-            'Info data: {"email": "info@example.com"}',
+            'Info data: {"' . TestConstants::CONTEXT_EMAIL . '": "info@example.com"}',
             []
         );
 
@@ -286,18 +286,18 @@ class JsonMaskingTest extends TestCase
             "users": [
                 {
                     "id": 1,
-                    "email": "john@example.com",
+                    "' . TestConstants::CONTEXT_EMAIL . '": "' . TestConstants::EMAIL_JOHN . '",
                     "contacts": {
                         "phone": "' . TestConstants::PHONE_US . '",
                         "emergency": {
-                            "email": "emergency@example.com",
+                            "' . TestConstants::CONTEXT_EMAIL . '": "emergency@example.com",
                             "phone": "' . TestConstants::PHONE_US_ALT . '"
                         }
                     }
                 },
                 {
                     "id": 2,
-                    "email": "jane@test.com",
+                    "' . TestConstants::CONTEXT_EMAIL . '": "jane@test.com",
                     "contacts": {
                         "phone": "+1-555-456-7890"
                     }
@@ -310,7 +310,7 @@ class JsonMaskingTest extends TestCase
 
         $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
         $this->assertStringContainsString(MaskConstants::MASK_PHONE, $result);
-        $this->assertStringNotContainsString('john@example.com', $result);
+        $this->assertStringNotContainsString(TestConstants::EMAIL_JOHN, $result);
         $this->assertStringNotContainsString('jane@test.com', $result);
         $this->assertStringNotContainsString('emergency@example.com', $result);
         $this->assertStringNotContainsString(TestConstants::PHONE_US, $result);
@@ -420,7 +420,7 @@ class JsonMaskingTest extends TestCase
             TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL
         ]);
 
-        $message = 'Data: {"email": "user@example.com", "optional": null, "empty": ""}';
+        $message = 'Data: {"' . TestConstants::CONTEXT_EMAIL . '": "' . TestConstants::EMAIL_USER . '", "optional": null, "empty": ""}';
         $result = $processor->regExpMessage($message);
 
         $extractedJson = $this->extractJsonFromMessage($result);

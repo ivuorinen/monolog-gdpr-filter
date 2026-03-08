@@ -9,6 +9,7 @@ use Ivuorinen\MonologGdprFilter\Factory\AuditLoggerFactory;
 use Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Tests\TestConstants;
 
 #[CoversClass(AuditLoggerFactory::class)]
 final class AuditLoggerFactoryTest extends TestCase
@@ -66,12 +67,12 @@ final class AuditLoggerFactoryTest extends TestCase
         $storage = [];
 
         $logger = $factory->createArrayLogger($storage);
-        $logger('test.path', 'original', 'masked');
+        $logger('test.path', 'original', TestConstants::DATA_MASKED);
 
         $this->assertCount(1, $storage);
         $this->assertSame('test.path', $storage[0]['path']);
         $this->assertSame('original', $storage[0]['original']);
-        $this->assertSame('masked', $storage[0]['masked']);
+        $this->assertSame(TestConstants::DATA_MASKED, $storage[0][TestConstants::DATA_MASKED]);
         $this->assertArrayHasKey('timestamp', $storage[0]);
     }
 
@@ -90,7 +91,7 @@ final class AuditLoggerFactoryTest extends TestCase
         $logger = $factory->createNullLogger();
 
         // Should not throw
-        $logger('path', 'original', 'masked');
+        $logger('path', 'original', TestConstants::DATA_MASKED);
         $this->assertTrue(true);
     }
 
@@ -109,11 +110,11 @@ final class AuditLoggerFactoryTest extends TestCase
         $factory = AuditLoggerFactory::create();
         $calls = [];
         $callback = function (string $path, mixed $original, mixed $masked) use (&$calls): void {
-            $calls[] = ['path' => $path, 'original' => $original, 'masked' => $masked];
+            $calls[] = ['path' => $path, 'original' => $original, TestConstants::DATA_MASKED => $masked];
         };
 
         $logger = $factory->createCallbackLogger($callback);
-        $logger('test.path', 'original', 'masked');
+        $logger('test.path', 'original', TestConstants::DATA_MASKED);
 
         $this->assertCount(1, $calls);
         $this->assertSame('test.path', $calls[0]['path']);

@@ -145,6 +145,8 @@ final class TestConstants
     public const FIELD_USER_NAME = 'user.name';
     public const FIELD_USER_PUBLIC = 'user.public';
     public const FIELD_USER_PASSWORD = 'user.password';
+    public const FIELD_USER_SSN = 'user.ssn';
+    public const FIELD_USER_DATA = 'user.data';
     public const FIELD_SYSTEM_LOG = 'system.log';
 
     // Path Patterns
@@ -168,20 +170,32 @@ final class TestConstants
     // Mask placeholders used in tests (bracketed format)
     public const MASK_REDACTED_BRACKETS = '[REDACTED]';
     public const MASK_MASKED_BRACKETS = '[MASKED]';
+    public const MASK_SECRET_BRACKETS = '[SECRET]';
+    public const MASK_SSN_BRACKETS = '[SSN]';
     public const MASK_EMAIL_BRACKETS = '[EMAIL]';
     public const MASK_DIGITS_BRACKETS = '[DIGITS]';
     public const MASK_INT_BRACKETS = '[INT]';
     public const MASK_ALWAYS_THIS = '[ALWAYS_THIS]';
+    public const MASK_REDACTED_PLAIN = 'REDACTED';
 
     // Test values
     public const VALUE_TEST = 'test value';
     public const VALUE_SUFFIX = ' value';
 
+    // Expected output strings
+    public const EXPECTED_SSN_MASKED = 'SSN: [SSN]';
+
+    // Mask placeholders (bracketed format, additional)
+    public const MASK_CARD_BRACKETS = '[CARD]';
+
     // Additional pattern constants
+    public const PATTERN_EMAIL_SIMPLE = '/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/';
     public const PATTERN_VALID_SIMPLE = '/^test$/';
     public const PATTERN_INVALID_UNCLOSED = '/unclosed';
     public const PATTERN_REDOS_VULNERABLE = '/^(a+)+$/';
+    public const PATTERN_REDOS_NESTED_STAR = '/^(a*)*$/';
     public const PATTERN_SAFE = '/[a-z]+/';
+    public const PATTERN_CREDIT_CARD = '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/';
 
     /**
      * Prevent instantiation.

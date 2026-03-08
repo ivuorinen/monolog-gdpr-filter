@@ -8,6 +8,7 @@ use Ivuorinen\MonologGdprFilter\ArrayAccessor\ArrayAccessorFactory;
 use Ivuorinen\MonologGdprFilter\ArrayAccessor\DotArrayAccessor;
 use Ivuorinen\MonologGdprFilter\Contracts\ArrayAccessorInterface;
 use PHPUnit\Framework\TestCase;
+use Tests\TestConstants;
 
 /**
  * Tests for ArrayAccessorFactory.
@@ -29,11 +30,11 @@ final class ArrayAccessorFactoryTest extends TestCase
     {
         $factory = ArrayAccessorFactory::default();
         $accessor = $factory->create([
-            'user' => ['email' => 'test@example.com'],
+            'user' => [TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_TEST],
         ]);
 
-        $this->assertTrue($accessor->has('user.email'));
-        $this->assertSame('test@example.com', $accessor->get('user.email'));
+        $this->assertTrue($accessor->has(TestConstants::FIELD_USER_EMAIL));
+        $this->assertSame(TestConstants::EMAIL_TEST, $accessor->get(TestConstants::FIELD_USER_EMAIL));
     }
 
     public function testWithClassFactoryMethod(): void

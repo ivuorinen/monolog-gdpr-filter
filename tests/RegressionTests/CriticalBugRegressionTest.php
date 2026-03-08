@@ -84,7 +84,7 @@ class CriticalBugRegressionTest extends TestCase
         $testCases = [
             'integer' => 42,
             'double' => 3.14,
-            'string' => 'test string',
+            'string' => TestConstants::MESSAGE_TEST_STRING,
             'boolean_true' => true,
             'boolean_false' => false,
             'null' => null,
@@ -378,7 +378,7 @@ class CriticalBugRegressionTest extends TestCase
     {
         $safePatterns = [
             '/\b\d{3}-\d{2}-\d{4}\b/' => 'SSN',
-            '/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/' => 'EMAIL',
+            TestConstants::PATTERN_EMAIL_SIMPLE => 'EMAIL',
             '/\b\d{4}\s?\d{4}\s?\d{4}\s?\d{4}\b/' => 'CREDIT_CARD',
             '/\+?1?[-.\s]?\(?(\d{3})\)?[-.\s]?(\d{3})[-.\s]?(\d{4})/' => 'PHONE',
         ];
@@ -466,23 +466,6 @@ class CriticalBugRegressionTest extends TestCase
         // Should contain some indication that sensitive information was sanitized
         // Note: Current implementation may not fully sanitize all patterns
         $this->assertStringContainsString('Rule error:', (string) $errorMessage);
-
-        // Test that at least some sanitization occurs (implementation-dependent)
-        $containsSensitiveInfo = false;
-        $sensitiveTerms = ['password=secret123', 'user=secret_user', 'host=sensitive.db.com'];
-        foreach ($sensitiveTerms as $term) {
-            if (str_contains((string) $errorMessage, $term)) {
-                $containsSensitiveInfo = true;
-                break;
-            }
-        }
-
-        // If sensitive info is still present, log a warning for future improvement
-        if ($containsSensitiveInfo) {
-            error_log(
-                "Warning: Error message sanitization may need improvement: " . $errorMessage
-            );
-        }
 
         // For now, just ensure the error was logged properly
         $this->assertNotEmpty($errorMessage);

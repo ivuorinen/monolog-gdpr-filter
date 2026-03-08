@@ -115,13 +115,6 @@
       </errorLevel>
     </UndefinedFunction>
 
-    <!-- Test utility calls -->
-    <UnusedFunctionCall>
-      <errorLevel type="suppress">
-        <directory name="tests" />
-      </errorLevel>
-    </UnusedFunctionCall>
-
     <!-- Laravel-specific patterns -->
     <!-- (Laravel directory is excluded from scanning) -->
 
