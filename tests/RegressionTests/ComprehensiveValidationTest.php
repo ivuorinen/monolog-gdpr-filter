@@ -475,7 +475,7 @@ class ComprehensiveValidationTest extends TestCase
         $processor = $this->createProcessor(
             patterns: [
                 '/\b\d{3}-\d{2}-\d{4}\b/' => MaskConstants::MASK_USSSN,
-                '/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/' => MaskConstants::MASK_EMAIL,
+                TestConstants::PATTERN_EMAIL_SIMPLE => MaskConstants::MASK_EMAIL,
                 '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/' => MaskConstants::MASK_CC,
             ],
             fieldPaths: [

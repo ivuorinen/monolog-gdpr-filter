@@ -78,8 +78,8 @@ final class StrategyEdgeCasesTest extends TestCase
     {
         $strategy = new RegexMaskingStrategy([
             TestConstants::PATTERN_SSN_FORMAT => TestConstants::MASK_SSN_BRACKETS,
-            '/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/' => TestConstants::MASK_EMAIL_BRACKETS,
-            '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/' => '[CARD]',
+            TestConstants::PATTERN_EMAIL_SIMPLE => TestConstants::MASK_EMAIL_BRACKETS,
+            '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/' => TestConstants::MASK_CARD_BRACKETS,
         ]);
 
         $this->assertInstanceOf(RegexMaskingStrategy::class, $strategy);
@@ -377,7 +377,7 @@ final class StrategyEdgeCasesTest extends TestCase
 
         $result = $strategy->mask('SSN: 123-45-6789', TestConstants::FIELD_USER_SSN, $this->logRecord);
 
-        $this->assertSame('SSN: [SSN]', $result);
+        $this->assertSame(TestConstants::EXPECTED_SSN_MASKED, $result);
     }
 
     #[Test]

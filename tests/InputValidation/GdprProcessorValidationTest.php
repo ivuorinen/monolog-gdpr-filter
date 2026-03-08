@@ -144,7 +144,7 @@ class GdprProcessorValidationTest extends TestCase
         $processor = new GdprProcessor([], [
             TestConstants::FIELD_USER_EMAIL => FieldMaskConfig::remove(),
             TestConstants::FIELD_USER_NAME => 'masked_value',
-            'payment.card' => FieldMaskConfig::replace('[CARD]')
+            'payment.card' => FieldMaskConfig::replace(TestConstants::MASK_CARD_BRACKETS)
         ]);
 
         $this->assertInstanceOf(GdprProcessor::class, $processor);

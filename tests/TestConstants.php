@@ -182,7 +182,14 @@ final class TestConstants
     public const VALUE_TEST = 'test value';
     public const VALUE_SUFFIX = ' value';
 
+    // Expected output strings
+    public const EXPECTED_SSN_MASKED = 'SSN: [SSN]';
+
+    // Mask placeholders (bracketed format, additional)
+    public const MASK_CARD_BRACKETS = '[CARD]';
+
     // Additional pattern constants
+    public const PATTERN_EMAIL_SIMPLE = '/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/';
     public const PATTERN_VALID_SIMPLE = '/^test$/';
     public const PATTERN_INVALID_UNCLOSED = '/unclosed';
     public const PATTERN_REDOS_VULNERABLE = '/^(a+)+$/';

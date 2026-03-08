@@ -85,7 +85,7 @@ final class MaskingOrchestratorTest extends TestCase
 
         $result = $orchestrator->regExpMessage('SSN: 123-45-6789');
 
-        $this->assertSame('SSN: [SSN]', $result);
+        $this->assertSame(TestConstants::EXPECTED_SSN_MASKED, $result);
     }
 
     public function testRegExpMessagePreservesEmptyString(): void

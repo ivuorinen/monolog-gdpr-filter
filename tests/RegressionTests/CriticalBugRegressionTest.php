@@ -378,7 +378,7 @@ class CriticalBugRegressionTest extends TestCase
     {
         $safePatterns = [
             '/\b\d{3}-\d{2}-\d{4}\b/' => 'SSN',
-            '/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/' => 'EMAIL',
+            TestConstants::PATTERN_EMAIL_SIMPLE => 'EMAIL',
             '/\b\d{4}\s?\d{4}\s?\d{4}\s?\d{4}\b/' => 'CREDIT_CARD',
             '/\+?1?[-.\s]?\(?(\d{3})\)?[-.\s]?(\d{3})[-.\s]?(\d{4})/' => 'PHONE',
         ];
