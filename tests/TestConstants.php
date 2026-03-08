@@ -195,6 +195,7 @@ final class TestConstants
     public const PATTERN_REDOS_VULNERABLE = '/^(a+)+$/';
     public const PATTERN_REDOS_NESTED_STAR = '/^(a*)*$/';
     public const PATTERN_SAFE = '/[a-z]+/';
+    public const PATTERN_CREDIT_CARD = '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/';
 
     /**
      * Prevent instantiation.

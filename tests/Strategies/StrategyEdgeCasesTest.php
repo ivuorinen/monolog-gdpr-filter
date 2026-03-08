@@ -79,7 +79,7 @@ final class StrategyEdgeCasesTest extends TestCase
         $strategy = new RegexMaskingStrategy([
             TestConstants::PATTERN_SSN_FORMAT => TestConstants::MASK_SSN_BRACKETS,
             TestConstants::PATTERN_EMAIL_SIMPLE => TestConstants::MASK_EMAIL_BRACKETS,
-            '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/' => TestConstants::MASK_CARD_BRACKETS,
+            TestConstants::PATTERN_CREDIT_CARD => TestConstants::MASK_CARD_BRACKETS,
         ]);
 
         $this->assertInstanceOf(RegexMaskingStrategy::class, $strategy);

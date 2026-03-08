@@ -335,9 +335,9 @@ class ComprehensiveValidationTest extends TestCase
 
             if ($sensitiveTermsFound !== []) {
                 $this->fail(sprintf(
-                    "Scenario '%s': Sensitive terms still present: %s",
+                    "Scenario '%s': %d sensitive term(s) still present in masked output",
                     $scenario,
-                    implode(', ', $sensitiveTermsFound)
+                    count($sensitiveTermsFound)
                 ));
             }
 
@@ -476,7 +476,7 @@ class ComprehensiveValidationTest extends TestCase
             patterns: [
                 '/\b\d{3}-\d{2}-\d{4}\b/' => MaskConstants::MASK_USSSN,
                 TestConstants::PATTERN_EMAIL_SIMPLE => MaskConstants::MASK_EMAIL,
-                '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/' => MaskConstants::MASK_CC,
+                TestConstants::PATTERN_CREDIT_CARD => MaskConstants::MASK_CC,
             ],
             fieldPaths: [
                 TestConstants::FIELD_USER_PASSWORD => FieldMaskConfig::remove(),

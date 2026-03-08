@@ -124,8 +124,8 @@ class SecurityRegressionTest extends TestCase
         $legitimatePatterns = [
             // Common GDPR patterns
             '/\b\d{3}-\d{2}-\d{4}\b/' => 'SSN',
-            TestConstants::PATTERN_EMAIL_SIMPLE => 'EMAIL',
-            '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/' => 'CREDIT_CARD',
+            TestConstants::PATTERN_EMAIL_SIMPLE => MaskConstants::MASK_EMAIL,
+            TestConstants::PATTERN_CREDIT_CARD => 'CREDIT_CARD',
             '/\+?1?[-.\s]?\(?(\d{3})\)?[-.\s]?(\d{3})[-.\s]?(\d{4})/' => 'PHONE',
             '/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/' => 'IP_ADDRESS',
 
