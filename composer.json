@@ -47,7 +47,7 @@
     "illuminate/contracts": "*",
     "illuminate/http": "*",
     "orklah/psalm-strict-equality": "^3.1",
-    "phpunit/phpunit": "^11",
+    "phpunit/phpunit": "^12",
     "psalm/plugin-phpunit": "^0.19.5",
     "rector/rector": "^2.1",
     "squizlabs/php_codesniffer": "^4.0",
