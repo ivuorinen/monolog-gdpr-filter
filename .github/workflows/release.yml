@@ -39,7 +39,7 @@ jobs:
 
       - name: Get tag name
         id: tag
-        run: echo "name=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        run: echo "name=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
 
       - name: Extract changelog for this version
         id: changelog
@@ -49,14 +49,16 @@ jobs:
             # Get content between this version and next version header
             awk '/^## \[${{ steps.tag.outputs.name }}\]/{flag=1; next} /^## \[/{flag=0} flag' CHANGELOG.md > /tmp/changelog.txt
             if [ -s /tmp/changelog.txt ]; then
-              echo "content<<EOF" >> $GITHUB_OUTPUT
-              cat /tmp/changelog.txt >> $GITHUB_OUTPUT
-              echo "EOF" >> $GITHUB_OUTPUT
+              {
+                echo "content<<EOF"
+                cat /tmp/changelog.txt
+                echo "EOF"
+              } >> "$GITHUB_OUTPUT"
             else
-              echo "content=Release ${{ steps.tag.outputs.name }}" >> $GITHUB_OUTPUT
+              echo "content=Release ${{ steps.tag.outputs.name }}" >> "$GITHUB_OUTPUT"
             fi
           else
-            echo "content=Release ${{ steps.tag.outputs.name }}" >> $GITHUB_OUTPUT
+            echo "content=Release ${{ steps.tag.outputs.name }}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Archive source code
