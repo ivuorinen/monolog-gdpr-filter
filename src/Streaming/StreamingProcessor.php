@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Ivuorinen\MonologGdprFilter\Streaming;
 
 use Ivuorinen\MonologGdprFilter\Exceptions\StreamingOperationFailedException;
-use Ivuorinen\MonologGdprFilter\MaskConstants;
 use Ivuorinen\MonologGdprFilter\MaskingOrchestrator;
 
 /**
@@ -177,16 +176,18 @@ final class StreamingProcessor
     {
         $stats = ['processed' => 0, 'masked' => 0, 'errors' => 0];
 
-        foreach ($this->processStream($records) as $record) {
+        $originals = [];
+        foreach ($records as $record) {
+            $originals[] = $record;
+        }
+
+        $index = 0;
+        foreach ($this->processStream($originals) as $processed) {
             $stats['processed']++;
-            // Count if any masking occurred (simple heuristic)
-            if (
-                str_contains($record['message'], MaskConstants::MASK_GENERIC)
-                || str_contains($record['message'], MaskConstants::MASK_BRACKETS)
-                || str_contains($record['message'], MaskConstants::MASK_REDACTED_BRACKETS)
-            ) {
+            if ($processed !== $originals[$index]) {
                 $stats['masked']++;
             }
+            $index++;
         }
 
         return $stats;

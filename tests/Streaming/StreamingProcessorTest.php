@@ -196,7 +196,7 @@ final class StreamingProcessorTest extends TestCase
         $stats = $processor->getStatistics($records);
 
         $this->assertSame(3, $stats['processed']);
-        $this->assertGreaterThan(0, $stats[TestConstants::DATA_MASKED]); // At least some should be masked
+        $this->assertSame(2, $stats[TestConstants::DATA_MASKED]);
     }
 
     public function testSetAuditLogger(): void
