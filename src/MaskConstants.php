@@ -28,6 +28,7 @@ final class MaskConstants
     public const MASK_REDACTED = '***REDACTED***';
     public const MASK_FILTERED = '***FILTERED***';
     public const MASK_BRACKETS = '[MASKED]';
+    public const MASK_REDACTED_BRACKETS = '[REDACTED]';
 
     // Personal identifiers
     public const MASK_HETU = '***HETU***';          // Finnish SSN

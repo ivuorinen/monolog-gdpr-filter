@@ -180,7 +180,11 @@ final class StreamingProcessor
         foreach ($this->processStream($records) as $record) {
             $stats['processed']++;
             // Count if any masking occurred (simple heuristic)
-            if (str_contains($record['message'], MaskConstants::MASK_GENERIC) || str_contains($record['message'], '[')) {
+            if (
+                str_contains($record['message'], MaskConstants::MASK_GENERIC)
+                || str_contains($record['message'], MaskConstants::MASK_BRACKETS)
+                || str_contains($record['message'], MaskConstants::MASK_REDACTED_BRACKETS)
+            ) {
                 $stats['masked']++;
             }
         }
