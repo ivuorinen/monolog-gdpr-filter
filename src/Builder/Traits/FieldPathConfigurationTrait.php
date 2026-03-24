@@ -25,8 +25,10 @@ trait FieldPathConfigurationTrait
      * @param string $path Dot-notation path
      * @param FieldMaskConfig|string $config Mask configuration or replacement string
      */
-    public function addFieldPath(string $path, FieldMaskConfig|string $config): self
-    {
+    public function addFieldPath(
+        string $path,
+        FieldMaskConfig|string $config
+    ): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder {
         $this->fieldPaths[$path] = $config;
         return $this;
     }
@@ -36,8 +38,9 @@ trait FieldPathConfigurationTrait
      *
      * @param array<string,FieldMaskConfig|string> $fieldPaths Path => config
      */
-    public function addFieldPaths(array $fieldPaths): self
-    {
+    public function addFieldPaths(
+        array $fieldPaths
+    ): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder {
         $this->fieldPaths = array_merge($this->fieldPaths, $fieldPaths);
         return $this;
     }
@@ -47,8 +50,9 @@ trait FieldPathConfigurationTrait
      *
      * @param array<string,FieldMaskConfig|string> $fieldPaths Path => config
      */
-    public function setFieldPaths(array $fieldPaths): self
-    {
+    public function setFieldPaths(
+        array $fieldPaths
+    ): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder {
         $this->fieldPaths = $fieldPaths;
         return $this;
     }

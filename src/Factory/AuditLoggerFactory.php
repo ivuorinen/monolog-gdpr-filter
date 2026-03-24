@@ -63,7 +63,7 @@ final class AuditLoggerFactory
     /**
      * Create a null audit logger that does nothing.
      *
-     * @return Closure(string, mixed, mixed):void
+     * @psalm-return Closure(string, mixed, mixed):void
      */
     public function createNullLogger(): Closure
     {
@@ -99,13 +99,13 @@ final class AuditLoggerFactory
      *
      * @param callable(string,mixed,mixed):void $auditLogger The underlying audit logger
      * @param string $profile Rate limiting profile
-     * @deprecated Use instance method createRateLimited() instead
      */
+    #[\Deprecated(message: 'Use instance method createRateLimited() instead')]
     public static function rateLimited(
         callable $auditLogger,
         string $profile = 'default'
     ): RateLimitedAuditLogger {
-        return (new self())->createRateLimited($auditLogger, $profile);
+        return new self()->createRateLimited($auditLogger, $profile);
     }
 
     /**
@@ -113,14 +113,14 @@ final class AuditLoggerFactory
      *
      * @param array<array-key, mixed> $logStorage Reference to array for storing logs
      * @param bool $rateLimited Whether to apply rate limiting
-     * @deprecated Use instance method createArrayLogger() instead
      *
      * @psalm-return RateLimitedAuditLogger|Closure(string, mixed, mixed):void
      */
+    #[\Deprecated(message: 'Use instance method createArrayLogger() instead')]
     public static function arrayLogger(
         array &$logStorage,
         bool $rateLimited = false
     ): Closure|RateLimitedAuditLogger {
-        return (new self())->createArrayLogger($logStorage, $rateLimited);
+        return new self()->createArrayLogger($logStorage, $rateLimited);
     }
 }

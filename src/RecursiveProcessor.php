@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Ivuorinen\MonologGdprFilter;
 
-/**
+/**final
  * Handles recursive processing operations for GDPR masking.
  *
  * This class extracts recursive data processing logic from GdprProcessor

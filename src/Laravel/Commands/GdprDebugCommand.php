@@ -21,7 +21,7 @@ use Ivuorinen\MonologGdprFilter\Exceptions\CommandExecutionException;
  */
 class GdprDebugCommand extends Command
 {
-    private const COMMAND_NAME = 'gdpr:debug';
+    private const string COMMAND_NAME = 'gdpr:debug';
 
     /**
      * The name and signature of the console command.

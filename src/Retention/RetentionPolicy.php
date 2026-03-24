@@ -14,9 +14,9 @@ namespace Ivuorinen\MonologGdprFilter\Retention;
  */
 final class RetentionPolicy
 {
-    public const ACTION_DELETE = 'delete';
-    public const ACTION_ANONYMIZE = 'anonymize';
-    public const ACTION_ARCHIVE = 'archive';
+    public const string ACTION_DELETE = 'delete';
+    public const string ACTION_ANONYMIZE = 'anonymize';
+    public const string ACTION_ARCHIVE = 'archive';
 
     /**
      * @param string $name Policy name
@@ -80,9 +80,9 @@ final class RetentionPolicy
     /**
      * Get the retention cutoff date.
      */
-    public function getCutoffDate(): \DateTimeImmutable
+    public function getCutoffDate(): \DateTimeImmutable|false
     {
-        return (new \DateTimeImmutable())->modify("-{$this->retentionDays} days");
+        return new \DateTimeImmutable()->modify("-{$this->retentionDays} days");
     }
 
     /**

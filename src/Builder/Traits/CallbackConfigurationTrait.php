@@ -35,8 +35,10 @@ trait CallbackConfigurationTrait
      * @param string $path Dot-notation path
      * @param callable(mixed):string $callback Transformation callback
      */
-    public function addCallback(string $path, callable $callback): self
-    {
+    public function addCallback(
+        string $path,
+        callable $callback
+    ): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder {
         $this->customCallbacks[$path] = $callback;
         return $this;
     }
@@ -46,8 +48,9 @@ trait CallbackConfigurationTrait
      *
      * @param array<string,callable(mixed):string> $callbacks Path => callback
      */
-    public function addCallbacks(array $callbacks): self
-    {
+    public function addCallbacks(
+        array $callbacks
+    ): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder {
         $this->customCallbacks = array_merge($this->customCallbacks, $callbacks);
         return $this;
     }
@@ -58,8 +61,10 @@ trait CallbackConfigurationTrait
      * @param string $type Data type (e.g., 'integer', 'double', 'boolean')
      * @param string $mask Replacement mask
      */
-    public function addDataTypeMask(string $type, string $mask): self
-    {
+    public function addDataTypeMask(
+        string $type,
+        string $mask
+    ): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder {
         $this->dataTypeMasks[$type] = $mask;
         return $this;
     }
@@ -69,8 +74,9 @@ trait CallbackConfigurationTrait
      *
      * @param array<string,string> $masks Type => mask
      */
-    public function addDataTypeMasks(array $masks): self
-    {
+    public function addDataTypeMasks(
+        array $masks
+    ): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder {
         $this->dataTypeMasks = array_merge($this->dataTypeMasks, $masks);
         return $this;
     }
@@ -81,8 +87,10 @@ trait CallbackConfigurationTrait
      * @param string $name Rule name
      * @param callable(LogRecord):bool $condition Condition callback
      */
-    public function addConditionalRule(string $name, callable $condition): self
-    {
+    public function addConditionalRule(
+        string $name,
+        callable $condition
+    ): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder {
         $this->conditionalRules[$name] = $condition;
         return $this;
     }
@@ -92,8 +100,9 @@ trait CallbackConfigurationTrait
      *
      * @param array<string,callable(LogRecord):bool> $rules Name => condition
      */
-    public function addConditionalRules(array $rules): self
-    {
+    public function addConditionalRules(
+        array $rules
+    ): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder {
         $this->conditionalRules = array_merge($this->conditionalRules, $rules);
         return $this;
     }

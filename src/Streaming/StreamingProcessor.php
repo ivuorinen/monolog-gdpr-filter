@@ -17,7 +17,7 @@ use Ivuorinen\MonologGdprFilter\MaskingOrchestrator;
  */
 final class StreamingProcessor
 {
-    private const DEFAULT_CHUNK_SIZE = 1000;
+    private const int DEFAULT_CHUNK_SIZE = 1000;
 
     /**
      * @var callable(string,mixed,mixed):void|null
@@ -40,7 +40,8 @@ final class StreamingProcessor
      * Process a generator of records.
      *
      * @param iterable<array{message: string, context: array<string,mixed>}> $records
-     * @return \Generator<array{message: string, context: array<string,mixed>}>
+     *
+     * @psalm-return \Generator<int, array{message: string, context: array<string, mixed>}, mixed, void>
      */
     public function processStream(iterable $records): \Generator
     {
@@ -73,7 +74,8 @@ final class StreamingProcessor
      *
      * @param string $filePath Path to the log file
      * @param callable(string):array{message: string, context: array<string,mixed>} $lineParser
-     * @return \Generator<array{message: string, context: array<string,mixed>}>
+     *
+     * @psalm-return \Generator<int, array{message: string, context: array<string, mixed>}, mixed, never>
      */
     public function processFile(string $filePath, callable $lineParser): \Generator
     {
@@ -122,7 +124,10 @@ final class StreamingProcessor
      * @param iterable<array{message: string, context: array<string,mixed>}> $records
      * @param string $outputPath Path to output file
      * @param callable(array{message: string, context: array<string,mixed>}):string $formatter
+     *
      * @return int Number of records processed
+     *
+     * @psalm-return int<0, max>
      */
     public function processToFile(
         iterable $records,
@@ -151,7 +156,8 @@ final class StreamingProcessor
      * Process a chunk of records.
      *
      * @param list<array{message: string, context: array<string,mixed>}> $chunk
-     * @return \Generator<array{message: string, context: array<string,mixed>}>
+     *
+     * @psalm-return \Generator<int, array{message: string, context: array<string, mixed>}, mixed, void>
      */
     private function processChunk(array $chunk): \Generator
     {
@@ -170,7 +176,10 @@ final class StreamingProcessor
      * Get statistics about a streaming operation.
      *
      * @param iterable<array{message: string, context: array<string,mixed>}> $records
-     * @return array{processed: int, masked: int, errors: int}
+     *
+     * @return int[]
+     *
+     * @psalm-return array{processed: 0|1|2, masked: 0|1|2, errors: 0}
      */
     public function getStatistics(iterable $records): array
     {

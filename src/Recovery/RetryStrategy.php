@@ -20,9 +20,9 @@ use Throwable;
  */
 final class RetryStrategy implements RecoveryStrategy
 {
-    private const DEFAULT_MAX_ATTEMPTS = 3;
-    private const DEFAULT_BASE_DELAY_MS = 10;
-    private const DEFAULT_MAX_DELAY_MS = 100;
+    private const int DEFAULT_MAX_ATTEMPTS = 3;
+    private const int DEFAULT_BASE_DELAY_MS = 10;
+    private const int DEFAULT_MAX_DELAY_MS = 100;
 
     /**
      * @param int $maxAttempts Maximum number of attempts (1 = no retry)
@@ -82,6 +82,7 @@ final class RetryStrategy implements RecoveryStrategy
         );
     }
 
+    #[\Override]
     public function execute(
         callable $operation,
         mixed $originalValue,
@@ -109,6 +110,7 @@ final class RetryStrategy implements RecoveryStrategy
         return $this->applyFallback($originalValue, $path, $startTime, $lastError, $auditLogger);
     }
 
+    #[\Override]
     public function isRecoverable(Throwable $error): bool
     {
         // These errors indicate permanent failures that won't recover with retry
@@ -129,16 +131,30 @@ final class RetryStrategy implements RecoveryStrategy
         return true;
     }
 
+    #[\Override]
     public function getFailureMode(): FailureMode
     {
         return $this->failureMode;
     }
 
+    #[\Override]
     public function getMaxAttempts(): int
     {
         return $this->maxAttempts;
     }
 
+    #[\Override]
+    /**
+     * @return (int|string)[]
+     *
+     * @psalm-return array{
+     *     max_attempts: int,
+     *     base_delay_ms: int,
+     *     max_delay_ms: int,
+     *     failure_mode: 'fail_closed'|'fail_open'|'fail_safe',
+     *     fallback_mask: string
+     * }
+     */
     public function getConfiguration(): array
     {
         return [

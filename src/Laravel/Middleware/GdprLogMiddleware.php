@@ -25,7 +25,7 @@ use Ivuorinen\MonologGdprFilter\MaskConstants;
  */
 class GdprLogMiddleware
 {
-    private const LOG_MESSAGE_HTTP_RESPONSE = 'HTTP Response';
+    private const string LOG_MESSAGE_HTTP_RESPONSE = 'HTTP Response';
 
     protected GdprProcessor $processor;
 

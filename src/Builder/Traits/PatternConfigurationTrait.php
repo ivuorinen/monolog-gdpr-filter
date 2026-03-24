@@ -25,8 +25,10 @@ trait PatternConfigurationTrait
      * @param string $pattern Regex pattern
      * @param string $replacement Replacement string
      */
-    public function addPattern(string $pattern, string $replacement): self
-    {
+    public function addPattern(
+        string $pattern,
+        string $replacement
+    ): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder {
         $this->patterns[$pattern] = $replacement;
         return $this;
     }
@@ -36,8 +38,9 @@ trait PatternConfigurationTrait
      *
      * @param array<string,string> $patterns Regex pattern => replacement
      */
-    public function addPatterns(array $patterns): self
-    {
+    public function addPatterns(
+        array $patterns
+    ): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder {
         $this->patterns = array_merge($this->patterns, $patterns);
         return $this;
     }
@@ -47,8 +50,9 @@ trait PatternConfigurationTrait
      *
      * @param array<string,string> $patterns Regex pattern => replacement
      */
-    public function setPatterns(array $patterns): self
-    {
+    public function setPatterns(
+        array $patterns
+    ): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder {
         $this->patterns = $patterns;
         return $this;
     }
@@ -66,7 +70,7 @@ trait PatternConfigurationTrait
     /**
      * Start with default GDPR patterns.
      */
-    public function withDefaultPatterns(): self
+    public function withDefaultPatterns(): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder
     {
         $this->patterns = array_merge($this->patterns, DefaultPatterns::get());
         return $this;
