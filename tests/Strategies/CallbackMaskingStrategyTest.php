@@ -236,9 +236,7 @@ final class CallbackMaskingStrategyTest extends TestCase
     public function testCallbackCanReturnNonString(): void
     {
         $callback = /**
-         * @return true[]
-         *
-         * @psalm-return array{masked: true}
+         * @return array{masked: true}
          */
         fn(mixed $value): array => [TestConstants::DATA_MASKED => true];
         $strategy = new CallbackMaskingStrategy(TestConstants::FIELD_USER_DATA, $callback);

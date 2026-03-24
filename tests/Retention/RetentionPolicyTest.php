@@ -53,10 +53,10 @@ final class RetentionPolicyTest extends TestCase
             'test',
             30,
             RetentionPolicy::ACTION_DELETE,
-            [TestConstants::CONTEXT_EMAIL, 'phone']
+            [TestConstants::CONTEXT_EMAIL, TestConstants::CONTEXT_PHONE]
         );
 
-        $this->assertSame([TestConstants::CONTEXT_EMAIL, 'phone'], $policy->getFields());
+        $this->assertSame([TestConstants::CONTEXT_EMAIL, TestConstants::CONTEXT_PHONE], $policy->getFields());
     }
 
     public function testIsWithinRetentionRecent(): void

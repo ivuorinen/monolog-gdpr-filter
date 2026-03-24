@@ -125,6 +125,7 @@ final class TestConstants
     public const string CONTEXT_USER_ID = 'user_id';
     public const string CONTEXT_EMAIL = 'email';
     public const string CONTEXT_PASSWORD = 'password';
+    public const string CONTEXT_PHONE = 'phone';
     public const string CONTEXT_SENSITIVE_DATA = 'sensitive_data';
 
     // Regex Patterns

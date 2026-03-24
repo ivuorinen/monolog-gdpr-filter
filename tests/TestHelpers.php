@@ -236,9 +236,7 @@ trait TestHelpers
     /**
      * Get all common test patterns.
      *
-     * @return string[]
-     *
-     * @psalm-return array<string, string>
+     * @return array<string, string>
      */
     protected function getCommonPatterns(): array
     {

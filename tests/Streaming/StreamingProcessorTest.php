@@ -108,9 +108,7 @@ final class StreamingProcessorTest extends TestCase
 
         try {
             $lineParser = /**
-             * @return (array|string)[]
-             *
-             * @psalm-return array{message: string, context: array<never, never>}
+             * @return array{message: string, context: array<string, mixed>}
              */
             fn(string $line): array => [TestConstants::FIELD_MESSAGE => $line, 'context' => []];
 
@@ -136,9 +134,7 @@ final class StreamingProcessorTest extends TestCase
 
         try {
             $lineParser = /**
-             * @return (array|string)[]
-             *
-             * @psalm-return array{message: string, context: array<never, never>}
+             * @return array{message: string, context: array<string, mixed>}
              */
             fn(string $line): array => [TestConstants::FIELD_MESSAGE => $line, 'context' => []];
 
@@ -159,9 +155,7 @@ final class StreamingProcessorTest extends TestCase
 
         iterator_to_array($processor->processFile(
             '/nonexistent/path/file.log', /**
-            * @return (array|string)[]
-            *
-            * @psalm-return array{message: string, context: array<never, never>}
+            * @return array{message: string, context: array<string, mixed>}
             */
             fn(string $l): array => [TestConstants::FIELD_MESSAGE => $l, 'context' => []]
         ));
