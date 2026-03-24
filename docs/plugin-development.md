@@ -27,13 +27,13 @@ Plugins extend the GDPR processor's functionality without modifying core code. U
 
 ### When to Use Plugins vs. Configuration
 
-| Scenario | Use Plugin | Use Configuration |
-| -------- | --------- | ----------------- |
-| Add regex patterns | ✅ (via `getPatterns()`) | ✅ (via constructor) |
-| Custom transformation logic | ✅ | ❌ |
-| Conditional processing | ✅ | ❌ |
-| Multiple reusable rules | ✅ | ❌ |
-| Simple field masking | ❌ | ✅ |
+| Scenario                    | Use Plugin              | Use Configuration   |
+|-----------------------------|-------------------------|---------------------|
+| Add regex patterns          | ✅ (via `getPatterns()`) | ✅ (via constructor) |
+| Custom transformation logic | ✅                       | ❌                   |
+| Conditional processing      | ✅                       | ❌                   |
+| Multiple reusable rules     | ✅                       | ❌                   |
+| Simple field masking        | ❌                       | ✅                   |
 
 ## Quick Start
 
@@ -125,16 +125,16 @@ interface MaskingPluginInterface
 
 ### Method Reference
 
-| Method | Purpose | When Called |
-| ------ | ------- | ----------- |
-| `getName()` | Unique identifier for debugging | On registration |
-| `preProcessContext()` | Modify context before masking | Before core masking |
-| `preProcessMessage()` | Modify message before masking | Before core masking |
-| `postProcessContext()` | Modify context after masking | After core masking |
-| `postProcessMessage()` | Modify message after masking | After core masking |
-| `getPatterns()` | Provide regex patterns | During build |
-| `getFieldPaths()` | Provide field paths to mask | During build |
-| `getPriority()` | Control execution order | During sorting |
+| Method                 | Purpose                         | When Called         |
+|------------------------|---------------------------------|---------------------|
+| `getName()`            | Unique identifier for debugging | On registration     |
+| `preProcessContext()`  | Modify context before masking   | Before core masking |
+| `preProcessMessage()`  | Modify message before masking   | Before core masking |
+| `postProcessContext()` | Modify context after masking    | After core masking  |
+| `postProcessMessage()` | Modify message after masking    | After core masking  |
+| `getPatterns()`        | Provide regex patterns          | During build        |
+| `getFieldPaths()`      | Provide field paths to mask     | During build        |
+| `getPriority()`        | Control execution order         | During sorting      |
 
 ## Abstract Base Class
 
@@ -265,13 +265,13 @@ class LowPriorityPlugin extends AbstractMaskingPlugin
 
 ### Recommended Priority Ranges
 
-| Range | Use Case | Example |
-| ----- | -------- | ------- |
-| 1-50 | Security/validation | Input sanitization |
-| 50-100 | Standard processing | Pattern masking |
-| 100-150 | Business logic | Domain-specific rules |
-| 150-200 | Enrichment | Adding metadata |
-| 200+ | Cleanup/finalization | Removing temp fields |
+| Range   | Use Case             | Example               |
+|---------|----------------------|-----------------------|
+| 1-50    | Security/validation  | Input sanitization    |
+| 50-100  | Standard processing  | Pattern masking       |
+| 100-150 | Business logic       | Domain-specific rules |
+| 150-200 | Enrichment           | Adding metadata       |
+| 200+    | Cleanup/finalization | Removing temp fields  |
 
 ## Configuration Contribution
 

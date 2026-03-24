@@ -403,14 +403,14 @@ $processor = GdprProcessorBuilder::create()
 
 `GdprProcessor::getDefaultPatterns()` includes patterns for:
 
-| Category | Data Types |
-| -------- | ---------- |
-| Personal IDs | Finnish SSN (HETU), US SSN, Passport numbers, National IDs |
-| Financial | Credit cards, IBAN, Bank account numbers |
-| Contact | Email addresses, Phone numbers (E.164) |
-| Technical | IPv4/IPv6 addresses, MAC addresses, API keys, Bearer tokens |
-| Health | Medicare numbers, European Health Insurance Card (EHIC) |
-| Dates | Birth dates in multiple formats |
+| Category     | Data Types                                                  |
+|--------------|-------------------------------------------------------------|
+| Personal IDs | Finnish SSN (HETU), US SSN, Passport numbers, National IDs  |
+| Financial    | Credit cards, IBAN, Bank account numbers                    |
+| Contact      | Email addresses, Phone numbers (E.164)                      |
+| Technical    | IPv4/IPv6 addresses, MAC addresses, API keys, Bearer tokens |
+| Health       | Medicare numbers, European Health Insurance Card (EHIC)     |
+| Dates        | Birth dates in multiple formats                             |
 
 ## Performance Considerations
 
