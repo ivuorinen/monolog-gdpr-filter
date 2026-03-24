@@ -13,10 +13,10 @@
 
 We actively support the following versions with security updates:
 
-| Version | Supported              | PHP Requirements |
-|---------|------------------------|------------------|
-| 2.x     | Active support         | PHP 8.4+         |
-| 1.x     | Security fixes only    | PHP 8.4+         |
+| Version | Supported           | PHP Requirements |
+|---------|---------------------|------------------|
+| 2.x     | Active support      | PHP 8.4+         |
+| 1.x     | Security fixes only | PHP 8.4+         |
 
 ## Security Features
 
