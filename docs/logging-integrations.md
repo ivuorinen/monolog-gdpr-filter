@@ -44,7 +44,7 @@ $handler->setFormatter(new ElasticsearchFormatter('app-logs', '_doc'));
 // Create logger with GDPR processor
 $logger = new Logger('app');
 $logger->pushHandler($handler);
-$logger->pushProcessor(new GdprProcessor(DefaultPatterns::all()));
+$logger->pushProcessor(new GdprProcessor(DefaultPatterns::get()));
 
 // Logs are now GDPR-compliant before reaching Elasticsearch
 $logger->info('User login', ['email' => 'user@example.com', 'ip' => '192.168.1.1']);
@@ -68,7 +68,7 @@ $handler->setFormatter(new JsonFormatter());
 
 $logger = new Logger('app');
 $logger->pushHandler($handler);
-$logger->pushProcessor(new GdprProcessor(DefaultPatterns::all()));
+$logger->pushProcessor(new GdprProcessor(DefaultPatterns::get()));
 ```
 
 Logstash configuration:
@@ -113,7 +113,7 @@ $handler = new GelfHandler($publisher);
 // Create logger with GDPR processor
 $logger = new Logger('app');
 $logger->pushHandler($handler);
-$logger->pushProcessor(new GdprProcessor(DefaultPatterns::all()));
+$logger->pushProcessor(new GdprProcessor(DefaultPatterns::get()));
 
 $logger->info('Payment processed', [
     'user_email' => 'customer@example.com',
@@ -158,7 +158,7 @@ $handler->setFormatter(new JsonFormatter());
 
 $logger = new Logger('app');
 $logger->pushHandler($handler);
-$logger->pushProcessor(new GdprProcessor(DefaultPatterns::all()));
+$logger->pushProcessor(new GdprProcessor(DefaultPatterns::get()));
 
 // Add Datadog-specific context
 $logger->pushProcessor(function ($record) {
@@ -214,7 +214,7 @@ $handler = new NewRelicHandler(
 
 $logger = new Logger('app');
 $logger->pushHandler($handler);
-$logger->pushProcessor(new GdprProcessor(DefaultPatterns::all()));
+$logger->pushProcessor(new GdprProcessor(DefaultPatterns::get()));
 
 // Errors are sent to New Relic with masked PII
 $logger->error('Authentication failed', [
@@ -259,7 +259,7 @@ $logger = new Logger('app');
 $logger->pushHandler($handler);
 
 // IMPORTANT: Add GDPR processor BEFORE Sentry handler processes
-$logger->pushProcessor(new GdprProcessor(DefaultPatterns::all()));
+$logger->pushProcessor(new GdprProcessor(DefaultPatterns::get()));
 
 $logger->error('Payment failed', [
     'user_email' => 'customer@example.com',
@@ -315,7 +315,7 @@ $handler->setFormatter($formatter);
 
 $logger = new Logger('my-app');
 $logger->pushHandler($handler);
-$logger->pushProcessor(new GdprProcessor(DefaultPatterns::all()));
+$logger->pushProcessor(new GdprProcessor(DefaultPatterns::get()));
 ```
 
 ## Loggly
@@ -334,7 +334,7 @@ $handler = new LogglyHandler('your-loggly-token/tag/monolog');
 
 $logger = new Logger('app');
 $logger->pushHandler($handler);
-$logger->pushProcessor(new GdprProcessor(DefaultPatterns::all()));
+$logger->pushProcessor(new GdprProcessor(DefaultPatterns::get()));
 
 $logger->info('User registered', [
     'email' => 'newuser@example.com',
@@ -369,7 +369,7 @@ $handler = new CloudWatch(
 
 $logger = new Logger('app');
 $logger->pushHandler($handler);
-$logger->pushProcessor(new GdprProcessor(DefaultPatterns::all()));
+$logger->pushProcessor(new GdprProcessor(DefaultPatterns::get()));
 
 $logger->info('API request', [
     'user_email' => 'api-user@example.com',
@@ -426,7 +426,7 @@ class CloudWatchLoggerFactory
 
         $logger = new Logger('cloudwatch');
         $logger->pushHandler($handler);
-        $logger->pushProcessor(new GdprProcessor(DefaultPatterns::all()));
+        $logger->pushProcessor(new GdprProcessor(DefaultPatterns::get()));
 
         return $logger;
     }
@@ -455,7 +455,7 @@ $psrLogger = $logging->psrLogger('app-logs');
 // Wrap in Monolog for processor support
 $monologLogger = new Logger('app');
 $monologLogger->pushHandler(new \Monolog\Handler\PsrHandler($psrLogger));
-$monologLogger->pushProcessor(new GdprProcessor(DefaultPatterns::all()));
+$monologLogger->pushProcessor(new GdprProcessor(DefaultPatterns::get()));
 
 $monologLogger->info('User action', [
     'email' => 'user@example.com',
@@ -482,7 +482,7 @@ $handler->setFormatter(new JsonFormatter());
 
 $logger = new Logger('app');
 $logger->pushHandler($handler);
-$logger->pushProcessor(new GdprProcessor(DefaultPatterns::all()));
+$logger->pushProcessor(new GdprProcessor(DefaultPatterns::get()));
 
 // Add Fluentd tag
 $logger->pushProcessor(function ($record) {
@@ -524,7 +524,7 @@ $handler->setFormatter(new JsonFormatter());
 
 $logger = new Logger('app');
 $logger->pushHandler($handler);
-$logger->pushProcessor(new GdprProcessor(DefaultPatterns::all()));
+$logger->pushProcessor(new GdprProcessor(DefaultPatterns::get()));
 ```
 
 Fluent Bit configuration:

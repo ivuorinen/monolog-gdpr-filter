@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `ConditionalMaskingStrategy` - Context-aware conditional masking with AND/OR logic and factory methods
     - `DataTypeMaskingStrategy` - PHP type-based masking with type-specific conversion and factory methods
     - `StrategyManager` - Priority-based coordination with strategy validation, statistics, and default factory
-  - **PHP 8.2+ Modernization**: Comprehensive codebase modernization with backward compatibility
+  - **PHP 8.4+ Modernization**: Comprehensive codebase modernization with backward compatibility
     - Converted `FieldMaskConfig` to readonly class for immutability
     - Added modern type declarations with proper imports (`Throwable`, `Closure`, `JsonException`)
     - Applied `::class` syntax for class references instead of `get_class()`
@@ -36,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Fixed 287 PHPCS style issues automatically through code beautifier
     - Reduced Psalm static analysis errors from 100+ to 61 (mostly false positives)
     - Achieved 97.89% type coverage in Psalm analysis
-    - Applied 29 Rector modernization rules for PHP 8.2+ features
+    - Applied 29 Rector modernization rules for PHP 8.4+ features
     - Enhanced docblock types and removed redundant return tags
     - Improved parameter type coercion and null safety
 - **Phase 5: Advanced Features ✅ COMPLETED (2025-07-29)**:
@@ -89,7 +89,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Comprehensive documentation (CONTRIBUTING.md, SECURITY.md)
 - **Quality Assurance**:
   - Enhanced test suite with improved error handling validation
-  - All tests passing across PHP 8.2, 8.3, and 8.4
+  - All tests passing across PHP 8.4 and 8.5
   - Comprehensive linting with Psalm, PHPStan, and PHPCS
 
 ### Changed
@@ -97,7 +97,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Phase 6: Code Quality & Architecture (2025-07-29)**:
   - **Exception System**: Replaced generic exceptions with specific, context-rich exception classes
   - **Strategy Pattern**: Refactored masking logic into pluggable strategy system with priority management
-  - **Type System**: Enhanced type safety with PHP 8.2+ features and strict type declarations
+  - **Type System**: Enhanced type safety with PHP 8.4+ features and strict type declarations
   - **Code Standards**: Applied modern PHP conventions and automated code quality improvements
 - **Phase 5: Advanced Features (2025-07-29)**:
   - **Improved Error Handling**: Replaced error suppression with proper try-catch blocks
