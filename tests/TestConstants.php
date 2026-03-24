@@ -32,6 +32,7 @@ final class TestConstants
     // Phone Numbers
     public const string PHONE_US = '+1-555-123-4567';
     public const string PHONE_US_ALT = '+1-555-987-6543';
+    public const string PHONE_INTL = '+358 40 1234567';
     public const string PHONE_GENERIC = '+1234567890';
 
     // IP Addresses
@@ -50,6 +51,7 @@ final class TestConstants
 
     // IBAN Numbers
     public const string IBAN_FI = 'FI21 1234 5600 0007 85';
+    public const string IBAN_FI_COMPACT = 'FI2112345600000785';
     public const string IBAN_DE = 'DE89 3704 0044 0532 0130 00';
 
     // MAC Addresses
@@ -70,7 +72,16 @@ final class TestConstants
     public const string PASSWORD = 'secret_password_123';
     public const string PASSWORD_ALT = 'p@ssw0rd!';
     public const string API_KEY = 'sk_live_1234567890abcdef';
+    public const string API_KEY_TEST = 'sk_test_4eC39HqLyjWDarj';
     public const string SECRET_TOKEN = 'bearer_secret_token';
+    public const string BEARER_TOKEN = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
+
+    // Identity Documents
+    public const string PASSPORT = 'A123456';
+    public const string DOB = '1990-12-31';
+
+    // Credit Card Formatted
+    public const string CC_FORMATTED = '1234-5678-9012-3456';
 
     // Amounts and Numbers
     public const float AMOUNT_CURRENCY = 99.99;
