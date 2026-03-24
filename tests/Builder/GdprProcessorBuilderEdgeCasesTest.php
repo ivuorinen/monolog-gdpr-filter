@@ -315,9 +315,7 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
             }
 
             /**
-             * @return string[]
-             *
-             * @psalm-return array{'/PLUGIN-\\d+/': '[PLUGIN-ID]'}
+             * @return array<string, string>
              */
             #[\Override]
             public function getPatterns(): array

@@ -87,8 +87,10 @@ final class RetentionPolicyTest extends TestCase
     {
         $policy = new RetentionPolicy('test', 30);
         $cutoff = $policy->getCutoffDate();
+        $this->assertNotFalse($cutoff);
 
         $expected = new \DateTimeImmutable()->modify('-30 days');
+        $this->assertNotFalse($expected);
 
         // Allow 1 second tolerance for test execution time
         $this->assertEqualsWithDelta(

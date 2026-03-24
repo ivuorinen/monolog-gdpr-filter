@@ -25,31 +25,31 @@ use Stringable;
 
 trait TestHelpers
 {
-    private const GDPR_REPLACEMENT = '[GDPR]';
-    private const TEST_HETU = '131052-308T';
-    private const TEST_CC = '1234567812345678';
+    private const string GDPR_REPLACEMENT = '[GDPR]';
+    private const string TEST_HETU = '131052-308T';
+    private const string TEST_CC = '1234567812345678';
 
-    public const TEST_EMAIL = TestConstants::EMAIL_JOHN_DOE;
-    public const MASKED_EMAIL = MaskConstants::MASK_EMAIL;
-    public const MASKED_SECRET = MaskConstants::MASK_MASKED;
-    public const USER_REGISTERED = 'User registered';
+    public const string TEST_EMAIL = TestConstants::EMAIL_JOHN_DOE;
+    public const string MASKED_EMAIL = MaskConstants::MASK_EMAIL;
+    public const string MASKED_SECRET = MaskConstants::MASK_MASKED;
+    public const string USER_REGISTERED = 'User registered';
 
-    private const INVALID_REGEX = '/[invalid/';
+    private const string INVALID_REGEX = '/[invalid/';
     // ]'/' this should fix the issue with the regex breaking highlighting in the test
 
     // Additional test data constants (using TestConstants values)
-    public const TEST_US_SSN = '123-45-6789'; // TestConstants::SSN_US
-    public const TEST_CREDIT_CARD_FORMATTED = '1234-5678-9012-3456';
-    public const TEST_PHONE_US = '+1-555-123-4567'; // TestConstants::PHONE_US
-    public const TEST_PHONE_INTL = '+358 40 1234567';
-    public const TEST_IP_ADDRESS = '192.168.1.1'; // TestConstants::IP_ADDRESS_ALT
-    public const TEST_IBAN = 'FI2112345600000785';
-    public const TEST_IBAN_FORMATTED = TestConstants::IBAN_FI;
-    public const TEST_MAC_ADDRESS = '00:1A:2B:3C:4D:5E';
-    public const TEST_BEARER_TOKEN = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
-    public const TEST_API_KEY = 'sk_test_4eC39HqLyjWDarj';
-    public const TEST_PASSPORT = 'A123456';
-    public const TEST_DOB = '1990-12-31';
+    public const string TEST_US_SSN = '123-45-6789'; // TestConstants::SSN_US
+    public const string TEST_CREDIT_CARD_FORMATTED = '1234-5678-9012-3456';
+    public const string TEST_PHONE_US = '+1-555-123-4567'; // TestConstants::PHONE_US
+    public const string TEST_PHONE_INTL = '+358 40 1234567';
+    public const string TEST_IP_ADDRESS = '192.168.1.1'; // TestConstants::IP_ADDRESS_ALT
+    public const string TEST_IBAN = 'FI2112345600000785';
+    public const string TEST_IBAN_FORMATTED = TestConstants::IBAN_FI;
+    public const string TEST_MAC_ADDRESS = '00:1A:2B:3C:4D:5E';
+    public const string TEST_BEARER_TOKEN = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
+    public const string TEST_API_KEY = 'sk_test_4eC39HqLyjWDarj';
+    public const string TEST_PASSPORT = 'A123456';
+    public const string TEST_DOB = '1990-12-31';
 
     /**
      * @source \Monolog\LogRecord::__construct
@@ -206,9 +206,7 @@ trait TestHelpers
     /**
      * Get common test pattern for email masking.
      *
-     * @return string[]
-     *
-     * @psalm-return array{'/\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b/': '***EMAIL***'}
+     * @return array<string, string>
      */
     protected function getEmailPattern(): array
     {
@@ -218,9 +216,7 @@ trait TestHelpers
     /**
      * Get common test pattern for SSN masking.
      *
-     * @return string[]
-     *
-     * @psalm-return array{'/\\b\\d{3}-\\d{2}-\\d{4}\\b/': '***SSN***'}
+     * @return array<string, string>
      */
     protected function getSsnPattern(): array
     {
@@ -230,9 +226,7 @@ trait TestHelpers
     /**
      * Get common test pattern for credit card masking.
      *
-     * @return string[]
-     *
-     * @psalm-return array{'/\\b\\d{4}[-\\s]?\\d{4}[-\\s]?\\d{4}[-\\s]?\\d{4}\\b/': '***CARD***'}
+     * @return array<string, string>
      */
     protected function getCreditCardPattern(): array
     {

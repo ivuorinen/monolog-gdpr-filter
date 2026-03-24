@@ -38,9 +38,7 @@ enum FailureMode: string
     /**
      * Get a human-readable description of this failure mode.
      *
-     * @psalm-return 'Apply conservative fallback mask on failure (balanced)'
-     *     |'Return fully redacted value on failure (strict)'
-     *     |'Return original value on failure (risky)'
+     * @psalm-return non-empty-string
      */
     public function getDescription(): string
     {

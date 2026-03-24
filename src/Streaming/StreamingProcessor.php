@@ -179,7 +179,7 @@ final class StreamingProcessor
      *
      * @return int[]
      *
-     * @psalm-return array{processed: 0|1|2, masked: 0|1|2, errors: 0}
+     * @psalm-return array{processed: non-negative-int, masked: non-negative-int, errors: non-negative-int}
      */
     public function getStatistics(iterable $records): array
     {
