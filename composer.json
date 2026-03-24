@@ -48,7 +48,7 @@
     "illuminate/http": "*",
     "orklah/psalm-strict-equality": "^3.1",
     "phpunit/phpunit": "^13",
-    "psalm/plugin-phpunit": "^0.19.5",
+    "psalm/plugin-phpunit": "^0.20.0",
     "rector/rector": "^2.1",
     "squizlabs/php_codesniffer": "^4.0",
     "vimeo/psalm": "^6.13"
