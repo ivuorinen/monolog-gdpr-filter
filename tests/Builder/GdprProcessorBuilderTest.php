@@ -222,11 +222,23 @@ final class GdprProcessorBuilderTest extends TestCase
     public function testAddPlugin(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'test-plugin'
+             */
             public function getName(): string
             {
                 return 'test-plugin';
             }
 
+            #[\Override]
+            /**
+             * @return string[]
+             *
+             * @psalm-return array{'/secret/': '[SECRET]'}
+             */
             public function getPatterns(): array
             {
                 return [TestConstants::PATTERN_SECRET => TestConstants::MASK_SECRET_BRACKETS];
@@ -241,6 +253,12 @@ final class GdprProcessorBuilderTest extends TestCase
     public function testAddPlugins(): void
     {
         $plugin1 = new class extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'plugin1'
+             */
             public function getName(): string
             {
                 return 'plugin1';
@@ -248,6 +266,12 @@ final class GdprProcessorBuilderTest extends TestCase
         };
 
         $plugin2 = new class extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'plugin2'
+             */
             public function getName(): string
             {
                 return 'plugin2';
@@ -273,6 +297,12 @@ final class GdprProcessorBuilderTest extends TestCase
     public function testBuildWithPluginsReturnsPluginAwareProcessor(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'test-plugin'
+             */
             public function getName(): string
             {
                 return 'test-plugin';
@@ -290,11 +320,23 @@ final class GdprProcessorBuilderTest extends TestCase
     public function testPluginPatternsAreApplied(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'secret-plugin'
+             */
             public function getName(): string
             {
                 return 'secret-plugin';
             }
 
+            #[\Override]
+            /**
+             * @return string[]
+             *
+             * @psalm-return array{'/secret/': '[SECRET]'}
+             */
             public function getPatterns(): array
             {
                 return [TestConstants::PATTERN_SECRET => TestConstants::MASK_SECRET_BRACKETS];
@@ -321,11 +363,23 @@ final class GdprProcessorBuilderTest extends TestCase
     public function testPluginFieldPathsAreApplied(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'field-plugin'
+             */
             public function getName(): string
             {
                 return 'field-plugin';
             }
 
+            #[\Override]
+            /**
+             * @return \Ivuorinen\MonologGdprFilter\FieldMaskConfig[]
+             *
+             * @psalm-return array{api_key: \Ivuorinen\MonologGdprFilter\FieldMaskConfig}
+             */
             public function getFieldPaths(): array
             {
                 return ['api_key' => FieldMaskConfig::replace('[API_KEY]')];

@@ -12,12 +12,14 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(RateLimiter::class)]
 final class RateLimiterComprehensiveTest extends TestCase
 {
+    #[\Override]
     protected function setUp(): void
     {
         // Clear all rate limiter data before each test
         RateLimiter::clearAll();
     }
 
+    #[\Override]
     protected function tearDown(): void
     {
         // Clean up after each test

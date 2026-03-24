@@ -13,189 +13,201 @@ namespace Tests;
 final class TestConstants
 {
     // Email addresses
-    public const EMAIL_JOHN_DOE = 'john.doe@example.com';
-    public const EMAIL_USER = 'user@example.com';
-    public const EMAIL_TEST = 'test@example.com';
-    public const EMAIL_ADMIN = 'admin@example.com';
-    public const EMAIL_JANE_DOE = 'jane.doe@example.com';
+    public const string EMAIL_JOHN_DOE = 'john.doe@example.com';
+    public const string EMAIL_USER = 'user@example.com';
+    public const string EMAIL_TEST = 'test@example.com';
+    public const string EMAIL_ADMIN = 'admin@example.com';
+    public const string EMAIL_JANE_DOE = 'jane.doe@example.com';
 
     // Social Security Numbers
-    public const SSN_US = '123-45-6789';
-    public const SSN_US_ALT = '987-65-4321';
+    public const string SSN_US = '123-45-6789';
+    public const string SSN_US_ALT = '987-65-4321';
 
     // Credit Card Numbers
-    public const CC_VISA = '4532-1234-5678-9012';
-    public const CC_VISA_FORMATTED = '4532 1234 5678 9012';
-    public const CC_MASTERCARD = '5425-2334-3010-9903';
-    public const CC_AMEX = '3782-822463-10005';
+    public const string CC_VISA = '4532-1234-5678-9012';
+    public const string CC_VISA_FORMATTED = '4532 1234 5678 9012';
+    public const string CC_MASTERCARD = '5425-2334-3010-9903';
+    public const string CC_AMEX = '3782-822463-10005';
 
     // Phone Numbers
-    public const PHONE_US = '+1-555-123-4567';
-    public const PHONE_US_ALT = '+1-555-987-6543';
-    public const PHONE_GENERIC = '+1234567890';
+    public const string PHONE_US = '+1-555-123-4567';
+    public const string PHONE_US_ALT = '+1-555-987-6543';
+    public const string PHONE_INTL = '+358 40 1234567';
+    public const string PHONE_GENERIC = '+1234567890';
 
     // IP Addresses
-    public const IP_ADDRESS = '192.168.1.100';
-    public const IP_ADDRESS_ALT = '192.168.1.1';
-    public const IP_ADDRESS_PUBLIC = '8.8.8.8';
+    public const string IP_ADDRESS = '192.168.1.100';
+    public const string IP_ADDRESS_ALT = '192.168.1.1';
+    public const string IP_ADDRESS_PUBLIC = '8.8.8.8';
 
     // Names
-    public const NAME_FIRST = 'John';
-    public const NAME_LAST = 'Doe';
-    public const NAME_FULL = 'John Doe';
+    public const string NAME_FIRST = 'John';
+    public const string NAME_LAST = 'Doe';
+    public const string NAME_FULL = 'John Doe';
 
     // Finnish Personal Identity Code (HETU)
-    public const HETU = '010190-123A';
-    public const HETU_ALT = '311299-999J';
+    public const string HETU = '010190-123A';
+    public const string HETU_ALT = '311299-999J';
 
     // IBAN Numbers
-    public const IBAN_FI = 'FI21 1234 5600 0007 85';
-    public const IBAN_DE = 'DE89 3704 0044 0532 0130 00';
+    public const string IBAN_FI = 'FI21 1234 5600 0007 85';
+    public const string IBAN_FI_COMPACT = 'FI2112345600000785';
+    public const string IBAN_DE = 'DE89 3704 0044 0532 0130 00';
 
     // MAC Addresses
-    public const MAC_ADDRESS = '00:1B:44:11:3A:B7';
-    public const MAC_ADDRESS_ALT = 'A1:B2:C3:D4:E5:F6';
+    public const string MAC_ADDRESS = '00:1B:44:11:3A:B7';
+    public const string MAC_ADDRESS_ALT = 'A1:B2:C3:D4:E5:F6';
 
     // URLs and Domains
-    public const DOMAIN = 'example.com';
-    public const URL_HTTP = 'http://example.com';
-    public const URL_HTTPS = 'https://example.com';
+    public const string DOMAIN = 'example.com';
+    public const string URL_HTTP = 'http://example.com';
+    public const string URL_HTTPS = 'https://example.com';
 
     // User IDs and Numbers
-    public const USER_ID = 12345;
-    public const USER_ID_ALT = 67890;
-    public const SESSION_ID = 'sess_abc123def456';
+    public const int USER_ID = 12345;
+    public const int USER_ID_ALT = 67890;
+    public const string SESSION_ID = 'sess_abc123def456';
 
     // Passwords and Secrets (for testing masking)
-    public const PASSWORD = 'secret_password_123';
-    public const PASSWORD_ALT = 'p@ssw0rd!';
-    public const API_KEY = 'sk_live_1234567890abcdef';
-    public const SECRET_TOKEN = 'bearer_secret_token';
+    public const string PASSWORD = 'secret_password_123';
+    public const string PASSWORD_ALT = 'p@ssw0rd!';
+    public const string API_KEY = 'sk_live_1234567890abcdef';
+    public const string API_KEY_TEST = 'sk_test_4eC39HqLyjWDarj';
+    public const string SECRET_TOKEN = 'bearer_secret_token';
+    public const string BEARER_TOKEN = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
+
+    // Identity Documents
+    public const string PASSPORT = 'A123456';
+    public const string DOB = '1990-12-31';
+
+    // Credit Card Formatted
+    public const string CC_FORMATTED = '1234-5678-9012-3456';
 
     // Amounts and Numbers
-    public const AMOUNT_CURRENCY = 99.99;
-    public const AMOUNT_LARGE = 1234.56;
-    public const CVV = 123;
+    public const float AMOUNT_CURRENCY = 99.99;
+    public const float AMOUNT_LARGE = 1234.56;
+    public const int CVV = 123;
 
     // Messages
-    public const MESSAGE_DEFAULT = 'Test message';
-    public const MESSAGE_SENSITIVE = 'Sensitive data detected';
-    public const MESSAGE_ERROR = 'Error occurred';
-    public const MESSAGE_BASE = 'Base message';
-    public const MESSAGE_WITH_EMAIL = 'Message with test@example.com';
-    public const MESSAGE_WITH_EMAIL_PREFIX = 'Message with ';
-    public const MESSAGE_INFO_EMAIL = 'Info with test@example.com';
-    public const MESSAGE_USER_ACTION_EMAIL = 'User action with test@example.com';
-    public const MESSAGE_SECURITY_ERROR_EMAIL = 'Security error with test@example.com';
+    public const string MESSAGE_DEFAULT = 'Test message';
+    public const string MESSAGE_SENSITIVE = 'Sensitive data detected';
+    public const string MESSAGE_ERROR = 'Error occurred';
+    public const string MESSAGE_BASE = 'Base message';
+    public const string MESSAGE_WITH_EMAIL = 'Message with test@example.com';
+    public const string MESSAGE_WITH_EMAIL_PREFIX = 'Message with ';
+    public const string MESSAGE_INFO_EMAIL = 'Info with test@example.com';
+    public const string MESSAGE_USER_ACTION_EMAIL = 'User action with test@example.com';
+    public const string MESSAGE_SECURITY_ERROR_EMAIL = 'Security error with test@example.com';
 
     // Message Templates
-    public const TEMPLATE_USER_EMAIL = 'user%d@example.com';
-    public const TEMPLATE_MESSAGE_EMAIL = 'Message %d with test@example.com';
+    public const string TEMPLATE_USER_EMAIL = 'user%d@example.com';
+    public const string TEMPLATE_MESSAGE_EMAIL = 'Message %d with test@example.com';
 
     // Error Messages
-    public const ERROR_REPLACE_TYPE_EMPTY = 'Cannot be null or empty for REPLACE type';
-    public const ERROR_EXCEPTION_NOT_THROWN = 'Expected exception was not thrown';
-    public const ERROR_RATE_LIMIT_KEY_EMPTY = 'Rate limiting key cannot be empty';
-    public const ERROR_TRUNCATED_SECURITY = '(truncated for security)';
+    public const string ERROR_REPLACE_TYPE_EMPTY = 'Cannot be null or empty for REPLACE type';
+    public const string ERROR_EXCEPTION_NOT_THROWN = 'Expected exception was not thrown';
+    public const string ERROR_RATE_LIMIT_KEY_EMPTY = 'Rate limiting key cannot be empty';
+    public const string ERROR_TRUNCATED_SECURITY = '(truncated for security)';
 
     // Test Messages and Data
-    public const MESSAGE_TEST_LOWERCASE = 'test message';
-    public const MESSAGE_USER_ID = 'User ID: 12345';
-    public const MESSAGE_TEST_WITH_DIGITS = 'Test with 123';
-    public const MESSAGE_SECRET_DATA = 'secret data';
-    public const MESSAGE_TEST_STRING = 'test string';
-    public const DATA_PUBLIC = 'public data';
-    public const DATA_NUMBER_STRING = '12345';
-    public const JSON_KEY_VALUE = '{"key":"value"}';
-    public const PATH_TEST = '/test';
-    public const CONTENT_TYPE_JSON = 'application/json';
-    public const STRATEGY_TEST = 'Test Strategy';
+    public const string MESSAGE_TEST_LOWERCASE = 'test message';
+    public const string MESSAGE_USER_ID = 'User ID: 12345';
+    public const string MESSAGE_TEST_WITH_DIGITS = 'Test with 123';
+    public const string MESSAGE_SECRET_DATA = 'secret data';
+    public const string MESSAGE_TEST_STRING = 'test string';
+    public const string DATA_PUBLIC = 'public data';
+    public const string DATA_NUMBER_STRING = '12345';
+    public const string JSON_KEY_VALUE = '{"key":"value"}';
+    public const string PATH_TEST = '/test';
+    public const string CONTENT_TYPE_JSON = 'application/json';
+    public const string STRATEGY_TEST = 'Test Strategy';
 
     // Template Messages
-    public const TEMPLATE_ENV_VALUE_RESULT = "Environment value '%s' should result in ";
-    public const TEMPLATE_ENV_VALUE_RESULT_FULL = "Environment value '%s' should result in %s";
+    public const string TEMPLATE_ENV_VALUE_RESULT = "Environment value '%s' should result in ";
+    public const string TEMPLATE_ENV_VALUE_RESULT_FULL = "Environment value '%s' should result in %s";
 
     // Channels
-    public const CHANNEL_TEST = 'test';
-    public const CHANNEL_APPLICATION = 'application';
-    public const CHANNEL_SECURITY = 'security';
-    public const CHANNEL_AUDIT = 'audit';
+    public const string CHANNEL_TEST = 'test';
+    public const string CHANNEL_APPLICATION = 'application';
+    public const string CHANNEL_SECURITY = 'security';
+    public const string CHANNEL_AUDIT = 'audit';
 
     // Context Keys
-    public const CONTEXT_USER_ID = 'user_id';
-    public const CONTEXT_EMAIL = 'email';
-    public const CONTEXT_PASSWORD = 'password';
-    public const CONTEXT_SENSITIVE_DATA = 'sensitive_data';
+    public const string CONTEXT_USER_ID = 'user_id';
+    public const string CONTEXT_EMAIL = 'email';
+    public const string CONTEXT_PASSWORD = 'password';
+    public const string CONTEXT_PHONE = 'phone';
+    public const string CONTEXT_SENSITIVE_DATA = 'sensitive_data';
 
     // Regex Patterns
-    public const PATTERN_EMAIL_TEST = '/test@example\.com/';
-    public const PATTERN_INVALID_UNCLOSED_BRACKET = '/invalid[/';
-    public const PATTERN_TEST = '/test/';
-    public const PATTERN_DIGITS = '/\d+/';
-    public const PATTERN_SECRET = '/secret/';
-    public const PATTERN_EMAIL_FULL = '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/';
-    public const PATTERN_RECURSIVE = '/(?R)/';
-    public const PATTERN_NAMED_RECURSION = '/(?P>name)/';
-    public const PATTERN_SSN_FORMAT = '/\d{3}-\d{2}-\d{4}/';
+    public const string PATTERN_EMAIL_TEST = '/test@example\.com/';
+    public const string PATTERN_INVALID_UNCLOSED_BRACKET = '/invalid[/';
+    public const string PATTERN_TEST = '/test/';
+    public const string PATTERN_DIGITS = '/\d+/';
+    public const string PATTERN_SECRET = '/secret/';
+    public const string PATTERN_EMAIL_FULL = '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/';
+    public const string PATTERN_RECURSIVE = '/(?R)/';
+    public const string PATTERN_NAMED_RECURSION = '/(?P>name)/';
+    public const string PATTERN_SSN_FORMAT = '/\d{3}-\d{2}-\d{4}/';
 
     // Field Paths
-    public const FIELD_MESSAGE = 'message';
-    public const FIELD_GENERIC = 'field';
-    public const FIELD_USER_EMAIL = 'user.email';
-    public const FIELD_USER_NAME = 'user.name';
-    public const FIELD_USER_PUBLIC = 'user.public';
-    public const FIELD_USER_PASSWORD = 'user.password';
-    public const FIELD_USER_SSN = 'user.ssn';
-    public const FIELD_USER_DATA = 'user.data';
-    public const FIELD_SYSTEM_LOG = 'system.log';
+    public const string FIELD_MESSAGE = 'message';
+    public const string FIELD_GENERIC = 'field';
+    public const string FIELD_USER_EMAIL = 'user.email';
+    public const string FIELD_USER_NAME = 'user.name';
+    public const string FIELD_USER_PUBLIC = 'user.public';
+    public const string FIELD_USER_PASSWORD = 'user.password';
+    public const string FIELD_USER_SSN = 'user.ssn';
+    public const string FIELD_USER_DATA = 'user.data';
+    public const string FIELD_SYSTEM_LOG = 'system.log';
 
     // Path Patterns
-    public const PATH_USER_WILDCARD = 'user.*';
+    public const string PATH_USER_WILDCARD = 'user.*';
 
     // Test Data
-    public const DATA_TEST = 'test';
-    public const DATA_TEST_DATA = 'test data';
-    public const DATA_MASKED = 'masked';
+    public const string DATA_TEST = 'test';
+    public const string DATA_TEST_DATA = 'test data';
+    public const string DATA_MASKED = 'masked';
 
     // Replacement Values
-    public const REPLACEMENT_TEST = '[TEST]';
+    public const string REPLACEMENT_TEST = '[TEST]';
 
     // Age range values
-    public const AGE_RANGE_20_29 = '20-29';
+    public const string AGE_RANGE_20_29 = '20-29';
 
     // Additional email variations
-    public const EMAIL_NEW = 'new@example.com';
-    public const EMAIL_JOHN = 'john@example.com';
+    public const string EMAIL_NEW = 'new@example.com';
+    public const string EMAIL_JOHN = 'john@example.com';
 
     // Mask placeholders used in tests (bracketed format)
-    public const MASK_REDACTED_BRACKETS = '[REDACTED]';
-    public const MASK_MASKED_BRACKETS = '[MASKED]';
-    public const MASK_SECRET_BRACKETS = '[SECRET]';
-    public const MASK_SSN_BRACKETS = '[SSN]';
-    public const MASK_EMAIL_BRACKETS = '[EMAIL]';
-    public const MASK_DIGITS_BRACKETS = '[DIGITS]';
-    public const MASK_INT_BRACKETS = '[INT]';
-    public const MASK_ALWAYS_THIS = '[ALWAYS_THIS]';
-    public const MASK_REDACTED_PLAIN = 'REDACTED';
+    public const string MASK_REDACTED_BRACKETS = '[REDACTED]';
+    public const string MASK_MASKED_BRACKETS = '[MASKED]';
+    public const string MASK_SECRET_BRACKETS = '[SECRET]';
+    public const string MASK_SSN_BRACKETS = '[SSN]';
+    public const string MASK_EMAIL_BRACKETS = '[EMAIL]';
+    public const string MASK_DIGITS_BRACKETS = '[DIGITS]';
+    public const string MASK_INT_BRACKETS = '[INT]';
+    public const string MASK_ALWAYS_THIS = '[ALWAYS_THIS]';
+    public const string MASK_REDACTED_PLAIN = 'REDACTED';
 
     // Test values
-    public const VALUE_TEST = 'test value';
-    public const VALUE_SUFFIX = ' value';
+    public const string VALUE_TEST = 'test value';
+    public const string VALUE_SUFFIX = ' value';
 
     // Expected output strings
-    public const EXPECTED_SSN_MASKED = 'SSN: [SSN]';
+    public const string EXPECTED_SSN_MASKED = 'SSN: [SSN]';
 
     // Mask placeholders (bracketed format, additional)
-    public const MASK_CARD_BRACKETS = '[CARD]';
+    public const string MASK_CARD_BRACKETS = '[CARD]';
 
     // Additional pattern constants
-    public const PATTERN_EMAIL_SIMPLE = '/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/';
-    public const PATTERN_VALID_SIMPLE = '/^test$/';
-    public const PATTERN_INVALID_UNCLOSED = '/unclosed';
-    public const PATTERN_REDOS_VULNERABLE = '/^(a+)+$/';
-    public const PATTERN_REDOS_NESTED_STAR = '/^(a*)*$/';
-    public const PATTERN_SAFE = '/[a-z]+/';
-    public const PATTERN_CREDIT_CARD = '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/';
+    public const string PATTERN_EMAIL_SIMPLE = '/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/';
+    public const string PATTERN_VALID_SIMPLE = '/^test$/';
+    public const string PATTERN_INVALID_UNCLOSED = '/unclosed';
+    public const string PATTERN_REDOS_VULNERABLE = '/^(a+)+$/';
+    public const string PATTERN_REDOS_NESTED_STAR = '/^(a*)*$/';
+    public const string PATTERN_SAFE = '/[a-z]+/';
+    public const string PATTERN_CREDIT_CARD = '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/';
 
     /**
      * Prevent instantiation.

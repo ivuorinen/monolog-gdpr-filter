@@ -124,7 +124,9 @@ final class RegexMaskingStrategyTest extends TestCase
     public function maskHandlesArrayValues(): void
     {
         $strategy = new RegexMaskingStrategy([
-            '/"' . TestConstants::CONTEXT_EMAIL . '":"[^"]+"/' => '"' . TestConstants::CONTEXT_EMAIL . '":"' . MaskConstants::MASK_EMAIL_PATTERN . '"',
+            '/"' . TestConstants::CONTEXT_EMAIL . '":"[^"]+"/' =>
+                '"' . TestConstants::CONTEXT_EMAIL
+                . '":"' . MaskConstants::MASK_EMAIL_PATTERN . '"',
         ]);
 
         $input = [TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_TEST];
@@ -236,9 +238,21 @@ final class RegexMaskingStrategyTest extends TestCase
             includePaths: [TestConstants::PATH_USER_WILDCARD]
         );
 
-        $this->assertTrue($strategy->shouldApply(TestConstants::DATA_NUMBER_STRING, TestConstants::FIELD_USER_SSN, $this->logRecord));
-        $this->assertTrue($strategy->shouldApply(TestConstants::DATA_NUMBER_STRING, 'user.phone', $this->logRecord));
-        $this->assertFalse($strategy->shouldApply(TestConstants::DATA_NUMBER_STRING, 'admin.id', $this->logRecord));
+        $this->assertTrue($strategy->shouldApply(
+            TestConstants::DATA_NUMBER_STRING,
+            TestConstants::FIELD_USER_SSN,
+            $this->logRecord
+        ));
+        $this->assertTrue($strategy->shouldApply(
+            TestConstants::DATA_NUMBER_STRING,
+            'user.phone',
+            $this->logRecord
+        ));
+        $this->assertFalse($strategy->shouldApply(
+            TestConstants::DATA_NUMBER_STRING,
+            'admin.id',
+            $this->logRecord
+        ));
     }
 
     #[Test]
@@ -249,9 +263,21 @@ final class RegexMaskingStrategyTest extends TestCase
             excludePaths: ['debug.*']
         );
 
-        $this->assertFalse($strategy->shouldApply(TestConstants::DATA_NUMBER_STRING, 'debug.info', $this->logRecord));
-        $this->assertFalse($strategy->shouldApply(TestConstants::DATA_NUMBER_STRING, 'debug.data', $this->logRecord));
-        $this->assertTrue($strategy->shouldApply(TestConstants::DATA_NUMBER_STRING, 'user.id', $this->logRecord));
+        $this->assertFalse($strategy->shouldApply(
+            TestConstants::DATA_NUMBER_STRING,
+            'debug.info',
+            $this->logRecord
+        ));
+        $this->assertFalse($strategy->shouldApply(
+            TestConstants::DATA_NUMBER_STRING,
+            'debug.data',
+            $this->logRecord
+        ));
+        $this->assertTrue($strategy->shouldApply(
+            TestConstants::DATA_NUMBER_STRING,
+            'user.id',
+            $this->logRecord
+        ));
     }
 
     #[Test]

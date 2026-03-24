@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Ivuorinen\MonologGdprFilter\Retention;
 
+use Ivuorinen\MonologGdprFilter\Exceptions\MaskingOperationFailedException;
+
 /**
  * Data retention policy configuration for GDPR compliance.
  *
@@ -14,9 +16,9 @@ namespace Ivuorinen\MonologGdprFilter\Retention;
  */
 final class RetentionPolicy
 {
-    public const ACTION_DELETE = 'delete';
-    public const ACTION_ANONYMIZE = 'anonymize';
-    public const ACTION_ARCHIVE = 'archive';
+    public const string ACTION_DELETE = 'delete';
+    public const string ACTION_ANONYMIZE = 'anonymize';
+    public const string ACTION_ARCHIVE = 'archive';
 
     /**
      * @param string $name Policy name
@@ -82,7 +84,14 @@ final class RetentionPolicy
      */
     public function getCutoffDate(): \DateTimeImmutable
     {
-        return (new \DateTimeImmutable())->modify("-{$this->retentionDays} days");
+        $cutoff = (new \DateTimeImmutable())->modify("-{$this->retentionDays} days");
+        if ($cutoff === false) {
+            throw new MaskingOperationFailedException(
+                "Failed to calculate cutoff date for retention policy '{$this->name}'"
+            );
+        }
+
+        return $cutoff;
     }
 
     /**

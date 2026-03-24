@@ -22,7 +22,7 @@ trait PluginConfigurationTrait
     /**
      * Register a masking plugin.
      */
-    public function addPlugin(MaskingPluginInterface $plugin): self
+    public function addPlugin(MaskingPluginInterface $plugin): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder
     {
         $this->plugins[] = $plugin;
         return $this;
@@ -33,7 +33,7 @@ trait PluginConfigurationTrait
      *
      * @param list<MaskingPluginInterface> $plugins
      */
-    public function addPlugins(array $plugins): self
+    public function addPlugins(array $plugins): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder
     {
         foreach ($plugins as $plugin) {
             $this->plugins[] = $plugin;

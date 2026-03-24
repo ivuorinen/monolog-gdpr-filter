@@ -14,17 +14,17 @@ namespace Ivuorinen\MonologGdprFilter\Audit;
  */
 final readonly class AuditContext
 {
-    public const STATUS_SUCCESS = 'success';
-    public const STATUS_FAILED = 'failed';
-    public const STATUS_RECOVERED = 'recovered';
-    public const STATUS_SKIPPED = 'skipped';
+    public const string STATUS_SUCCESS = 'success';
+    public const string STATUS_FAILED = 'failed';
+    public const string STATUS_RECOVERED = 'recovered';
+    public const string STATUS_SKIPPED = 'skipped';
 
-    public const OP_REGEX = 'regex';
-    public const OP_FIELD_PATH = 'field_path';
-    public const OP_CALLBACK = 'callback';
-    public const OP_DATA_TYPE = 'data_type';
-    public const OP_JSON = 'json';
-    public const OP_CONDITIONAL = 'conditional';
+    public const string OP_REGEX = 'regex';
+    public const string OP_FIELD_PATH = 'field_path';
+    public const string OP_CALLBACK = 'callback';
+    public const string OP_DATA_TYPE = 'data_type';
+    public const string OP_JSON = 'json';
+    public const string OP_CONDITIONAL = 'conditional';
 
     /**
      * @param string $operationType Type of masking operation performed
@@ -180,7 +180,17 @@ final readonly class AuditContext
     /**
      * Convert to array for serialization/logging.
      *
-     * @return array<string, mixed>
+     * @return (array|float|int|string)[]
+     *
+     * @psalm-return array{
+     *     operation_type: string,
+     *     status: string,
+     *     attempt_number: int,
+     *     duration_ms: float,
+     *     correlation_id?: string,
+     *     error?: array<string, mixed>,
+     *     metadata?: array<string, mixed>
+     * }
      */
     public function toArray(): array
     {

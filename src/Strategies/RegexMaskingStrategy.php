@@ -76,14 +76,13 @@ class RegexMaskingStrategy extends AbstractMaskingStrategy
 
         // If include paths are specified, check them
         if ($this->includePaths !== []) {
-            $included = false;
-            foreach ($this->includePaths as $includePath) {
-                if ($this->pathMatches($path, $includePath)) {
-                    $included = true;
-                    break;
-                }
-            }
-
+            $included = array_any(
+                $this->includePaths,
+                fn(string $includePath): bool => $this->pathMatches(
+                    $path,
+                    $includePath
+                )
+            );
             if (!$included) {
                 return false;
             }
@@ -245,13 +244,9 @@ class RegexMaskingStrategy extends AbstractMaskingStrategy
             '/\([a-zA-Z0-9]+(\s*\|\s*[a-zA-Z0-9]+){2,}\)\*/', // Multiple overlapping alternations with *
             '/\([a-zA-Z0-9]+(\s*\|\s*[a-zA-Z0-9]+){2,}\)\+/', // Multiple overlapping alternations with +
         ];
-
-        foreach ($riskyPatterns as $riskyPattern) {
-            if (preg_match($riskyPattern, $pattern) === 1) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(
+            $riskyPatterns,
+            fn($riskyPattern): bool => preg_match($riskyPattern, $pattern) === 1
+        );
     }
 }

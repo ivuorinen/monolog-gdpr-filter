@@ -191,13 +191,14 @@ final class PatternValidator
      */
     private function checkDangerousPattern(string $pattern): bool
     {
-        foreach (self::$dangerousPatterns as $dangerousPattern) {
-            if (preg_match($dangerousPattern, $pattern)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(
+            self::$dangerousPatterns, /**
+            * @return false|int
+            *
+            * @psalm-return 0|1|false
+            */
+            fn($dangerousPattern): int|false => preg_match($dangerousPattern, $pattern)
+        );
     }
 
     /**
@@ -226,12 +227,10 @@ final class PatternValidator
     // =========================================================================
     // DEPRECATED STATIC METHODS - Use instance methods instead
     // =========================================================================
-
     /**
      * Clear the pattern validation cache (useful for testing).
-     *
-     * @deprecated Use instance method clearInstanceCache() instead
      */
+    #[\Deprecated(message: 'Use instance method clearInstanceCache() instead')]
     public static function clearCache(): void
     {
         self::$validPatternCache = [];
@@ -240,9 +239,8 @@ final class PatternValidator
     /**
      * Validate that a regex pattern is safe and well-formed.
      * This helps prevent regex injection and ReDoS attacks.
-     *
-     * @deprecated Use instance method validate() instead
      */
+    #[\Deprecated(message: 'Use instance method validate() instead')]
     public static function isValid(string $pattern): bool
     {
         // Check cache first
@@ -261,14 +259,14 @@ final class PatternValidator
      * Pre-validate patterns during construction for better runtime performance.
      *
      * @param array<string, string> $patterns
-     * @deprecated Use instance method cacheAllPatterns() instead
      */
+    #[\Deprecated(message: 'Use instance method cacheAllPatterns() instead')]
     public static function cachePatterns(array $patterns): void
     {
+        $instance = new self();
         foreach (array_keys($patterns) as $pattern) {
             if (!isset(self::$validPatternCache[$pattern])) {
-                /** @psalm-suppress DeprecatedMethod - Internal self-call within deprecated method */
-                self::$validPatternCache[$pattern] = self::isValid($pattern);
+                self::$validPatternCache[$pattern] = $instance->validate($pattern);
             }
         }
     }
@@ -279,13 +277,13 @@ final class PatternValidator
      *
      * @param array<string, string> $patterns
      * @throws InvalidRegexPatternException If any pattern is invalid or unsafe
-     * @deprecated Use instance method validateAllPatterns() instead
      */
+    #[\Deprecated(message: 'Use instance method validateAllPatterns() instead')]
     public static function validateAll(array $patterns): void
     {
+        $instance = new self();
         foreach (array_keys($patterns) as $pattern) {
-            /** @psalm-suppress DeprecatedMethod - Internal self-call within deprecated method */
-            if (!self::isValid($pattern)) {
+            if (!$instance->validate($pattern)) {
                 throw InvalidRegexPatternException::forPattern(
                     $pattern,
                     'Pattern failed validation or is potentially unsafe'
@@ -298,8 +296,8 @@ final class PatternValidator
      * Get the current pattern cache.
      *
      * @return array<string, bool>
-     * @deprecated Use instance method getInstanceCache() instead
      */
+    #[\Deprecated(message: 'Use instance method getInstanceCache() instead')]
     public static function getCache(): array
     {
         return self::$validPatternCache;

@@ -21,16 +21,27 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
     {
         // Create a strategy implementation
         $strategy = new class extends AbstractMaskingStrategy {
+            #[\Override]
             public function mask(mixed $value, string $path, LogRecord $logRecord): mixed
             {
                 return $value;
             }
 
+            #[\Override]
+            /**
+             * @return true
+             */
             public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
             {
                 return true;
             }
 
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'Test Strategy'
+             */
             public function getName(): string
             {
                 return TestConstants::STRATEGY_TEST;
@@ -68,16 +79,27 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
     public function testPreserveValueTypeWithObjectReturningObject(): void
     {
         $strategy = new class extends AbstractMaskingStrategy {
+            #[\Override]
             public function mask(mixed $value, string $path, LogRecord $logRecord): mixed
             {
                 return $value;
             }
 
+            #[\Override]
+            /**
+             * @return true
+             */
             public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
             {
                 return true;
             }
 
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'Test Strategy'
+             */
             public function getName(): string
             {
                 return TestConstants::STRATEGY_TEST;
@@ -100,16 +122,27 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
     public function testPreserveValueTypeWithArrayReturningArray(): void
     {
         $strategy = new class extends AbstractMaskingStrategy {
+            #[\Override]
             public function mask(mixed $value, string $path, LogRecord $logRecord): mixed
             {
                 return $value;
             }
 
+            #[\Override]
+            /**
+             * @return true
+             */
             public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
             {
                 return true;
             }
 
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'Test Strategy'
+             */
             public function getName(): string
             {
                 return TestConstants::STRATEGY_TEST;
@@ -132,16 +165,27 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
     public function testPreserveValueTypeWithInvalidJsonForObject(): void
     {
         $strategy = new class extends AbstractMaskingStrategy {
+            #[\Override]
             public function mask(mixed $value, string $path, LogRecord $logRecord): mixed
             {
                 return $value;
             }
 
+            #[\Override]
+            /**
+             * @return true
+             */
             public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
             {
                 return true;
             }
 
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'Test Strategy'
+             */
             public function getName(): string
             {
                 return TestConstants::STRATEGY_TEST;
@@ -164,16 +208,27 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
     public function testPreserveValueTypeWithInvalidJsonForArray(): void
     {
         $strategy = new class extends AbstractMaskingStrategy {
+            #[\Override]
             public function mask(mixed $value, string $path, LogRecord $logRecord): mixed
             {
                 return $value;
             }
 
+            #[\Override]
+            /**
+             * @return true
+             */
             public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
             {
                 return true;
             }
 
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'Test Strategy'
+             */
             public function getName(): string
             {
                 return TestConstants::STRATEGY_TEST;
@@ -196,16 +251,27 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
     public function testPreserveValueTypeWithNonNumericStringForInteger(): void
     {
         $strategy = new class extends AbstractMaskingStrategy {
+            #[\Override]
             public function mask(mixed $value, string $path, LogRecord $logRecord): mixed
             {
                 return $value;
             }
 
+            #[\Override]
+            /**
+             * @return true
+             */
             public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
             {
                 return true;
             }
 
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'Test Strategy'
+             */
             public function getName(): string
             {
                 return TestConstants::STRATEGY_TEST;
@@ -228,16 +294,27 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
     public function testPreserveValueTypeWithNonNumericStringForFloat(): void
     {
         $strategy = new class extends AbstractMaskingStrategy {
+            #[\Override]
             public function mask(mixed $value, string $path, LogRecord $logRecord): mixed
             {
                 return $value;
             }
 
+            #[\Override]
+            /**
+             * @return true
+             */
             public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
             {
                 return true;
             }
 
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'Test Strategy'
+             */
             public function getName(): string
             {
                 return TestConstants::STRATEGY_TEST;

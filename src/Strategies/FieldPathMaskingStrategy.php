@@ -94,15 +94,11 @@ class FieldPathMaskingStrategy extends AbstractMaskingStrategy
         if ($this->fieldConfigs === []) {
             return false;
         }
-
-        // Validate each configuration
-        foreach ($this->fieldConfigs as $path => $config) {
-            if (!$this->validateFieldPath($path) || !$this->validateFieldConfig($config)) {
-                return false;
-            }
-        }
-
-        return true;
+        return array_all(
+            $this->fieldConfigs,
+            fn($config, $path): bool => $this->validateFieldPath($path)
+                && $this->validateFieldConfig($config)
+        );
     }
 
     /**

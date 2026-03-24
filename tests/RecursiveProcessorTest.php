@@ -158,7 +158,11 @@ final class RecursiveProcessorTest extends TestCase
 
     public function testProcessStringValueWithRegexMatch(): void
     {
-        $regexProcessor = fn(string $val): string => str_replace(TestConstants::CONTEXT_PASSWORD, TestConstants::MASK_REDACTED_BRACKETS, $val);
+        $regexProcessor = fn(string $val): string => str_replace(
+            TestConstants::CONTEXT_PASSWORD,
+            TestConstants::MASK_REDACTED_BRACKETS,
+            $val
+        );
         $dataTypeMasker = new DataTypeMasker([]);
         $processor = new RecursiveProcessor($regexProcessor, $dataTypeMasker, null, 10);
 

@@ -15,8 +15,8 @@ services:
     tty: true
     command: tail -f /dev/null
 
-  # PHP 8.3 for testing compatibility
-  php83:
+  # PHP 8.5 for testing compatibility
+  php85:
     image: php:8.5-cli-alpine
     volumes:
       - ..:/app
