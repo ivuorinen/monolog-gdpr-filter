@@ -80,9 +80,14 @@ final class RetentionPolicy
     /**
      * Get the retention cutoff date.
      */
-    public function getCutoffDate(): \DateTimeImmutable|false
+    public function getCutoffDate(): \DateTimeImmutable
     {
-        return new \DateTimeImmutable()->modify("-{$this->retentionDays} days");
+        $cutoff = (new \DateTimeImmutable())->modify("-{$this->retentionDays} days");
+        if ($cutoff === false) {
+            throw new \RuntimeException("Failed to calculate cutoff date for retention policy '{$this->name}'");
+        }
+
+        return $cutoff;
     }
 
     /**

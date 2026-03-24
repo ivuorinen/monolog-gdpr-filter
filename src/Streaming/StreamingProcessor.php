@@ -75,7 +75,7 @@ final class StreamingProcessor
      * @param string $filePath Path to the log file
      * @param callable(string):array{message: string, context: array<string,mixed>} $lineParser
      *
-     * @psalm-return \Generator<int, array{message: string, context: array<string, mixed>}, mixed, never>
+     * @psalm-return \Generator<int, array{message: string, context: array<string, mixed>}, mixed, void>
      */
     public function processFile(string $filePath, callable $lineParser): \Generator
     {
@@ -177,7 +177,7 @@ final class StreamingProcessor
      *
      * @param iterable<array{message: string, context: array<string,mixed>}> $records
      *
-     * @return int[]
+     * @return array<string, int>
      *
      * @psalm-return array{processed: non-negative-int, masked: non-negative-int, errors: non-negative-int}
      */

@@ -14,9 +14,7 @@ final class DefaultPatterns
     /**
      * Get default GDPR regex patterns. Non-exhaustive, should be extended with your own.
      *
-     * @return string[]
-     *
-     * @psalm-return array<string, string>
+     * @return array<string, string>
      */
     public static function get(): array
     {
