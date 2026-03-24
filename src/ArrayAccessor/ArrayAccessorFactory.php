@@ -17,12 +17,16 @@ use Ivuorinen\MonologGdprFilter\Contracts\ArrayAccessorInterface;
 class ArrayAccessorFactory
 {
     /**
-     * @var class-string<ArrayAccessorInterface>|callable(array<string, mixed>): ArrayAccessorInterface
+     * @var class-string<ArrayAccessorInterface>|callable(
+     *     array<string, mixed>
+     * ): ArrayAccessorInterface
      */
     private $accessorClass;
 
     /**
-     * @param class-string<ArrayAccessorInterface>|callable(array<string, mixed>): ArrayAccessorInterface|null $accessorClass
+     * @param class-string<ArrayAccessorInterface>|callable(
+     *     array<string, mixed>
+     * ): ArrayAccessorInterface|null $accessorClass
      */
     public function __construct(string|callable|null $accessorClass = null)
     {

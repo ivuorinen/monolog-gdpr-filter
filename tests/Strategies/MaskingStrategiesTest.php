@@ -66,7 +66,10 @@ class MaskingStrategiesTest extends TestCase
         $this->assertTrue($strategy->validate());
     }
 
-    public function testRegexMaskingStrategyWithInvalidPattern(): void
+    /**
+     * @return never
+     */
+    public function testRegexMaskingStrategyWithInvalidPattern()
     {
         $this->expectException(InvalidRegexPatternException::class);
         $patterns = [
@@ -77,7 +80,10 @@ class MaskingStrategiesTest extends TestCase
         $this->fail(TestConstants::ERROR_EXCEPTION_NOT_THROWN);
     }
 
-    public function testRegexMaskingStrategyWithReDoSPattern(): void
+    /**
+     * @return never
+     */
+    public function testRegexMaskingStrategyWithReDoSPattern()
     {
         $this->expectException(InvalidRegexPatternException::class);
         $strategy = new RegexMaskingStrategy(['/(a+)+$/' => TestConstants::DATA_MASKED]);
@@ -127,7 +133,11 @@ class MaskingStrategiesTest extends TestCase
         $this->assertSame(80, $strategy->getPriority());
 
         // Test shouldApply
-        $this->assertTrue($strategy->shouldApply(TestConstants::EMAIL_JOHN, TestConstants::FIELD_USER_EMAIL, $logRecord));
+        $this->assertTrue($strategy->shouldApply(
+            TestConstants::EMAIL_JOHN,
+            TestConstants::FIELD_USER_EMAIL,
+            $logRecord
+        ));
         $this->assertFalse($strategy->shouldApply('some value', 'other.field', $logRecord));
 
         // Test static replacement
@@ -450,7 +460,12 @@ class MaskingStrategiesTest extends TestCase
             [],
             90
         ));
-        $manager->addStrategy(new DataTypeMaskingStrategy(['string' => TestConstants::DATA_MASKED], [], [], 40));
+        $manager->addStrategy(new DataTypeMaskingStrategy(
+            ['string' => TestConstants::DATA_MASKED],
+            [],
+            [],
+            40
+        ));
 
         $stats = $manager->getStatistics();
 
@@ -531,7 +546,10 @@ class MaskingStrategiesTest extends TestCase
         $this->assertContains(DataTypeMaskingStrategy::class, $classNames);
     }
 
-    public function testMaskingOperationFailedException(): void
+    /**
+     * @return never
+     */
+    public function testMaskingOperationFailedException()
     {
         // Test that invalid patterns are caught during construction
         $this->expectException(InvalidRegexPatternException::class);

@@ -130,7 +130,10 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
                     $rule1Called = true;
                     return $record->channel === 'test';
                 },
-                'rule2' => function () use (&$rule2Called): bool {
+                'rule2' => /**
+                 * @return true
+                 */
+                function () use (&$rule2Called): bool {
                     $rule2Called = true;
                     return true;
                 },
@@ -150,6 +153,12 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
     public function getPluginsReturnsRegisteredPlugins(): void
     {
         $plugin1 = new class extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'plugin-1'
+             */
             public function getName(): string
             {
                 return 'plugin-1';
@@ -157,6 +166,12 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
         };
 
         $plugin2 = new class extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'plugin-2'
+             */
             public function getName(): string
             {
                 return 'plugin-2';
@@ -178,6 +193,12 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
     public function addPluginsAddsMultiplePlugins(): void
     {
         $plugin1 = new class extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'plugin-1'
+             */
             public function getName(): string
             {
                 return 'plugin-1';
@@ -185,6 +206,12 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
         };
 
         $plugin2 = new class extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'plugin-2'
+             */
             public function getName(): string
             {
                 return 'plugin-2';
@@ -216,6 +243,12 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
     public function buildWithPluginsReturnsPluginAwareProcessorWithPlugins(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'test-plugin'
+             */
             public function getName(): string
             {
                 return 'test-plugin';
@@ -233,6 +266,12 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
     public function buildWithPluginsSortsPluginsByPriority(): void
     {
         $lowPriority = new class (200) extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'low-priority'
+             */
             public function getName(): string
             {
                 return 'low-priority';
@@ -240,6 +279,12 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
         };
 
         $highPriority = new class (10) extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'high-priority'
+             */
             public function getName(): string
             {
                 return 'high-priority';
@@ -258,11 +303,22 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
     public function pluginContributesPatterns(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'pattern-plugin'
+             */
             public function getName(): string
             {
                 return 'pattern-plugin';
             }
 
+            /**
+             * @return string[]
+             *
+             * @psalm-return array{'/PLUGIN-\\d+/': '[PLUGIN-ID]'}
+             */
             #[\Override]
             public function getPatterns(): array
             {
@@ -284,11 +340,22 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
     public function pluginContributesFieldPaths(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'field-plugin'
+             */
             public function getName(): string
             {
                 return 'field-plugin';
             }
 
+            /**
+             * @return \Ivuorinen\MonologGdprFilter\FieldMaskConfig[]
+             *
+             * @psalm-return array{'secret.key': \Ivuorinen\MonologGdprFilter\FieldMaskConfig}
+             */
             #[\Override]
             public function getFieldPaths(): array
             {
@@ -372,10 +439,15 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
 
         $processor = GdprProcessorBuilder::create()
             ->addPattern('/data/', TestConstants::MASK_MASKED_BRACKETS)
-            ->addConditionalRule('track-execution', function () use (&$ruleExecuted): bool {
-                $ruleExecuted = true;
-                return true;
-            })
+            ->addConditionalRule(
+                'track-execution', /**
+                * @return true
+                */
+                function () use (&$ruleExecuted): bool {
+                    $ruleExecuted = true;
+                    return true;
+                }
+            )
             ->build();
 
         $record = $this->createLogRecord('Contains data value');

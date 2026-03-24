@@ -62,7 +62,12 @@ final class DataTypeMaskerEnhancedTest extends TestCase
 
     public function testApplyMaskingArrayWithRecursiveMask(): void
     {
-        $recursiveCallback = (fn(array $value): array => array_map(fn($v) => strtoupper((string) $v), $value));
+        $recursiveCallback = (/**
+         * @return string[]
+         *
+         * @psalm-return array<string>
+         */
+        fn(array $value): array => array_map(fn($v) => strtoupper((string) $v), $value));
 
         $masker = new DataTypeMasker(['array' => 'recursive']);
 

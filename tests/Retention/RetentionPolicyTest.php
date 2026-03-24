@@ -49,7 +49,12 @@ final class RetentionPolicyTest extends TestCase
 
     public function testGetFieldsCustom(): void
     {
-        $policy = new RetentionPolicy('test', 30, RetentionPolicy::ACTION_DELETE, [TestConstants::CONTEXT_EMAIL, 'phone']);
+        $policy = new RetentionPolicy(
+            'test',
+            30,
+            RetentionPolicy::ACTION_DELETE,
+            [TestConstants::CONTEXT_EMAIL, 'phone']
+        );
 
         $this->assertSame([TestConstants::CONTEXT_EMAIL, 'phone'], $policy->getFields());
     }
@@ -83,7 +88,7 @@ final class RetentionPolicyTest extends TestCase
         $policy = new RetentionPolicy('test', 30);
         $cutoff = $policy->getCutoffDate();
 
-        $expected = (new \DateTimeImmutable())->modify('-30 days');
+        $expected = new \DateTimeImmutable()->modify('-30 days');
 
         // Allow 1 second tolerance for test execution time
         $this->assertEqualsWithDelta(

@@ -383,7 +383,10 @@ final class AbstractMaskingStrategyTest extends TestCase
     #[Test]
     public function preserveValueTypeConvertsBackToArray(): void
     {
-        $result = $this->strategy->testPreserveValueType(['original' => 'value'], '{"' . TestConstants::DATA_MASKED . '":"data"}');
+        $result = $this->strategy->testPreserveValueType(
+            ['original' => 'value'],
+            '{"' . TestConstants::DATA_MASKED . '":"data"}'
+        );
         $this->assertSame([TestConstants::DATA_MASKED => 'data'], $result);
         $this->assertIsArray($result);
     }

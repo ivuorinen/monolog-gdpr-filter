@@ -42,31 +42,58 @@ final class ConditionalMaskingStrategyComprehensiveTest extends TestCase
     {
         // Create a mock strategy that always throws
         $wrappedStrategy = new class implements MaskingStrategyInterface {
+            #[\Override]
             public function mask(mixed $value, string $path, LogRecord $logRecord): mixed
             {
                 throw new MaskingOperationFailedException('Wrapped strategy failed');
             }
 
+            #[\Override]
+            /**
+             * @return true
+             */
             public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
             {
                 return true;
             }
 
+            #[\Override]
+            /**
+             * @return int
+             *
+             * @psalm-return 50
+             */
             public function getPriority(): int
             {
                 return 50;
             }
 
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'Test Strategy'
+             */
             public function getName(): string
             {
                 return TestConstants::STRATEGY_TEST;
             }
 
+            #[\Override]
+            /**
+             * @return true
+             */
             public function validate(): bool
             {
                 return true;
             }
 
+            #[\Override]
+            /**
+             * @return array
+             *
+             * @psalm-return array<never, never>
+             */
             public function getConfiguration(): array
             {
                 return [];

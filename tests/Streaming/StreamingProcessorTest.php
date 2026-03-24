@@ -71,7 +71,10 @@ final class StreamingProcessorTest extends TestCase
         $processor = new StreamingProcessor($this->createOrchestrator(), 10);
 
         $records = [
-            [TestConstants::FIELD_MESSAGE => TestConstants::FIELD_MESSAGE, 'context' => ['key' => TestConstants::VALUE_TEST]],
+            [
+                TestConstants::FIELD_MESSAGE => TestConstants::FIELD_MESSAGE,
+                'context' => ['key' => TestConstants::VALUE_TEST],
+            ],
         ];
 
         $results = iterator_to_array($processor->processStream($records));
@@ -104,7 +107,12 @@ final class StreamingProcessorTest extends TestCase
         file_put_contents($tempFile, "test line 1\ntest line 2\ntest line 3\n");
 
         try {
-            $lineParser = fn(string $line): array => [TestConstants::FIELD_MESSAGE => $line, 'context' => []];
+            $lineParser = /**
+             * @return (array|string)[]
+             *
+             * @psalm-return array{message: string, context: array<never, never>}
+             */
+            fn(string $line): array => [TestConstants::FIELD_MESSAGE => $line, 'context' => []];
 
             $results = [];
             foreach ($processor->processFile($tempFile, $lineParser) as $result) {
@@ -127,7 +135,12 @@ final class StreamingProcessorTest extends TestCase
         file_put_contents($tempFile, "test line 1\n\n\ntest line 2\n");
 
         try {
-            $lineParser = fn(string $line): array => [TestConstants::FIELD_MESSAGE => $line, 'context' => []];
+            $lineParser = /**
+             * @return (array|string)[]
+             *
+             * @psalm-return array{message: string, context: array<never, never>}
+             */
+            fn(string $line): array => [TestConstants::FIELD_MESSAGE => $line, 'context' => []];
 
             $results = iterator_to_array($processor->processFile($tempFile, $lineParser));
 
@@ -144,7 +157,14 @@ final class StreamingProcessorTest extends TestCase
         $this->expectException(StreamingOperationFailedException::class);
         $this->expectExceptionMessage('Cannot open input file for streaming:');
 
-        iterator_to_array($processor->processFile('/nonexistent/path/file.log', fn(string $l): array => [TestConstants::FIELD_MESSAGE => $l, 'context' => []]));
+        iterator_to_array($processor->processFile(
+            '/nonexistent/path/file.log', /**
+            * @return (array|string)[]
+            *
+            * @psalm-return array{message: string, context: array<never, never>}
+            */
+            fn(string $l): array => [TestConstants::FIELD_MESSAGE => $l, 'context' => []]
+        ));
     }
 
     public function testProcessToFile(): void

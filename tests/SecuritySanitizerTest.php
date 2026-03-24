@@ -298,7 +298,16 @@ class SecuritySanitizerTest extends TestCase
     }
 
     /**
-     * @return array<string, array{ip: string, range: string}>
+     * @return string[][]
+     *
+     * @psalm-return array{
+     *     '10.0.0.1': array{ip: '10.0.0.1', range: '10.x.x.x'},
+     *     '10.255.255.255': array{ip: '10.255.255.255', range: '10.x.x.x'},
+     *     '172.16.0.1': array{ip: '172.16.0.1', range: '172.16-31.x.x'},
+     *     '172.31.255.255': array{ip: '172.31.255.255', range: '172.16-31.x.x'},
+     *     '192.168.0.1': array{ip: '192.168.0.1', range: '192.168.x.x'},
+     *     '192.168.255.255': array{ip: '192.168.255.255', range: '192.168.x.x'}
+     * }
      */
     public static function internalIpRangesProvider(): array
     {

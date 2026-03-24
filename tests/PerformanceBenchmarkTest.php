@@ -33,7 +33,9 @@ class PerformanceBenchmarkTest extends TestCase
     }
 
     /**
-     * @return array<string, mixed>
+     * @return (array|int|string)[]
+     *
+     * @psalm-return array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, mixed>|int<1000, 9999>>
      */
     private function generateLargeNestedArray(int $depth, int $width): array
     {

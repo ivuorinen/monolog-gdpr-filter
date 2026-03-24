@@ -16,6 +16,12 @@ final class AbstractMaskingPluginTest extends TestCase
     public function testImplementsInterface(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'test-plugin'
+             */
             public function getName(): string
             {
                 return 'test-plugin';
@@ -28,6 +34,12 @@ final class AbstractMaskingPluginTest extends TestCase
     public function testDefaultPriority(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'test-plugin'
+             */
             public function getName(): string
             {
                 return 'test-plugin';
@@ -45,6 +57,12 @@ final class AbstractMaskingPluginTest extends TestCase
                 parent::__construct(50);
             }
 
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'test-plugin'
+             */
             public function getName(): string
             {
                 return 'test-plugin';
@@ -57,6 +75,12 @@ final class AbstractMaskingPluginTest extends TestCase
     public function testPreProcessContextReturnsUnchanged(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'test-plugin'
+             */
             public function getName(): string
             {
                 return 'test-plugin';
@@ -72,6 +96,12 @@ final class AbstractMaskingPluginTest extends TestCase
     public function testPostProcessContextReturnsUnchanged(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'test-plugin'
+             */
             public function getName(): string
             {
                 return 'test-plugin';
@@ -87,6 +117,12 @@ final class AbstractMaskingPluginTest extends TestCase
     public function testPreProcessMessageReturnsUnchanged(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'test-plugin'
+             */
             public function getName(): string
             {
                 return 'test-plugin';
@@ -102,6 +138,12 @@ final class AbstractMaskingPluginTest extends TestCase
     public function testPostProcessMessageReturnsUnchanged(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'test-plugin'
+             */
             public function getName(): string
             {
                 return 'test-plugin';
@@ -117,6 +159,12 @@ final class AbstractMaskingPluginTest extends TestCase
     public function testGetPatternsReturnsEmptyArray(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'test-plugin'
+             */
             public function getName(): string
             {
                 return 'test-plugin';
@@ -129,6 +177,12 @@ final class AbstractMaskingPluginTest extends TestCase
     public function testGetFieldPathsReturnsEmptyArray(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'test-plugin'
+             */
             public function getName(): string
             {
                 return 'test-plugin';
@@ -141,11 +195,23 @@ final class AbstractMaskingPluginTest extends TestCase
     public function testCanOverridePreProcessContext(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'test-plugin'
+             */
             public function getName(): string
             {
                 return 'test-plugin';
             }
 
+            #[\Override]
+            /**
+             * @return (mixed|true)[]
+             *
+             * @psalm-return array{added: true,...}
+             */
             public function preProcessContext(array $context): array
             {
                 $context['added'] = true;
@@ -162,11 +228,18 @@ final class AbstractMaskingPluginTest extends TestCase
     public function testCanOverridePreProcessMessage(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'test-plugin'
+             */
             public function getName(): string
             {
                 return 'test-plugin';
             }
 
+            #[\Override]
             public function preProcessMessage(string $message): string
             {
                 return strtoupper($message);
@@ -179,11 +252,23 @@ final class AbstractMaskingPluginTest extends TestCase
     public function testCanOverrideGetPatterns(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'test-plugin'
+             */
             public function getName(): string
             {
                 return 'test-plugin';
             }
 
+            #[\Override]
+            /**
+             * @return string[]
+             *
+             * @psalm-return array{'/secret/': '[REDACTED]'}
+             */
             public function getPatterns(): array
             {
                 return [TestConstants::PATTERN_SECRET => TestConstants::MASK_REDACTED_BRACKETS];

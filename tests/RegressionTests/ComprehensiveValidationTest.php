@@ -570,7 +570,9 @@ class ComprehensiveValidationTest extends TestCase
     /**
      * Helper method to create deeply nested array
      *
-     * @return array<string, mixed>
+     * @return (array|string)[]
+     *
+     * @psalm-return array{level?: array<string, mixed>, end?: 'value'}
      */
     private function createDeepArray(int $depth): array
     {

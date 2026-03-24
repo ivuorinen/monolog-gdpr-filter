@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests;
 
 /**
- * Test exception for simulating failures in test scenarios.
+ * Test exception for simulatifinal ng failures in test scenarios.
  *
  * @internal
  */
