@@ -287,10 +287,10 @@ final class FieldPathMaskingStrategyTest extends TestCase
     }
 
     /**
-     * @return never
+     * @return void
      */
     #[Test]
-    public function validateReturnsFalseForInvalidRegexPattern()
+    public function validateReturnsFalseForInvalidRegexPattern(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
 

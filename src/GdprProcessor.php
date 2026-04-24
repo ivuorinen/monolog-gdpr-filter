@@ -66,7 +66,7 @@ class GdprProcessor implements ProcessorInterface
         );
 
         // Pre-validate and cache patterns for better performance
-        (new PatternValidator())->cacheAllPatterns($patterns);
+        new PatternValidator()->cacheAllPatterns($patterns);
 
         // Create orchestrator to handle actual masking work
         $this->orchestrator = new MaskingOrchestrator(
@@ -254,7 +254,7 @@ class GdprProcessor implements ProcessorInterface
     public static function validatePatternsArray(array $patterns): void
     {
         try {
-            (new PatternValidator())->validateAllPatterns($patterns);
+            new PatternValidator()->validateAllPatterns($patterns);
         } catch (InvalidRegexPatternException $e) {
             throw PatternValidationException::forMultiplePatterns(
                 ['validation_error' => $e->getMessage()],

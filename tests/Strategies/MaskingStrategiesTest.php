@@ -67,9 +67,9 @@ class MaskingStrategiesTest extends TestCase
     }
 
     /**
-     * @return never
+     * @return void
      */
-    public function testRegexMaskingStrategyWithInvalidPattern()
+    public function testRegexMaskingStrategyWithInvalidPattern(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
         $patterns = [
@@ -81,9 +81,9 @@ class MaskingStrategiesTest extends TestCase
     }
 
     /**
-     * @return never
+     * @return void
      */
-    public function testRegexMaskingStrategyWithReDoSPattern()
+    public function testRegexMaskingStrategyWithReDoSPattern(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
         $strategy = new RegexMaskingStrategy(['/(a+)+$/' => TestConstants::DATA_MASKED]);
@@ -547,9 +547,9 @@ class MaskingStrategiesTest extends TestCase
     }
 
     /**
-     * @return never
+     * @return void
      */
-    public function testMaskingOperationFailedException()
+    public function testMaskingOperationFailedException(): void
     {
         // Test that invalid patterns are caught during construction
         $this->expectException(InvalidRegexPatternException::class);

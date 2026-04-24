@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ivuorinen\MonologGdprFilter\Builder\Traits;
 
+use Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
 
 /**
@@ -28,7 +29,7 @@ trait FieldPathConfigurationTrait
     public function addFieldPath(
         string $path,
         FieldMaskConfig|string $config
-    ): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder {
+    ): GdprProcessorBuilder {
         $this->fieldPaths[$path] = $config;
         return $this;
     }
@@ -40,7 +41,7 @@ trait FieldPathConfigurationTrait
      */
     public function addFieldPaths(
         array $fieldPaths
-    ): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder {
+    ): GdprProcessorBuilder {
         $this->fieldPaths = array_merge($this->fieldPaths, $fieldPaths);
         return $this;
     }
@@ -52,7 +53,7 @@ trait FieldPathConfigurationTrait
      */
     public function setFieldPaths(
         array $fieldPaths
-    ): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder {
+    ): GdprProcessorBuilder {
         $this->fieldPaths = $fieldPaths;
         return $this;
     }

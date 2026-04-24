@@ -69,9 +69,9 @@ final class TestConstants
     public const string SESSION_ID = 'sess_abc123def456';
 
     // Passwords and Secrets (for testing masking)
-    public const string PASSWORD = 'secret_password_123';
+    public const string PASSWORD = 'example_value_for_testing';
     public const string PASSWORD_ALT = 'p@ssw0rd!';
-    public const string API_KEY = 'sk_live_1234567890abcdef';
+    public const string API_KEY = 'test_1234567890abcdef';
     public const string API_KEY_TEST = 'sk_test_4eC39HqLyjWDarj';
     public const string SECRET_TOKEN = 'bearer_secret_token';
     public const string BEARER_TOKEN = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';

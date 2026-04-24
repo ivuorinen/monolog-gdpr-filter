@@ -115,7 +115,7 @@ final class MaskingOrchestrator
         );
 
         // Pre-validate and cache patterns for better performance
-        (new PatternValidator())->cacheAllPatterns($patterns);
+        new PatternValidator()->cacheAllPatterns($patterns);
 
         return new self(
             $patterns,

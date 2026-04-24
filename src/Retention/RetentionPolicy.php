@@ -84,7 +84,7 @@ final class RetentionPolicy
      */
     public function getCutoffDate(): \DateTimeImmutable
     {
-        $cutoff = (new \DateTimeImmutable())->modify("-{$this->retentionDays} days");
+        $cutoff = new \DateTimeImmutable()->modify("-{$this->retentionDays} days");
         if ($cutoff === false) {
             throw new MaskingOperationFailedException(
                 "Failed to calculate cutoff date for retention policy '{$this->name}'"

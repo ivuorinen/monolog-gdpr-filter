@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ivuorinen\MonologGdprFilter\Builder\Traits;
 
+use Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder;
 use Monolog\LogRecord;
 
 /**
@@ -38,7 +39,7 @@ trait CallbackConfigurationTrait
     public function addCallback(
         string $path,
         callable $callback
-    ): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder {
+    ): GdprProcessorBuilder {
         $this->customCallbacks[$path] = $callback;
         return $this;
     }
@@ -50,7 +51,7 @@ trait CallbackConfigurationTrait
      */
     public function addCallbacks(
         array $callbacks
-    ): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder {
+    ): GdprProcessorBuilder {
         $this->customCallbacks = array_merge($this->customCallbacks, $callbacks);
         return $this;
     }
@@ -64,7 +65,7 @@ trait CallbackConfigurationTrait
     public function addDataTypeMask(
         string $type,
         string $mask
-    ): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder {
+    ): GdprProcessorBuilder {
         $this->dataTypeMasks[$type] = $mask;
         return $this;
     }
@@ -76,7 +77,7 @@ trait CallbackConfigurationTrait
      */
     public function addDataTypeMasks(
         array $masks
-    ): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder {
+    ): GdprProcessorBuilder {
         $this->dataTypeMasks = array_merge($this->dataTypeMasks, $masks);
         return $this;
     }
@@ -90,7 +91,7 @@ trait CallbackConfigurationTrait
     public function addConditionalRule(
         string $name,
         callable $condition
-    ): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder {
+    ): GdprProcessorBuilder {
         $this->conditionalRules[$name] = $condition;
         return $this;
     }
@@ -102,7 +103,7 @@ trait CallbackConfigurationTrait
      */
     public function addConditionalRules(
         array $rules
-    ): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder {
+    ): GdprProcessorBuilder {
         $this->conditionalRules = array_merge($this->conditionalRules, $rules);
         return $this;
     }

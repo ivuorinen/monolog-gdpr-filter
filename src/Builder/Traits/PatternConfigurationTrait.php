@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ivuorinen\MonologGdprFilter\Builder\Traits;
 
+use Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder;
 use Ivuorinen\MonologGdprFilter\DefaultPatterns;
 
 /**
@@ -28,7 +29,7 @@ trait PatternConfigurationTrait
     public function addPattern(
         string $pattern,
         string $replacement
-    ): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder {
+    ): GdprProcessorBuilder {
         $this->patterns[$pattern] = $replacement;
         return $this;
     }
@@ -40,7 +41,7 @@ trait PatternConfigurationTrait
      */
     public function addPatterns(
         array $patterns
-    ): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder {
+    ): GdprProcessorBuilder {
         $this->patterns = array_merge($this->patterns, $patterns);
         return $this;
     }
@@ -52,7 +53,7 @@ trait PatternConfigurationTrait
      */
     public function setPatterns(
         array $patterns
-    ): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder {
+    ): GdprProcessorBuilder {
         $this->patterns = $patterns;
         return $this;
     }
@@ -70,7 +71,7 @@ trait PatternConfigurationTrait
     /**
      * Start with default GDPR patterns.
      */
-    public function withDefaultPatterns(): \Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder
+    public function withDefaultPatterns(): GdprProcessorBuilder
     {
         $this->patterns = array_merge($this->patterns, DefaultPatterns::get());
         return $this;
