@@ -233,7 +233,7 @@ $bad = '/.*@.*\..*/';  // Can cause backtracking
 $good = '/[^@]+@[^.]+\.[a-z]+/i';
 ```
 
-2. Add pattern timeout (PHP 8.4+):
+2. Add pattern timeout:
 
 ```php
 <?php
@@ -362,6 +362,7 @@ php artisan cache:clear
 <?php
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
+use Ivuorinen\MonologGdprFilter\DefaultPatterns;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 
 $logger = new Logger('app');
@@ -418,8 +419,13 @@ $record = ['message' => 'No sensitive data here', 'context' => []];
 <?php
 use Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger;
 
+$baseAuditLogger = function (string $path, mixed $original, mixed $masked): void {
+    // Log the audit event via your preferred logger or storage
+    error_log(sprintf('GDPR audit: %s masked', $path));
+};
+
 $rateLimitedLogger = new RateLimitedAuditLogger(
-    auditLogger: $baseLogger,
+    auditLogger: $baseAuditLogger,
     maxRequestsPerMinute: 1000,  // Increase limit
     windowSeconds: 60
 );

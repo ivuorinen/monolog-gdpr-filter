@@ -105,6 +105,7 @@
     <UndefinedMethod>
       <errorLevel type="suppress">
         <file name="tests/Strategies/AbstractMaskingStrategyTest.php" />
+        <file name="tests/Strategies/AbstractMaskingStrategyEnhancedTest.php" />
       </errorLevel>
     </UndefinedMethod>
 

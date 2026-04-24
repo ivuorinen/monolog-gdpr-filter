@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Ivuorinen\MonologGdprFilter\MaskConstants;
+
 /**
  * Constants for test data values.
  *
@@ -70,11 +72,11 @@ final class TestConstants
 
     // Sensitive field values (for testing masking - not real credentials)
     public const string CREDENTIAL_VALUE = 'example_value_for_testing';
-    public const string CREDENTIAL_VALUE_ALT = 'p@ssw0rd!';
+    public const string CREDENTIAL_VALUE_ALT = 'credential_value_placeholder';
     public const string API_KEY = 'test_1234567890abcdef';
-    public const string API_KEY_TEST = 'sk_test_4eC39HqLyjWDarj';
-    public const string SECRET_TOKEN = 'bearer_secret_token';
-    public const string BEARER_TOKEN = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
+    public const string API_KEY_TEST = 'sk_test_placeholder';
+    public const string SECRET_TOKEN = 'secret_token_placeholder';
+    public const string BEARER_TOKEN = 'bearer_token_placeholder';
 
     // Identity Documents
     public const string PASSPORT = 'A123456';
@@ -180,8 +182,8 @@ final class TestConstants
     public const string EMAIL_JOHN = 'john@example.com';
 
     // Mask placeholders used in tests (bracketed format)
-    public const string MASK_REDACTED_BRACKETS = '[REDACTED]';
-    public const string MASK_MASKED_BRACKETS = '[MASKED]';
+    public const string MASK_REDACTED_BRACKETS = MaskConstants::MASK_REDACTED_BRACKETS;
+    public const string MASK_MASKED_BRACKETS = MaskConstants::MASK_BRACKETS;
     public const string MASK_SECRET_BRACKETS = '[SECRET]';
     public const string MASK_SSN_BRACKETS = '[SSN]';
     public const string MASK_EMAIL_BRACKETS = '[EMAIL]';
