@@ -22,7 +22,7 @@ Before optimizing, establish baseline metrics:
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 use Ivuorinen\MonologGdprFilter\DefaultPatterns;
 
-$processor = new GdprProcessor(DefaultPatterns::all());
+$processor = new GdprProcessor(DefaultPatterns::get());
 
 $record = [
     'message' => 'User john@example.com logged in from 192.168.1.100',
@@ -141,7 +141,7 @@ $validator->cacheAllPatterns($patterns);
 
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 
-// Default is 10, reduce for memory-constrained environments
+// Default is 100, reduce for memory-constrained environments
 $processor = new GdprProcessor(
     patterns: $patterns,
     maxDepth: 5  // Limit nested array processing
@@ -204,7 +204,7 @@ class ProcessorFactory
     public static function getInstance(): GdprProcessor
     {
         if (self::$instance === null) {
-            self::$instance = new GdprProcessor(DefaultPatterns::all());
+            self::$instance = new GdprProcessor(DefaultPatterns::get());
         }
         return self::$instance;
     }
@@ -259,17 +259,11 @@ Prevent audit log flooding:
 <?php
 
 use Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger;
-use Ivuorinen\MonologGdprFilter\RateLimiter;
-
-$rateLimiter = new RateLimiter(
-    maxEvents: 100,      // Max 100 events
-    windowSeconds: 60,   // Per 60 seconds
-    burstLimit: 20       // Allow burst of 20
-);
 
 $auditLogger = new RateLimitedAuditLogger(
-    baseLogger: fn($path, $original, $masked) => error_log("Masked: $path"),
-    rateLimiter: $rateLimiter
+    auditLogger: fn($path, $original, $masked) => error_log("Masked: $path"),
+    maxRequestsPerMinute: 100,  // Max 100 events per minute
+    windowSeconds: 60
 );
 ```
 
@@ -372,12 +366,11 @@ Only include patterns you actually need:
 use Ivuorinen\MonologGdprFilter\DefaultPatterns;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 
-// Instead of DefaultPatterns::all(), use specific patterns
-$patterns = array_merge(
-    DefaultPatterns::emails(),
-    DefaultPatterns::creditCards(),
-    // Only what you need
-);
+// Instead of DefaultPatterns::get(), define only the specific patterns you need
+$patterns = [
+    '/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/' => '***EMAIL***',
+    '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/' => '***CARD***',
+];
 
 $processor = new GdprProcessor($patterns);
 ```
@@ -409,7 +402,7 @@ opcache.jit=1255
 opcache.jit_buffer_size=128M
 ```
 
-### 4. Preloading (PHP 8.0+)
+### 4. Preloading (PHP 8.4+)
 
 Create a preload script:
 

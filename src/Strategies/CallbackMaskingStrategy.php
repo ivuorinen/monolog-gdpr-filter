@@ -166,6 +166,9 @@ final class CallbackMaskingStrategy extends AbstractMaskingStrategy
         return $this->pathMatches($path, $this->fieldPath);
     }
 
+    /**
+     * @return string
+     */
     #[\Override]
     public function getName(): string
     {
@@ -198,6 +201,11 @@ final class CallbackMaskingStrategy extends AbstractMaskingStrategy
         return $this->exactMatch;
     }
 
+    /**
+     * @return (bool|int|string)[]
+     *
+     * @psalm-return array{field_path: string, exact_match: bool, priority: int}
+     */
     #[\Override]
     public function getConfiguration(): array
     {

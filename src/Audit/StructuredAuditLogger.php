@@ -224,6 +224,8 @@ final class StructuredAuditLogger
      * Get the wrapped logger for direct access if needed.
      *
      * @return callable
+     *
+     * @psalm-return callable(string, mixed, mixed):void
      */
     public function getWrappedLogger(): callable
     {

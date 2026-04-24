@@ -28,7 +28,9 @@ class JsonMaskingTest extends TestCase
             TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL
         ]);
 
-        $message = 'User data: {"' . TestConstants::CONTEXT_EMAIL . '": "' . TestConstants::EMAIL_USER . '", "name": "' . TestConstants::NAME_FULL . '"}';
+        $message = 'User data: {"' . TestConstants::CONTEXT_EMAIL
+            . '": "' . TestConstants::EMAIL_USER
+            . '", "name": "' . TestConstants::NAME_FULL . '"}';
         $result = $processor->regExpMessage($message);
 
         $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
@@ -47,7 +49,9 @@ class JsonMaskingTest extends TestCase
             TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL
         ]);
 
-        $message = 'Users: [{"' . TestConstants::CONTEXT_EMAIL . '": "' . TestConstants::EMAIL_ADMIN . '"}, {"' . TestConstants::CONTEXT_EMAIL . '": "user@test.com"}]';
+        $message = 'Users: [{"' . TestConstants::CONTEXT_EMAIL
+            . '": "' . TestConstants::EMAIL_ADMIN
+            . '"}, {"' . TestConstants::CONTEXT_EMAIL . '": "user@test.com"}]';
         $result = $processor->regExpMessage($message);
 
         $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
@@ -69,7 +73,9 @@ class JsonMaskingTest extends TestCase
         ]);
 
         $message = 'Complex data: {"user": {"contact": '
-            . '{"' . TestConstants::CONTEXT_EMAIL . '": "nested@example.com", "ssn": "' . TestConstants::SSN_US . '"}, "id": 42}}';
+            . '{"' . TestConstants::CONTEXT_EMAIL
+            . '": "nested@example.com", "ssn": "'
+            . TestConstants::SSN_US . '"}, "id": 42}}';
         $result = $processor->regExpMessage($message);
 
         $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
@@ -80,7 +86,10 @@ class JsonMaskingTest extends TestCase
         // Verify nested structure is maintained
         $extractedJson = $this->extractJsonFromMessage($result);
         $this->assertNotNull($extractedJson);
-        $this->assertEquals(MaskConstants::MASK_EMAIL, $extractedJson['user']['contact'][TestConstants::CONTEXT_EMAIL]);
+        $this->assertEquals(
+            MaskConstants::MASK_EMAIL,
+            $extractedJson['user']['contact'][TestConstants::CONTEXT_EMAIL]
+        );
         $this->assertEquals(MaskConstants::MASK_USSSN, $extractedJson['user']['contact']['ssn']);
         $this->assertEquals(42, $extractedJson['user']['id']);
     }
@@ -91,7 +100,9 @@ class JsonMaskingTest extends TestCase
             TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL
         ]);
 
-        $message = 'Request: {"' . TestConstants::CONTEXT_EMAIL . '": "req@example.com"} Response: {"' . TestConstants::CONTEXT_EMAIL . '": "resp@test.com", "status": "ok"}';
+        $message = 'Request: {"' . TestConstants::CONTEXT_EMAIL
+            . '": "req@example.com"} Response: {"'
+            . TestConstants::CONTEXT_EMAIL . '": "resp@test.com", "status": "ok"}';
         $result = $processor->regExpMessage($message);
 
         $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
@@ -126,7 +137,10 @@ class JsonMaskingTest extends TestCase
         $this->assertStringNotContainsString('email@test.com', $result);
 
         // The structure should still be there, just with masked emails
-        $this->assertStringContainsString('{email: "' . MaskConstants::MASK_EMAIL . '", missing quotes}', $result);
+        $this->assertStringContainsString(
+            '{email: "' . MaskConstants::MASK_EMAIL . '", missing quotes}',
+            $result
+        );
     }
 
     public function testJsonWithSpecialCharacters(): void
@@ -135,7 +149,10 @@ class JsonMaskingTest extends TestCase
             TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL
         ]);
 
-        $message = 'Data: {"' . TestConstants::CONTEXT_EMAIL . '": "' . TestConstants::EMAIL_USER . '", "' . TestConstants::FIELD_MESSAGE . '": "Hello \"world\"", "unicode": "café ñoño"}';
+        $message = 'Data: {"' . TestConstants::CONTEXT_EMAIL
+            . '": "' . TestConstants::EMAIL_USER
+            . '", "' . TestConstants::FIELD_MESSAGE
+            . '": "Hello \"world\"", "unicode": "café ñoño"}';
         $result = $processor->regExpMessage($message);
 
         $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
@@ -159,7 +176,9 @@ class JsonMaskingTest extends TestCase
             ['integer' => MaskConstants::MASK_INT, 'string' => MaskConstants::MASK_STRING]
         );
 
-        $message = 'Data: {"' . TestConstants::CONTEXT_EMAIL . '": "' . TestConstants::EMAIL_USER . '", "id": 12345, "active": true}';
+        $message = 'Data: {"' . TestConstants::CONTEXT_EMAIL
+            . '": "' . TestConstants::EMAIL_USER
+            . '", "id": 12345, "active": true}';
         $result = $processor->regExpMessage($message);
 
         $extractedJson = $this->extractJsonFromMessage($result);
@@ -187,7 +206,8 @@ class JsonMaskingTest extends TestCase
             $auditLogger
         );
 
-        $message = 'User: {"' . TestConstants::CONTEXT_EMAIL . '": "' . TestConstants::EMAIL_TEST . '", "name": "Test User"}';
+        $message = 'User: {"' . TestConstants::CONTEXT_EMAIL
+            . '": "' . TestConstants::EMAIL_TEST . '", "name": "Test User"}';
         $result = $processor->regExpMessage($message);
 
         $this->assertStringContainsString(MaskConstants::MASK_EMAIL, $result);
@@ -205,7 +225,10 @@ class JsonMaskingTest extends TestCase
         }
 
         $this->assertStringContainsString(TestConstants::EMAIL_TEST, (string) $jsonLog['original']);
-        $this->assertStringContainsString(MaskConstants::MASK_EMAIL, (string) $jsonLog[TestConstants::DATA_MASKED]);
+        $this->assertStringContainsString(
+            MaskConstants::MASK_EMAIL,
+            (string) $jsonLog[TestConstants::DATA_MASKED]
+        );
     }
 
     public function testJsonMaskingInLogRecord(): void
@@ -218,7 +241,8 @@ class JsonMaskingTest extends TestCase
             new DateTimeImmutable(),
             'test',
             Level::Info,
-            'API Response: {"user": {"' . TestConstants::CONTEXT_EMAIL . '": "api@example.com"}, "status": "success"}',
+            'API Response: {"user": {"' . TestConstants::CONTEXT_EMAIL
+                . '": "api@example.com"}, "status": "success"}',
             []
         );
 
@@ -230,7 +254,10 @@ class JsonMaskingTest extends TestCase
         // Verify JSON structure is maintained
         $extractedJson = $this->extractJsonFromMessage($result->message);
         $this->assertNotNull($extractedJson);
-        $this->assertEquals(MaskConstants::MASK_EMAIL, $extractedJson['user'][TestConstants::CONTEXT_EMAIL]);
+        $this->assertEquals(
+            MaskConstants::MASK_EMAIL,
+            $extractedJson['user'][TestConstants::CONTEXT_EMAIL]
+        );
         $this->assertEquals('success', $extractedJson['status']);
     }
 
@@ -322,7 +349,10 @@ class JsonMaskingTest extends TestCase
         $user0 = $extractedJson['users'][0];
         $this->assertEquals(MaskConstants::MASK_EMAIL, $user0[TestConstants::CONTEXT_EMAIL]);
         $this->assertEquals(MaskConstants::MASK_PHONE, $user0['contacts']['phone']);
-        $this->assertEquals(MaskConstants::MASK_EMAIL, $user0['contacts']['emergency'][TestConstants::CONTEXT_EMAIL]);
+        $this->assertEquals(
+            MaskConstants::MASK_EMAIL,
+            $user0['contacts']['emergency'][TestConstants::CONTEXT_EMAIL]
+        );
     }
 
     public function testJsonMaskingErrorHandling(): void
@@ -420,7 +450,9 @@ class JsonMaskingTest extends TestCase
             TestConstants::PATTERN_EMAIL_FULL => MaskConstants::MASK_EMAIL
         ]);
 
-        $message = 'Data: {"' . TestConstants::CONTEXT_EMAIL . '": "' . TestConstants::EMAIL_USER . '", "optional": null, "empty": ""}';
+        $message = 'Data: {"' . TestConstants::CONTEXT_EMAIL
+            . '": "' . TestConstants::EMAIL_USER
+            . '", "optional": null, "empty": ""}';
         $result = $processor->regExpMessage($message);
 
         $extractedJson = $this->extractJsonFromMessage($result);

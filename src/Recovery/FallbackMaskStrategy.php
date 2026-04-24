@@ -165,7 +165,9 @@ final class FallbackMaskStrategy
     /**
      * Get a description of this strategy's configuration.
      *
-     * @return array<string, mixed>
+     * @return (bool|string|string[])[]
+     *
+     * @psalm-return array{custom_fallbacks: array<string, string>, default_fallback: string, preserve_type: bool}
      */
     public function getConfiguration(): array
     {

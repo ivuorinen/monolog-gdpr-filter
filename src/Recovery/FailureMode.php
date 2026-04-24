@@ -37,6 +37,8 @@ enum FailureMode: string
 
     /**
      * Get a human-readable description of this failure mode.
+     *
+     * @psalm-return non-empty-string
      */
     public function getDescription(): string
     {

@@ -57,7 +57,18 @@ final class StrategyEdgeCasesTest extends TestCase
     }
 
     /**
-     * @return array<string, array{0: string}>
+     * @return string[][]
+     *
+     * @psalm-return array{
+     *     'nested plus quantifier': list{'/^(a+)+$/'},
+     *     'nested star quantifier': list{'/^(a*)*$/'},
+     *     'plus with repetition': list{'/^(a+){1,10}$/'},
+     *     'star with repetition': list{'/^(a*){1,10}$/'},
+     *     'identical alternation with star': list{'/(.*|.*)x/'},
+     *     'identical alternation with plus': list{'/(.+|.+)x/'},
+     *     'multiple overlapping alternations with star': list{'/(ab|bc|cd)*y/'},
+     *     'multiple overlapping alternations with plus': list{'/(ab|bc|cd)+y/'}
+     * }
      */
     public static function redosPatternProvider(): array
     {
@@ -278,7 +289,10 @@ final class StrategyEdgeCasesTest extends TestCase
     public function fieldPathStrategyValidateWithValidRegexConfig(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            TestConstants::FIELD_USER_DATA => FieldMaskConfig::regexMask(TestConstants::PATTERN_DIGITS, MaskConstants::MASK_BRACKETS),
+            TestConstants::FIELD_USER_DATA => FieldMaskConfig::regexMask(
+                TestConstants::PATTERN_DIGITS,
+                MaskConstants::MASK_BRACKETS
+            ),
         ]);
 
         $this->assertTrue($strategy->validate());
@@ -372,7 +386,10 @@ final class StrategyEdgeCasesTest extends TestCase
     public function fieldPathStrategyMaskAppliesRegexConfig(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            TestConstants::FIELD_USER_SSN => FieldMaskConfig::regexMask(TestConstants::PATTERN_SSN_FORMAT, TestConstants::MASK_SSN_BRACKETS),
+            TestConstants::FIELD_USER_SSN => FieldMaskConfig::regexMask(
+                TestConstants::PATTERN_SSN_FORMAT,
+                TestConstants::MASK_SSN_BRACKETS
+            ),
         ]);
 
         $result = $strategy->mask('SSN: 123-45-6789', TestConstants::FIELD_USER_SSN, $this->logRecord);

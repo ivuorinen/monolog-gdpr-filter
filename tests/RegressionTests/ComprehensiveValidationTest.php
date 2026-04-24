@@ -507,7 +507,7 @@ class ComprehensiveValidationTest extends TestCase
                 'user' => [
                     'id' => 12345,
                     TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_JOHN_DOE,
-                    TestConstants::CONTEXT_PASSWORD => TestConstants::PASSWORD,
+                    TestConstants::CONTEXT_PASSWORD => TestConstants::CREDENTIAL_VALUE,
                 ],
                 'payment' => [
                     'amount' => 99.99,
@@ -570,7 +570,9 @@ class ComprehensiveValidationTest extends TestCase
     /**
      * Helper method to create deeply nested array
      *
-     * @return array<string, mixed>
+     * @return (array|string)[]
+     *
+     * @psalm-return array{level?: array<string, mixed>, end?: 'value'}
      */
     private function createDeepArray(int $depth): array
     {

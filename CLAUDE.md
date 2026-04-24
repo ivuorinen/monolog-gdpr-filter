@@ -88,7 +88,7 @@ The library can be integrated with Laravel in two ways:
 - **PHPStan Level 6** for additional code quality insights
 - **Rector** for safe automated code improvements
 - **EditorConfig**: 4 spaces, LF line endings, UTF-8, trim trailing whitespace
-- **PHPUnit 11** for testing with strict configuration
+- **PHPUnit 13** for testing with strict configuration
 
 ### Static Analysis & Linting Policy
 

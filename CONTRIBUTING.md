@@ -246,7 +246,7 @@ Before submitting, validate your pattern:
 
 ```php
 // Test pattern safety
-GdprProcessor::validatePatterns([
+GdprProcessor::validatePatternsArray([
     '/your-pattern/' => '***TEST***'
 ]);
 

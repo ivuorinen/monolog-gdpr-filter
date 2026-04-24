@@ -120,7 +120,16 @@ final readonly class ErrorContext
     /**
      * Convert to array for serialization/logging.
      *
-     * @return array<string, mixed>
+     * @return (array|int|string)[]
+     *
+     * @psalm-return array{
+     *     error_type: string,
+     *     message: string,
+     *     code: int,
+     *     file?: string,
+     *     line?: int,
+     *     metadata?: array<string, mixed>
+     * }
      */
     public function toArray(): array
     {

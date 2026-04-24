@@ -16,7 +16,7 @@ return RectorConfig::configure()
         __DIR__ . '/config',
     ])
     ->withPhpSets(
-        php82: true,
+        php84: true,
     )
     ->withSets([
         // Only use very conservative, safe rule sets

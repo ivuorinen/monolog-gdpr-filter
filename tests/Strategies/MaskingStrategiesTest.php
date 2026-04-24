@@ -66,6 +66,9 @@ class MaskingStrategiesTest extends TestCase
         $this->assertTrue($strategy->validate());
     }
 
+    /**
+     * @return void
+     */
     public function testRegexMaskingStrategyWithInvalidPattern(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
@@ -77,6 +80,9 @@ class MaskingStrategiesTest extends TestCase
         $this->fail(TestConstants::ERROR_EXCEPTION_NOT_THROWN);
     }
 
+    /**
+     * @return void
+     */
     public function testRegexMaskingStrategyWithReDoSPattern(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
@@ -127,7 +133,11 @@ class MaskingStrategiesTest extends TestCase
         $this->assertSame(80, $strategy->getPriority());
 
         // Test shouldApply
-        $this->assertTrue($strategy->shouldApply(TestConstants::EMAIL_JOHN, TestConstants::FIELD_USER_EMAIL, $logRecord));
+        $this->assertTrue($strategy->shouldApply(
+            TestConstants::EMAIL_JOHN,
+            TestConstants::FIELD_USER_EMAIL,
+            $logRecord
+        ));
         $this->assertFalse($strategy->shouldApply('some value', 'other.field', $logRecord));
 
         // Test static replacement
@@ -450,7 +460,12 @@ class MaskingStrategiesTest extends TestCase
             [],
             90
         ));
-        $manager->addStrategy(new DataTypeMaskingStrategy(['string' => TestConstants::DATA_MASKED], [], [], 40));
+        $manager->addStrategy(new DataTypeMaskingStrategy(
+            ['string' => TestConstants::DATA_MASKED],
+            [],
+            [],
+            40
+        ));
 
         $stats = $manager->getStatistics();
 
@@ -531,6 +546,9 @@ class MaskingStrategiesTest extends TestCase
         $this->assertContains(DataTypeMaskingStrategy::class, $classNames);
     }
 
+    /**
+     * @return void
+     */
     public function testMaskingOperationFailedException(): void
     {
         // Test that invalid patterns are caught during construction
