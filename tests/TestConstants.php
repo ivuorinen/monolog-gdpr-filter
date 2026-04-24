@@ -183,7 +183,7 @@ final class TestConstants
 
     // Mask placeholders used in tests (bracketed format)
     public const string MASK_REDACTED_BRACKETS = MaskConstants::MASK_REDACTED_BRACKETS;
-    public const string MASK_MASKED_BRACKETS = MaskConstants::MASK_BRACKETS;
+    public const string MASK_MASKED_BRACKETS = '[MASKED]';
     public const string MASK_SECRET_BRACKETS = '[SECRET]';
     public const string MASK_SSN_BRACKETS = '[SSN]';
     public const string MASK_EMAIL_BRACKETS = '[EMAIL]';
