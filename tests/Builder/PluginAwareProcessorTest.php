@@ -36,6 +36,7 @@ final class PluginAwareProcessorTest extends TestCase
             }
         };
     }
+
     public function testInvokeAppliesPreProcessing(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
