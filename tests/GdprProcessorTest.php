@@ -409,7 +409,7 @@ class GdprProcessorTest extends TestCase
         $processor->setAuditLogger($auditLogger);
 
         $record = $this->createLogRecord(
-            context: ['user' => [TestConstants::CONTEXT_PASSWORD => TestConstants::PASSWORD]]
+            context: ['user' => [TestConstants::CONTEXT_PASSWORD => TestConstants::CREDENTIAL_VALUE]]
         );
         $processor($record);
 
@@ -434,7 +434,7 @@ class GdprProcessorTest extends TestCase
         $processor->setAuditLogger(null);
 
         $record = $this->createLogRecord(
-            context: ['user' => [TestConstants::CONTEXT_PASSWORD => TestConstants::PASSWORD]]
+            context: ['user' => [TestConstants::CONTEXT_PASSWORD => TestConstants::CREDENTIAL_VALUE]]
         );
         $processor($record);
 

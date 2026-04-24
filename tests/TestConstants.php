@@ -35,10 +35,10 @@ final class TestConstants
     public const string PHONE_INTL = '+358 40 1234567';
     public const string PHONE_GENERIC = '+1234567890';
 
-    // IP Addresses
-    public const string IP_ADDRESS = '192.168.1.100';
-    public const string IP_ADDRESS_ALT = '192.168.1.1';
-    public const string IP_ADDRESS_PUBLIC = '8.8.8.8';
+    // IP Addresses (RFC 5737 documentation ranges - safe for test use)
+    public const string IP_ADDRESS = '192.0.2.100';
+    public const string IP_ADDRESS_ALT = '192.0.2.1';
+    public const string IP_ADDRESS_PUBLIC = '198.51.100.1';
 
     // Names
     public const string NAME_FIRST = 'John';
@@ -68,9 +68,9 @@ final class TestConstants
     public const int USER_ID_ALT = 67890;
     public const string SESSION_ID = 'sess_abc123def456';
 
-    // Passwords and Secrets (for testing masking)
-    public const string PASSWORD = 'example_value_for_testing';
-    public const string PASSWORD_ALT = 'p@ssw0rd!';
+    // Sensitive field values (for testing masking - not real credentials)
+    public const string CREDENTIAL_VALUE = 'example_value_for_testing';
+    public const string CREDENTIAL_VALUE_ALT = 'p@ssw0rd!';
     public const string API_KEY = 'test_1234567890abcdef';
     public const string API_KEY_TEST = 'sk_test_4eC39HqLyjWDarj';
     public const string SECRET_TOKEN = 'bearer_secret_token';

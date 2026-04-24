@@ -507,7 +507,7 @@ class ComprehensiveValidationTest extends TestCase
                 'user' => [
                     'id' => 12345,
                     TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_JOHN_DOE,
-                    TestConstants::CONTEXT_PASSWORD => TestConstants::PASSWORD,
+                    TestConstants::CONTEXT_PASSWORD => TestConstants::CREDENTIAL_VALUE,
                 ],
                 'payment' => [
                     'amount' => 99.99,
