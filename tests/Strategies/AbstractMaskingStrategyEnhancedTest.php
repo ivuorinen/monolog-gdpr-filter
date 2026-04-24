@@ -17,10 +17,12 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
 {
     use TestHelpers;
 
-    public function testValueToStringThrowsForUnencodableArray(): void
+    private AbstractMaskingStrategy $strategy;
+
+    #[\Override]
+    protected function setUp(): void
     {
-        // Create a strategy implementation
-        $strategy = new class extends AbstractMaskingStrategy {
+        $this->strategy = new class extends AbstractMaskingStrategy {
             #[\Override]
             public function mask(mixed $value, string $path, LogRecord $logRecord): mixed
             {
@@ -59,7 +61,10 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
                 return $this->preserveValueType($originalValue, $maskedString);
             }
         };
+    }
 
+    public function testValueToStringThrowsForUnencodableArray(): void
+    {
         // Create a resource that cannot be JSON encoded
         $resource = fopen('php://memory', 'r');
 
@@ -68,7 +73,7 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
 
         try {
             // Array containing a resource should fail to encode
-            $strategy->testValueToString(['key' => $resource]);
+            $this->strategy->testValueToString(['key' => $resource]);
         } finally {
             if (is_resource($resource)) {
                 fclose($resource);
@@ -78,41 +83,8 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
 
     public function testPreserveValueTypeWithObjectReturningObject(): void
     {
-        $strategy = new class extends AbstractMaskingStrategy {
-            #[\Override]
-            public function mask(mixed $value, string $path, LogRecord $logRecord): mixed
-            {
-                return $value;
-            }
-
-            #[\Override]
-            /**
-             * @return true
-             */
-            public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
-            {
-                return true;
-            }
-
-            #[\Override]
-            /**
-             * @return string
-             *
-             * @psalm-return 'Test Strategy'
-             */
-            public function getName(): string
-            {
-                return TestConstants::STRATEGY_TEST;
-            }
-
-            public function testPreserveValueType(mixed $originalValue, string $maskedString): mixed
-            {
-                return $this->preserveValueType($originalValue, $maskedString);
-            }
-        };
-
         $originalObject = (object) ['original' => 'value'];
-        $result = $strategy->testPreserveValueType($originalObject, '{"new":"data"}');
+        $result = $this->strategy->testPreserveValueType($originalObject, '{"new":"data"}');
 
         // Should return object (not array) when original was object
         $this->assertIsObject($result);
@@ -121,41 +93,8 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
 
     public function testPreserveValueTypeWithArrayReturningArray(): void
     {
-        $strategy = new class extends AbstractMaskingStrategy {
-            #[\Override]
-            public function mask(mixed $value, string $path, LogRecord $logRecord): mixed
-            {
-                return $value;
-            }
-
-            #[\Override]
-            /**
-             * @return true
-             */
-            public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
-            {
-                return true;
-            }
-
-            #[\Override]
-            /**
-             * @return string
-             *
-             * @psalm-return 'Test Strategy'
-             */
-            public function getName(): string
-            {
-                return TestConstants::STRATEGY_TEST;
-            }
-
-            public function testPreserveValueType(mixed $originalValue, string $maskedString): mixed
-            {
-                return $this->preserveValueType($originalValue, $maskedString);
-            }
-        };
-
         $originalArray = ['original' => 'value'];
-        $result = $strategy->testPreserveValueType($originalArray, '{"new":"data"}');
+        $result = $this->strategy->testPreserveValueType($originalArray, '{"new":"data"}');
 
         // Should return array (not object) when original was array
         $this->assertIsArray($result);
@@ -164,42 +103,9 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
 
     public function testPreserveValueTypeWithInvalidJsonForObject(): void
     {
-        $strategy = new class extends AbstractMaskingStrategy {
-            #[\Override]
-            public function mask(mixed $value, string $path, LogRecord $logRecord): mixed
-            {
-                return $value;
-            }
-
-            #[\Override]
-            /**
-             * @return true
-             */
-            public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
-            {
-                return true;
-            }
-
-            #[\Override]
-            /**
-             * @return string
-             *
-             * @psalm-return 'Test Strategy'
-             */
-            public function getName(): string
-            {
-                return TestConstants::STRATEGY_TEST;
-            }
-
-            public function testPreserveValueType(mixed $originalValue, string $maskedString): mixed
-            {
-                return $this->preserveValueType($originalValue, $maskedString);
-            }
-        };
-
         $originalObject = (object) ['original' => 'value'];
         // Invalid JSON should fall back to string
-        $result = $strategy->testPreserveValueType($originalObject, 'invalid-json');
+        $result = $this->strategy->testPreserveValueType($originalObject, 'invalid-json');
 
         $this->assertIsString($result);
         $this->assertSame('invalid-json', $result);
@@ -207,42 +113,9 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
 
     public function testPreserveValueTypeWithInvalidJsonForArray(): void
     {
-        $strategy = new class extends AbstractMaskingStrategy {
-            #[\Override]
-            public function mask(mixed $value, string $path, LogRecord $logRecord): mixed
-            {
-                return $value;
-            }
-
-            #[\Override]
-            /**
-             * @return true
-             */
-            public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
-            {
-                return true;
-            }
-
-            #[\Override]
-            /**
-             * @return string
-             *
-             * @psalm-return 'Test Strategy'
-             */
-            public function getName(): string
-            {
-                return TestConstants::STRATEGY_TEST;
-            }
-
-            public function testPreserveValueType(mixed $originalValue, string $maskedString): mixed
-            {
-                return $this->preserveValueType($originalValue, $maskedString);
-            }
-        };
-
         $originalArray = ['original' => 'value'];
         // Invalid JSON should fall back to string
-        $result = $strategy->testPreserveValueType($originalArray, 'invalid-json');
+        $result = $this->strategy->testPreserveValueType($originalArray, 'invalid-json');
 
         $this->assertIsString($result);
         $this->assertSame('invalid-json', $result);
@@ -250,41 +123,8 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
 
     public function testPreserveValueTypeWithNonNumericStringForInteger(): void
     {
-        $strategy = new class extends AbstractMaskingStrategy {
-            #[\Override]
-            public function mask(mixed $value, string $path, LogRecord $logRecord): mixed
-            {
-                return $value;
-            }
-
-            #[\Override]
-            /**
-             * @return true
-             */
-            public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
-            {
-                return true;
-            }
-
-            #[\Override]
-            /**
-             * @return string
-             *
-             * @psalm-return 'Test Strategy'
-             */
-            public function getName(): string
-            {
-                return TestConstants::STRATEGY_TEST;
-            }
-
-            public function testPreserveValueType(mixed $originalValue, string $maskedString): mixed
-            {
-                return $this->preserveValueType($originalValue, $maskedString);
-            }
-        };
-
         // Original was integer but masked string is not numeric
-        $result = $strategy->testPreserveValueType(123, 'not-a-number');
+        $result = $this->strategy->testPreserveValueType(123, 'not-a-number');
 
         // Should fall back to string
         $this->assertIsString($result);
@@ -293,41 +133,8 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
 
     public function testPreserveValueTypeWithNonNumericStringForFloat(): void
     {
-        $strategy = new class extends AbstractMaskingStrategy {
-            #[\Override]
-            public function mask(mixed $value, string $path, LogRecord $logRecord): mixed
-            {
-                return $value;
-            }
-
-            #[\Override]
-            /**
-             * @return true
-             */
-            public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
-            {
-                return true;
-            }
-
-            #[\Override]
-            /**
-             * @return string
-             *
-             * @psalm-return 'Test Strategy'
-             */
-            public function getName(): string
-            {
-                return TestConstants::STRATEGY_TEST;
-            }
-
-            public function testPreserveValueType(mixed $originalValue, string $maskedString): mixed
-            {
-                return $this->preserveValueType($originalValue, $maskedString);
-            }
-        };
-
         // Original was float but masked string is not numeric
-        $result = $strategy->testPreserveValueType(123.45, 'not-a-float');
+        $result = $this->strategy->testPreserveValueType(123.45, 'not-a-float');
 
         // Should fall back to string
         $this->assertIsString($result);

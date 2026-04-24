@@ -19,13 +19,7 @@ final class GdprProcessorConditionalRulesTest extends TestCase
     public function testConditionalRuleSkipsMaskingWithAuditLog(): void
     {
         $auditLog = [];
-        $auditLogger = function (string $path, mixed $original, mixed $masked) use (&$auditLog): void {
-            $auditLog[] = [
-                'path' => $path,
-                'original' => $original,
-                TestConstants::DATA_MASKED => $masked,
-            ];
-        };
+        $auditLogger = $this->createAuditLogger($auditLog);
 
         // Create processor with conditional rule that returns false
         $processor = new GdprProcessor(
@@ -55,13 +49,7 @@ final class GdprProcessorConditionalRulesTest extends TestCase
     public function testConditionalRuleExceptionIsLoggedAndMaskingContinues(): void
     {
         $auditLog = [];
-        $auditLogger = function (string $path, mixed $original, mixed $masked) use (&$auditLog): void {
-            $auditLog[] = [
-                'path' => $path,
-                'original' => $original,
-                TestConstants::DATA_MASKED => $masked,
-            ];
-        };
+        $auditLogger = $this->createAuditLogger($auditLog);
 
         // Create processor with conditional rule that throws exception
         $processor = new GdprProcessor(
@@ -123,13 +111,7 @@ final class GdprProcessorConditionalRulesTest extends TestCase
     public function testConditionalRuleExceptionWithSensitiveDataGetsSanitized(): void
     {
         $auditLog = [];
-        $auditLogger = function (string $path, mixed $original, mixed $masked) use (&$auditLog): void {
-            $auditLog[] = [
-                'path' => $path,
-                'original' => $original,
-                TestConstants::DATA_MASKED => $masked,
-            ];
-        };
+        $auditLogger = $this->createAuditLogger($auditLog);
 
         // Create processor with conditional rule that throws exception with sensitive data
         $processor = new GdprProcessor(

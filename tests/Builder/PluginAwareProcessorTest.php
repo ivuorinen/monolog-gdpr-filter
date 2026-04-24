@@ -18,6 +18,24 @@ use Tests\TestConstants;
 #[CoversClass(PluginAwareProcessor::class)]
 final class PluginAwareProcessorTest extends TestCase
 {
+    private AbstractMaskingPlugin $testPlugin;
+
+    #[\Override]
+    protected function setUp(): void
+    {
+        $this->testPlugin = new class extends AbstractMaskingPlugin {
+            #[\Override]
+            /**
+             * @return string
+             *
+             * @psalm-return 'test-plugin'
+             */
+            public function getName(): string
+            {
+                return 'test-plugin';
+            }
+        };
+    }
     public function testInvokeAppliesPreProcessing(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
@@ -263,22 +281,9 @@ final class PluginAwareProcessorTest extends TestCase
 
     public function testGetProcessor(): void
     {
-        $plugin = new class extends AbstractMaskingPlugin {
-            #[\Override]
-            /**
-             * @return string
-             *
-             * @psalm-return 'test-plugin'
-             */
-            public function getName(): string
-            {
-                return 'test-plugin';
-            }
-        };
-
         $processor = GdprProcessorBuilder::create()
             ->addPattern(TestConstants::PATTERN_TEST, MaskConstants::MASK_GENERIC)
-            ->addPlugin($plugin)
+            ->addPlugin($this->testPlugin)
             ->buildWithPlugins();
 
         $this->assertInstanceOf(PluginAwareProcessor::class, $processor);
@@ -324,22 +329,9 @@ final class PluginAwareProcessorTest extends TestCase
 
     public function testRegExpMessageDelegates(): void
     {
-        $plugin = new class extends AbstractMaskingPlugin {
-            #[\Override]
-            /**
-             * @return string
-             *
-             * @psalm-return 'test-plugin'
-             */
-            public function getName(): string
-            {
-                return 'test-plugin';
-            }
-        };
-
         $processor = GdprProcessorBuilder::create()
             ->addPattern(TestConstants::PATTERN_TEST, MaskConstants::MASK_GENERIC)
-            ->addPlugin($plugin)
+            ->addPlugin($this->testPlugin)
             ->buildWithPlugins();
 
         $this->assertInstanceOf(PluginAwareProcessor::class, $processor);
@@ -351,22 +343,9 @@ final class PluginAwareProcessorTest extends TestCase
 
     public function testRecursiveMaskDelegates(): void
     {
-        $plugin = new class extends AbstractMaskingPlugin {
-            #[\Override]
-            /**
-             * @return string
-             *
-             * @psalm-return 'test-plugin'
-             */
-            public function getName(): string
-            {
-                return 'test-plugin';
-            }
-        };
-
         $processor = GdprProcessorBuilder::create()
             ->addPattern(TestConstants::PATTERN_TEST, MaskConstants::MASK_GENERIC)
-            ->addPlugin($plugin)
+            ->addPlugin($this->testPlugin)
             ->buildWithPlugins();
 
         $this->assertInstanceOf(PluginAwareProcessor::class, $processor);
@@ -383,21 +362,8 @@ final class PluginAwareProcessorTest extends TestCase
             $logs[] = ['path' => $path];
         };
 
-        $plugin = new class extends AbstractMaskingPlugin {
-            #[\Override]
-            /**
-             * @return string
-             *
-             * @psalm-return 'test-plugin'
-             */
-            public function getName(): string
-            {
-                return 'test-plugin';
-            }
-        };
-
         $processor = GdprProcessorBuilder::create()
-            ->addPlugin($plugin)
+            ->addPlugin($this->testPlugin)
             ->buildWithPlugins();
 
         $this->assertInstanceOf(PluginAwareProcessor::class, $processor);
