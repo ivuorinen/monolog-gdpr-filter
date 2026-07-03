@@ -246,7 +246,7 @@ class RegexMaskingStrategy extends AbstractMaskingStrategy
         ];
         return array_any(
             $riskyPatterns,
-            fn($riskyPattern): bool => preg_match($riskyPattern, $pattern) === 1
+            fn(string $riskyPattern): bool => preg_match($riskyPattern, $pattern) === 1
         );
     }
 }
