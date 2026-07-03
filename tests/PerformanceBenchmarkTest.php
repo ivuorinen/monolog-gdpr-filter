@@ -42,7 +42,7 @@ class PerformanceBenchmarkTest extends TestCase
         if ($depth <= 0) {
             return [
                 TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_USER,
-                'phone' => TestConstants::PHONE_GENERIC,
+                TestConstants::CONTEXT_PHONE => TestConstants::PHONE_GENERIC,
                 'ssn' => TestConstants::SSN_US,
                 'id' => random_int(1000, 9999),
             ];
@@ -241,7 +241,7 @@ class PerformanceBenchmarkTest extends TestCase
             $largeArray['item_' . $i] = [
                 TestConstants::CONTEXT_EMAIL => sprintf(TestConstants::TEMPLATE_USER_EMAIL, $i),
                 'ssn' => TestConstants::SSN_US,
-                'phone' => TestConstants::PHONE_US,
+                TestConstants::CONTEXT_PHONE => TestConstants::PHONE_US,
                 'nested' => [
                     'level1' => [
                         'level2' => [

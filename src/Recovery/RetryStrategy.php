@@ -143,7 +143,6 @@ final class RetryStrategy implements RecoveryStrategy
         return $this->maxAttempts;
     }
 
-    #[\Override]
     /**
      * @return (int|string)[]
      *
@@ -155,6 +154,7 @@ final class RetryStrategy implements RecoveryStrategy
      *     fallback_mask: string
      * }
      */
+    #[\Override]
     public function getConfiguration(): array
     {
         return [

@@ -516,7 +516,7 @@ class ComprehensiveValidationTest extends TestCase
                 ],
                 'personal' => [
                     'ssn' => TestConstants::SSN_US,
-                    'phone' => TestConstants::PHONE_US,
+                    TestConstants::CONTEXT_PHONE => TestConstants::PHONE_US,
                 ],
                 'metadata' => [
                     'timestamp' => time(),

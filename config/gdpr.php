@@ -54,8 +54,8 @@ return [
     'field_paths' => [
         // Examples:
         // 'user.email' => '', // Mask with regex
-        // 'user.ssn' => GdprProcessor::removeField(),
-        // 'payment.card' => GdprProcessor::replaceWith('[CARD]'),
+        // 'user.ssn' => \Ivuorinen\MonologGdprFilter\FieldMaskConfig::remove(),
+        // 'payment.card' => \Ivuorinen\MonologGdprFilter\FieldMaskConfig::replace('[CARD]'),
     ],
 
     /*

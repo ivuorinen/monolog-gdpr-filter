@@ -468,14 +468,14 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
         $record = $this->createLogRecord('Test', [
             'user' => [
                 TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_TEST,
-                'phone' => '555-1234',
+                TestConstants::CONTEXT_PHONE => '555-1234',
             ],
         ]);
 
         $processed = $processor($record);
 
         $this->assertSame(MaskConstants::MASK_EMAIL, $processed->context['user'][TestConstants::CONTEXT_EMAIL]);
-        $this->assertSame(MaskConstants::MASK_PHONE, $processed->context['user']['phone']);
+        $this->assertSame(MaskConstants::MASK_PHONE, $processed->context['user'][TestConstants::CONTEXT_PHONE]);
     }
 
     #[Test]

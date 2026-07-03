@@ -315,10 +315,10 @@ class JsonMaskingTest extends TestCase
                     "id": 1,
                     "' . TestConstants::CONTEXT_EMAIL . '": "' . TestConstants::EMAIL_JOHN . '",
                     "contacts": {
-                        "phone": "' . TestConstants::PHONE_US . '",
+                        "' . TestConstants::CONTEXT_PHONE . '": "' . TestConstants::PHONE_US . '",
                         "emergency": {
                             "' . TestConstants::CONTEXT_EMAIL . '": "emergency@example.com",
-                            "phone": "' . TestConstants::PHONE_US_ALT . '"
+                            "' . TestConstants::CONTEXT_PHONE . '": "' . TestConstants::PHONE_US_ALT . '"
                         }
                     }
                 },
@@ -326,7 +326,7 @@ class JsonMaskingTest extends TestCase
                     "id": 2,
                     "' . TestConstants::CONTEXT_EMAIL . '": "jane@test.com",
                     "contacts": {
-                        "phone": "+1-555-456-7890"
+                        "' . TestConstants::CONTEXT_PHONE . '": "+1-555-456-7890"
                     }
                 }
             ]
@@ -348,7 +348,7 @@ class JsonMaskingTest extends TestCase
         $this->assertCount(2, $extractedJson['users']);
         $user0 = $extractedJson['users'][0];
         $this->assertEquals(MaskConstants::MASK_EMAIL, $user0[TestConstants::CONTEXT_EMAIL]);
-        $this->assertEquals(MaskConstants::MASK_PHONE, $user0['contacts']['phone']);
+        $this->assertEquals(MaskConstants::MASK_PHONE, $user0['contacts'][TestConstants::CONTEXT_PHONE]);
         $this->assertEquals(
             MaskConstants::MASK_EMAIL,
             $user0['contacts']['emergency'][TestConstants::CONTEXT_EMAIL]
@@ -377,7 +377,7 @@ class JsonMaskingTest extends TestCase
         $this->assertStringContainsString('{"valid":true}', $result);
 
         // No error logs should be generated for valid JSON
-        $errorLogs = array_filter($auditLogs, fn(array $log): bool => str_contains((string) $log['path'], 'error'));
+        $errorLogs = array_filter($auditLogs, fn(array $log): bool => str_contains($log['path'], 'error'));
         $this->assertEmpty($errorLogs);
     }
 

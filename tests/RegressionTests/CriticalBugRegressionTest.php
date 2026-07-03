@@ -353,16 +353,14 @@ class CriticalBugRegressionTest extends TestCase
             }
         }
 
-        // Test possibly dangerous patterns (implementation may or may not catch these)
+        // Test possibly dangerous patterns (ReDoS heuristics must reject these)
         foreach ($possiblyDangerousPatterns as $pattern) {
             $fullPattern = sprintf('/%s/', $pattern);
 
             try {
-                PatternValidator::validateAll([$pattern => TestConstants::DATA_MASKED]);
-                // These patterns might be allowed by current implementation
-                $this->assertTrue(true, 'Pattern validation completed for: ' . $fullPattern);
+                PatternValidator::validateAll([$fullPattern => TestConstants::DATA_MASKED]);
+                $this->fail('Expected ReDoS rejection for pattern: ' . $fullPattern);
             } catch (InvalidRegexPatternException $e) {
-                // Also acceptable if caught
                 $this->assertStringContainsString(
                     'Pattern failed validation or is potentially unsafe',
                     $e->getMessage()

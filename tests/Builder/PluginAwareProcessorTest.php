@@ -364,14 +364,26 @@ final class PluginAwareProcessorTest extends TestCase
         };
 
         $processor = GdprProcessorBuilder::create()
+            ->addFieldPath(TestConstants::CONTEXT_EMAIL, MaskConstants::MASK_EMAIL)
             ->addPlugin($this->testPlugin)
             ->buildWithPlugins();
 
         $this->assertInstanceOf(PluginAwareProcessor::class, $processor);
         $processor->setAuditLogger($auditLogger);
 
-        // Audit logger should be set on underlying processor
-        $this->assertTrue(true); // No exception means it worked
+        $record = new LogRecord(
+            datetime: new \DateTimeImmutable(),
+            channel: TestConstants::CHANNEL_TEST,
+            level: Level::Info,
+            message: TestConstants::MESSAGE_DEFAULT,
+            context: [TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_TEST]
+        );
+
+        $processor($record);
+
+        // Audit logger set via delegation must fire when field masking occurs
+        $this->assertNotEmpty($logs);
+        $this->assertSame(TestConstants::CONTEXT_EMAIL, $logs[0]['path']);
     }
 
     public function testMultiplePluginsProcessInPriorityOrder(): void

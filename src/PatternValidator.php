@@ -192,12 +192,8 @@ final class PatternValidator
     private function checkDangerousPattern(string $pattern): bool
     {
         return array_any(
-            self::$dangerousPatterns, /**
-            * @return false|int
-            *
-            * @psalm-return 0|1|false
-            */
-            fn($dangerousPattern): int|false => preg_match($dangerousPattern, $pattern)
+            self::$dangerousPatterns,
+            fn(string $dangerousPattern): bool => preg_match($dangerousPattern, $pattern) === 1
         );
     }
 
