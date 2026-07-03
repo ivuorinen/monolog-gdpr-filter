@@ -29,7 +29,7 @@ class GdprDefaultPatternsTest extends TestCase
         $masked = $processor->maskMessage($iban);
         $this->assertSame(MaskConstants::MASK_IBAN, $masked);
         // Finnish IBAN without spaces
-        $ibanWithoutSpaces = 'FI2112345600000785';
+        $ibanWithoutSpaces = TestConstants::IBAN_FI_COMPACT;
         $this->assertSame(MaskConstants::MASK_IBAN, $processor->maskMessage($ibanWithoutSpaces));
         $this->assertNotSame($ibanWithoutSpaces, $processor->maskMessage($ibanWithoutSpaces));
 
@@ -42,7 +42,7 @@ class GdprDefaultPatternsTest extends TestCase
     {
         $patterns = DefaultPatterns::get();
         $processor = new GdprProcessor($patterns);
-        $phone = '+358 40 1234567';
+        $phone = TestConstants::PHONE_INTL;
         $masked = $processor->maskMessage($phone);
         $this->assertSame(MaskConstants::MASK_PHONE, $masked);
         // Edge: not a phone
@@ -66,7 +66,7 @@ class GdprDefaultPatternsTest extends TestCase
     {
         $patterns = DefaultPatterns::get();
         $processor = new GdprProcessor($patterns);
-        $dob1 = '1990-12-31';
+        $dob1 = TestConstants::DOB;
         $dob2 = '31/12/1990';
         $masked1 = $processor->maskMessage($dob1);
         $masked2 = $processor->maskMessage($dob2);
@@ -81,7 +81,7 @@ class GdprDefaultPatternsTest extends TestCase
     {
         $patterns = DefaultPatterns::get();
         $processor = new GdprProcessor($patterns);
-        $passport = 'A123456';
+        $passport = TestConstants::PASSPORT;
         $masked = $processor->maskMessage($passport);
         $this->assertSame(MaskConstants::MASK_PASSPORT, $masked);
         // Edge: too short

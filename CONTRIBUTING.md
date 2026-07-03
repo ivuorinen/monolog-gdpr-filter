@@ -147,7 +147,7 @@ composer lint:fix
 composer lint:tool:phpcs     # PHP_CodeSniffer
 composer lint:tool:phpcbf    # PHP Code Beautifier and Fixer
 composer lint:tool:psalm     # Static analysis
-composer lint:tool:phpstan   # Static analysis (max level)
+composer lint:tool:phpstan   # Static analysis (level 6)
 composer lint:tool:rector    # Code refactoring
 ```
 
@@ -246,7 +246,7 @@ Before submitting, validate your pattern:
 
 ```php
 // Test pattern safety
-GdprProcessor::validatePatterns([
+GdprProcessor::validatePatternsArray([
     '/your-pattern/' => '***TEST***'
 ]);
 

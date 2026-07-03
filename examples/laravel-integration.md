@@ -43,15 +43,17 @@ php artisan vendor:publish --tag=gdpr-config
 ```php
 <?php
 
+use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
+
 return [
     'auto_register' => true,
     'channels' => ['single', 'daily', 'stack'],
 
     'field_paths' => [
         'user.email' => '', // Mask with regex
-        'user.ssn' => GdprProcessor::removeField(),
-        'payment.card_number' => GdprProcessor::replaceWith('[CARD]'),
-        'request.password' => GdprProcessor::removeField(),
+        'user.ssn' => FieldMaskConfig::remove(),
+        'payment.card_number' => FieldMaskConfig::replace('[CARD]'),
+        'request.password' => FieldMaskConfig::remove(),
     ],
 
     'custom_callbacks' => [
@@ -73,6 +75,7 @@ return [
 ```php
 <?php
 
+use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 
 return [
@@ -85,18 +88,18 @@ return [
     'field_paths' => [
         // User data
         'user.email' => '',
-        'user.phone' => GdprProcessor::replaceWith('[PHONE]'),
-        'user.address' => GdprProcessor::removeField(),
+        'user.phone' => FieldMaskConfig::replace('[PHONE]'),
+        'user.address' => FieldMaskConfig::remove(),
 
         // Payment data
-        'payment.card_number' => GdprProcessor::replaceWith('[CARD]'),
-        'payment.cvv' => GdprProcessor::removeField(),
-        'payment.account_number' => GdprProcessor::replaceWith('[ACCOUNT]'),
+        'payment.card_number' => FieldMaskConfig::replace('[CARD]'),
+        'payment.cvv' => FieldMaskConfig::remove(),
+        'payment.account_number' => FieldMaskConfig::replace('[ACCOUNT]'),
 
         // Request data
-        'request.password' => GdprProcessor::removeField(),
-        'request.token' => GdprProcessor::replaceWith('[TOKEN]'),
-        'headers.authorization' => GdprProcessor::replaceWith('[AUTH]'),
+        'request.password' => FieldMaskConfig::remove(),
+        'request.token' => FieldMaskConfig::replace('[TOKEN]'),
+        'headers.authorization' => FieldMaskConfig::replace('[AUTH]'),
     ],
 
     'custom_callbacks' => [
@@ -294,7 +297,7 @@ class GdprTest extends TestCase
     public function test_email_masking()
     {
         $result = Gdpr::regExpMessage('Contact john@example.com');
-        $this->assertStringContains('***EMAIL***', $result);
+        $this->assertStringContainsString('***EMAIL***', $result);
     }
 
     public function test_custom_pattern()

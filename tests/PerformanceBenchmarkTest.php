@@ -33,14 +33,16 @@ class PerformanceBenchmarkTest extends TestCase
     }
 
     /**
-     * @return array<string, mixed>
+     * @return (array|int|string)[]
+     *
+     * @psalm-return array<string, '+1234567890'|'123-45-6789'|'user@example.com'|array<string, mixed>|int<1000, 9999>>
      */
     private function generateLargeNestedArray(int $depth, int $width): array
     {
         if ($depth <= 0) {
             return [
                 TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_USER,
-                'phone' => TestConstants::PHONE_GENERIC,
+                TestConstants::CONTEXT_PHONE => TestConstants::PHONE_GENERIC,
                 'ssn' => TestConstants::SSN_US,
                 'id' => random_int(1000, 9999),
             ];
@@ -239,7 +241,7 @@ class PerformanceBenchmarkTest extends TestCase
             $largeArray['item_' . $i] = [
                 TestConstants::CONTEXT_EMAIL => sprintf(TestConstants::TEMPLATE_USER_EMAIL, $i),
                 'ssn' => TestConstants::SSN_US,
-                'phone' => TestConstants::PHONE_US,
+                TestConstants::CONTEXT_PHONE => TestConstants::PHONE_US,
                 'nested' => [
                     'level1' => [
                         'level2' => [

@@ -79,14 +79,10 @@ class DataTypeMaskingStrategy extends AbstractMaskingStrategy
 
         // If include paths are specified, check them
         if ($this->includePaths !== []) {
-            $included = false;
-            foreach ($this->includePaths as $includePath) {
-                if ($this->pathMatches($path, $includePath)) {
-                    $included = true;
-                    break;
-                }
-            }
-
+            $included = array_any(
+                $this->includePaths,
+                fn(string $includePath): bool => $this->pathMatches($path, $includePath)
+            );
             if (!$included) {
                 return false;
             }

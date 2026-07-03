@@ -76,7 +76,11 @@ final class RetryStrategyTest extends TestCase
         $operation = function () use (&$attemptCount): string {
             $attemptCount++;
             if ($attemptCount < 3) {
-                throw MaskingOperationFailedException::regexMaskingFailed('Temporary failure', TestConstants::PATTERN_TEST, 'test');
+                throw MaskingOperationFailedException::regexMaskingFailed(
+                    'Temporary failure',
+                    TestConstants::PATTERN_TEST,
+                    'test'
+                );
             }
             return TestConstants::MASK_MASKED_BRACKETS;
         };
@@ -99,7 +103,11 @@ final class RetryStrategyTest extends TestCase
         );
 
         $operation = function (): never {
-            throw MaskingOperationFailedException::regexMaskingFailed('Permanent failure', TestConstants::PATTERN_TEST, 'test');
+            throw MaskingOperationFailedException::regexMaskingFailed(
+                'Permanent failure',
+                TestConstants::PATTERN_TEST,
+                'test'
+            );
         };
 
         $result = $strategy->execute($operation, 'original string', 'test.path');
@@ -213,7 +221,11 @@ final class RetryStrategyTest extends TestCase
     public function testIsRecoverableWithTransientError(): void
     {
         $strategy = new RetryStrategy();
-        $exception = MaskingOperationFailedException::regexMaskingFailed('Temporary failure', TestConstants::PATTERN_TEST, 'test');
+        $exception = MaskingOperationFailedException::regexMaskingFailed(
+            'Temporary failure',
+            TestConstants::PATTERN_TEST,
+            'test'
+        );
 
         $this->assertTrue($strategy->isRecoverable($exception));
     }

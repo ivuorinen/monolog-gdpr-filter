@@ -18,14 +18,40 @@ use Tests\TestConstants;
 #[CoversClass(PluginAwareProcessor::class)]
 final class PluginAwareProcessorTest extends TestCase
 {
+    private AbstractMaskingPlugin $testPlugin;
+
+    #[\Override]
+    protected function setUp(): void
+    {
+        $this->testPlugin = new class extends AbstractMaskingPlugin {
+            /**
+             * @return string
+             *
+             * @psalm-return 'test-plugin'
+             */
+            #[\Override]
+            public function getName(): string
+            {
+                return 'test-plugin';
+            }
+        };
+    }
+
     public function testInvokeAppliesPreProcessing(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
+            /**
+             * @return string
+             *
+             * @psalm-return 'uppercase-plugin'
+             */
+            #[\Override]
             public function getName(): string
             {
                 return 'uppercase-plugin';
             }
 
+            #[\Override]
             public function preProcessMessage(string $message): string
             {
                 return strtoupper($message);
@@ -54,11 +80,21 @@ final class PluginAwareProcessorTest extends TestCase
     public function testInvokeAppliesPostProcessing(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
+            /**
+             * @return string
+             *
+             * @psalm-return 'suffix-plugin'
+             */
+            #[\Override]
             public function getName(): string
             {
                 return 'suffix-plugin';
             }
 
+            /**
+             * @return string
+             */
+            #[\Override]
             public function postProcessMessage(string $message): string
             {
                 return $message . ' [processed]';
@@ -86,11 +122,18 @@ final class PluginAwareProcessorTest extends TestCase
     public function testInvokeAppliesPreProcessContext(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
+            /**
+             * @return string
+             *
+             * @psalm-return 'add-field-plugin'
+             */
+            #[\Override]
             public function getName(): string
             {
                 return 'add-field-plugin';
             }
 
+            #[\Override]
             public function preProcessContext(array $context): array
             {
                 $context['added_by_plugin'] = 'true';
@@ -118,11 +161,18 @@ final class PluginAwareProcessorTest extends TestCase
     public function testInvokeAppliesPostProcessContext(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
+            /**
+             * @return string
+             *
+             * @psalm-return 'remove-field-plugin'
+             */
+            #[\Override]
             public function getName(): string
             {
                 return 'remove-field-plugin';
             }
 
+            #[\Override]
             public function postProcessContext(array $context): array
             {
                 unset($context['to_remove']);
@@ -157,11 +207,21 @@ final class PluginAwareProcessorTest extends TestCase
                 parent::__construct(10);
             }
 
+            /**
+             * @return string
+             *
+             * @psalm-return 'plugin1'
+             */
+            #[\Override]
             public function getName(): string
             {
                 return 'plugin1';
             }
 
+            /**
+             * @return string
+             */
+            #[\Override]
             public function postProcessMessage(string $message): string
             {
                 return $message . '-plugin1';
@@ -174,11 +234,21 @@ final class PluginAwareProcessorTest extends TestCase
                 parent::__construct(20);
             }
 
+            /**
+             * @return string
+             *
+             * @psalm-return 'plugin2'
+             */
+            #[\Override]
             public function getName(): string
             {
                 return 'plugin2';
             }
 
+            /**
+             * @return string
+             */
+            #[\Override]
             public function postProcessMessage(string $message): string
             {
                 return $message . '-plugin2';
@@ -207,16 +277,9 @@ final class PluginAwareProcessorTest extends TestCase
 
     public function testGetProcessor(): void
     {
-        $plugin = new class extends AbstractMaskingPlugin {
-            public function getName(): string
-            {
-                return 'test-plugin';
-            }
-        };
-
         $processor = GdprProcessorBuilder::create()
             ->addPattern(TestConstants::PATTERN_TEST, MaskConstants::MASK_GENERIC)
-            ->addPlugin($plugin)
+            ->addPlugin($this->testPlugin)
             ->buildWithPlugins();
 
         $this->assertInstanceOf(PluginAwareProcessor::class, $processor);
@@ -226,6 +289,12 @@ final class PluginAwareProcessorTest extends TestCase
     public function testGetPlugins(): void
     {
         $plugin1 = new class extends AbstractMaskingPlugin {
+            /**
+             * @return string
+             *
+             * @psalm-return 'plugin1'
+             */
+            #[\Override]
             public function getName(): string
             {
                 return 'plugin1';
@@ -233,6 +302,12 @@ final class PluginAwareProcessorTest extends TestCase
         };
 
         $plugin2 = new class extends AbstractMaskingPlugin {
+            /**
+             * @return string
+             *
+             * @psalm-return 'plugin2'
+             */
+            #[\Override]
             public function getName(): string
             {
                 return 'plugin2';
@@ -250,34 +325,23 @@ final class PluginAwareProcessorTest extends TestCase
 
     public function testRegExpMessageDelegates(): void
     {
-        $plugin = new class extends AbstractMaskingPlugin {
-            public function getName(): string
-            {
-                return 'test-plugin';
-            }
-        };
-
         $processor = GdprProcessorBuilder::create()
             ->addPattern(TestConstants::PATTERN_TEST, MaskConstants::MASK_GENERIC)
-            ->addPlugin($plugin)
+            ->addPlugin($this->testPlugin)
             ->buildWithPlugins();
 
         $this->assertInstanceOf(PluginAwareProcessor::class, $processor);
-        $this->assertSame(MaskConstants::MASK_GENERIC . ' message', $processor->regExpMessage(TestConstants::MESSAGE_TEST_LOWERCASE));
+        $this->assertSame(
+            MaskConstants::MASK_GENERIC . ' message',
+            $processor->regExpMessage(TestConstants::MESSAGE_TEST_LOWERCASE)
+        );
     }
 
     public function testRecursiveMaskDelegates(): void
     {
-        $plugin = new class extends AbstractMaskingPlugin {
-            public function getName(): string
-            {
-                return 'test-plugin';
-            }
-        };
-
         $processor = GdprProcessorBuilder::create()
             ->addPattern(TestConstants::PATTERN_TEST, MaskConstants::MASK_GENERIC)
-            ->addPlugin($plugin)
+            ->addPlugin($this->testPlugin)
             ->buildWithPlugins();
 
         $this->assertInstanceOf(PluginAwareProcessor::class, $processor);
@@ -294,22 +358,27 @@ final class PluginAwareProcessorTest extends TestCase
             $logs[] = ['path' => $path];
         };
 
-        $plugin = new class extends AbstractMaskingPlugin {
-            public function getName(): string
-            {
-                return 'test-plugin';
-            }
-        };
-
         $processor = GdprProcessorBuilder::create()
-            ->addPlugin($plugin)
+            ->addFieldPath(TestConstants::CONTEXT_EMAIL, MaskConstants::MASK_EMAIL)
+            ->addPlugin($this->testPlugin)
             ->buildWithPlugins();
 
         $this->assertInstanceOf(PluginAwareProcessor::class, $processor);
         $processor->setAuditLogger($auditLogger);
 
-        // Audit logger should be set on underlying processor
-        $this->assertTrue(true); // No exception means it worked
+        $record = new LogRecord(
+            datetime: new \DateTimeImmutable(),
+            channel: TestConstants::CHANNEL_TEST,
+            level: Level::Info,
+            message: TestConstants::MESSAGE_DEFAULT,
+            context: [TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_TEST]
+        );
+
+        $processor($record);
+
+        // Audit logger set via delegation must fire when field masking occurs
+        $this->assertNotEmpty($logs);
+        $this->assertSame(TestConstants::CONTEXT_EMAIL, $logs[0]['path']);
     }
 
     public function testMultiplePluginsProcessInPriorityOrder(): void
@@ -321,11 +390,21 @@ final class PluginAwareProcessorTest extends TestCase
                 parent::__construct(20); // Lower priority (runs second)
             }
 
+            /**
+             * @return string
+             *
+             * @psalm-return 'plugin1'
+             */
+            #[\Override]
             public function getName(): string
             {
                 return 'plugin1';
             }
 
+            /**
+             * @return string
+             */
+            #[\Override]
             public function preProcessMessage(string $message): string
             {
                 return $message . '-plugin1';
@@ -338,11 +417,21 @@ final class PluginAwareProcessorTest extends TestCase
                 parent::__construct(10); // Higher priority (runs first)
             }
 
+            /**
+             * @return string
+             *
+             * @psalm-return 'plugin2'
+             */
+            #[\Override]
             public function getName(): string
             {
                 return 'plugin2';
             }
 
+            /**
+             * @return string
+             */
+            #[\Override]
             public function preProcessMessage(string $message): string
             {
                 return $message . '-plugin2';

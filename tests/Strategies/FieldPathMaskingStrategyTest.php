@@ -116,7 +116,11 @@ final class FieldPathMaskingStrategyTest extends TestCase
         $config = [TestConstants::FIELD_USER_EMAIL => MaskConstants::MASK_EMAIL_PATTERN];
         $strategy = new FieldPathMaskingStrategy($config);
 
-        $result = $strategy->mask(TestConstants::EMAIL_TEST, TestConstants::FIELD_USER_EMAIL, $this->logRecord);
+        $result = $strategy->mask(
+            TestConstants::EMAIL_TEST,
+            TestConstants::FIELD_USER_EMAIL,
+            $this->logRecord
+        );
 
         $this->assertSame(MaskConstants::MASK_EMAIL_PATTERN, $result);
     }
@@ -282,6 +286,9 @@ final class FieldPathMaskingStrategyTest extends TestCase
         $this->assertFalse($strategy->validate());
     }
 
+    /**
+     * @return void
+     */
     #[Test]
     public function validateReturnsFalseForInvalidRegexPattern(): void
     {
@@ -328,7 +335,10 @@ final class FieldPathMaskingStrategyTest extends TestCase
     public function maskHandlesMultipleReplacementsInSameValue(): void
     {
         $strategy = new FieldPathMaskingStrategy([
-            TestConstants::FIELD_MESSAGE => FieldMaskConfig::regexMask(TestConstants::PATTERN_SSN_FORMAT, MaskConstants::MASK_SSN_PATTERN),
+            TestConstants::FIELD_MESSAGE => FieldMaskConfig::regexMask(
+                TestConstants::PATTERN_SSN_FORMAT,
+                MaskConstants::MASK_SSN_PATTERN
+            ),
         ]);
 
         $input = 'SSNs: 123-45-6789 and 987-65-4321';

@@ -80,9 +80,9 @@ $validator = new PatternValidator();
 $pattern = '/your-pattern-here/';
 
 // Test 1: Validate pattern syntax
-$result = $validator->validate($pattern);
-if (!$result['valid']) {
-    echo "Invalid pattern: " . $result['error'] . "\n";
+$isValid = $validator->validate($pattern);
+if (!$isValid) {
+    echo "Invalid pattern\n";
 }
 
 // Test 2: Test pattern directly
@@ -190,7 +190,10 @@ echo "1000 records: {$elapsed}s\n";
 ```php
 <?php
 // Only include patterns you need
-$patterns = DefaultPatterns::emails() + DefaultPatterns::creditCards();
+$patterns = [
+    '/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/' => '***EMAIL***',
+    '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/' => '***CARD***',
+];
 ```
 
 2. Simplify complex patterns:
@@ -230,7 +233,7 @@ $bad = '/.*@.*\..*/';  // Can cause backtracking
 $good = '/[^@]+@[^.]+\.[a-z]+/i';
 ```
 
-2. Add pattern timeout (PHP 7.3+):
+2. Add pattern timeout:
 
 ```php
 <?php
@@ -359,11 +362,12 @@ php artisan cache:clear
 <?php
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
+use Ivuorinen\MonologGdprFilter\DefaultPatterns;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
 
 $logger = new Logger('app');
 $logger->pushHandler(new StreamHandler('app.log'));
-$logger->pushProcessor(new GdprProcessor(DefaultPatterns::all()));
+$logger->pushProcessor(new GdprProcessor(DefaultPatterns::get()));
 
 // Test it
 $logger->info('User email: test@example.com');
@@ -413,16 +417,18 @@ $record = ['message' => 'No sensitive data here', 'context' => []];
 
 ```php
 <?php
-use Ivuorinen\MonologGdprFilter\RateLimiter;
 use Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger;
 
-$rateLimiter = new RateLimiter(
-    maxEvents: 1000,     // Increase limit
-    windowSeconds: 60,
-    burstLimit: 100      // Increase burst
-);
+$baseAuditLogger = function (string $path, mixed $original, mixed $masked): void {
+    // Log the audit event via your preferred logger or storage
+    error_log(sprintf('GDPR audit: %s masked', $path));
+};
 
-$rateLimitedLogger = new RateLimitedAuditLogger($baseLogger, $rateLimiter);
+$rateLimitedLogger = new RateLimitedAuditLogger(
+    auditLogger: $baseAuditLogger,
+    maxRequestsPerMinute: 1000,  // Increase limit
+    windowSeconds: 60
+);
 ```
 
 ## Error Messages Reference

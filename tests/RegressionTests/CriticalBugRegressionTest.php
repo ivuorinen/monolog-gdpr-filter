@@ -112,7 +112,8 @@ class CriticalBugRegressionTest extends TestCase
 
             // For types with configured masks, should be masked
             $type = gettype($value);
-            if (in_array($type, ['integer', 'double', 'string', 'boolean', 'NULL', 'array', 'object'], true)) {
+            $maskableTypes = ['integer', 'double', 'string', 'boolean', 'NULL', 'array', 'object'];
+            if (in_array($type, $maskableTypes, true)) {
                 $this->assertNotSame(
                     $value,
                     $processedValue,
@@ -125,10 +126,10 @@ class CriticalBugRegressionTest extends TestCase
     /**
      * Data provider for PHP type testing
      *
-     * @psalm-return Generator<string, list{
-     *     'hello world'|123|bool|float|list{'a', 'b', 'c'}|null|resource|stdClass,
-     *     string
-     * }, mixed, void>
+     * @psalm-return Generator<string,
+     *     list{'hello world'|123|bool|float|list{'a', 'b', 'c'}|null|resource|stdClass, string},
+     *     mixed,
+     *     void>
      */
     public static function phpTypesDataProvider(): Generator
     {
@@ -352,16 +353,14 @@ class CriticalBugRegressionTest extends TestCase
             }
         }
 
-        // Test possibly dangerous patterns (implementation may or may not catch these)
+        // Test possibly dangerous patterns (ReDoS heuristics must reject these)
         foreach ($possiblyDangerousPatterns as $pattern) {
             $fullPattern = sprintf('/%s/', $pattern);
 
             try {
-                PatternValidator::validateAll([$pattern => TestConstants::DATA_MASKED]);
-                // These patterns might be allowed by current implementation
-                $this->assertTrue(true, 'Pattern validation completed for: ' . $fullPattern);
+                PatternValidator::validateAll([$fullPattern => TestConstants::DATA_MASKED]);
+                $this->fail('Expected ReDoS rejection for pattern: ' . $fullPattern);
             } catch (InvalidRegexPatternException $e) {
-                // Also acceptable if caught
                 $this->assertStringContainsString(
                     'Pattern failed validation or is potentially unsafe',
                     $e->getMessage()
@@ -409,8 +408,16 @@ class CriticalBugRegressionTest extends TestCase
     public function errorHandlingDoesNotExposeSystemInformation(): void
     {
         $auditLog = [];
-        $auditLogger = function (string $path, mixed $original, mixed $masked) use (&$auditLog): void {
-            $auditLog[] = ['path' => $path, 'original' => $original, TestConstants::DATA_MASKED => $masked];
+        $auditLogger = function (
+            string $path,
+            mixed $original,
+            mixed $masked
+        ) use (&$auditLog): void {
+            $auditLog[] = [
+                'path' => $path,
+                'original' => $original,
+                TestConstants::DATA_MASKED => $masked,
+            ];
         };
 
         // Create processor with conditional rule that throws exception

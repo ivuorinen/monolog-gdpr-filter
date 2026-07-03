@@ -17,10 +17,10 @@ use Ivuorinen\MonologGdprFilter\Audit\ErrorContext;
  */
 final readonly class RecoveryResult
 {
-    public const OUTCOME_SUCCESS = 'success';
-    public const OUTCOME_RECOVERED = 'recovered';
-    public const OUTCOME_FALLBACK = 'fallback';
-    public const OUTCOME_FAILED = 'failed';
+    public const string OUTCOME_SUCCESS = 'success';
+    public const string OUTCOME_RECOVERED = 'recovered';
+    public const string OUTCOME_FALLBACK = 'fallback';
+    public const string OUTCOME_FAILED = 'failed';
 
     /**
      * @param mixed $value The resulting value (masked or fallback)
@@ -183,7 +183,9 @@ final readonly class RecoveryResult
     /**
      * Convert to array for logging/debugging.
      *
-     * @return array<string, mixed>
+     * @return (array|float|int|string)[]
+     *
+     * @psalm-return array{outcome: string, attempts: int, duration_ms: float, error?: array<string, mixed>}
      */
     public function toArray(): array
     {

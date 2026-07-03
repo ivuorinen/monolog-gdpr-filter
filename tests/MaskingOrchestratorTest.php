@@ -25,7 +25,10 @@ final class MaskingOrchestratorTest extends TestCase
 
         $result = $orchestrator->process('This is a test message', []);
 
-        $this->assertSame('This is a ' . MaskConstants::MASK_GENERIC . ' message', $result[TestConstants::FIELD_MESSAGE]);
+        $this->assertSame(
+            'This is a ' . MaskConstants::MASK_GENERIC . ' message',
+            $result[TestConstants::FIELD_MESSAGE]
+        );
         $this->assertSame([], $result['context']);
     }
 
@@ -48,7 +51,10 @@ final class MaskingOrchestratorTest extends TestCase
             [TestConstants::CONTEXT_EMAIL => FieldMaskConfig::replace(TestConstants::MASK_EMAIL_BRACKETS)]
         );
 
-        $result = $orchestrator->process(TestConstants::FIELD_MESSAGE, [TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_TEST]);
+        $result = $orchestrator->process(
+            TestConstants::FIELD_MESSAGE,
+            [TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_TEST]
+        );
 
         $this->assertSame(TestConstants::MASK_EMAIL_BRACKETS, $result['context'][TestConstants::CONTEXT_EMAIL]);
     }

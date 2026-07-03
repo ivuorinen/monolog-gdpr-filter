@@ -27,8 +27,8 @@ Plugins extend the GDPR processor's functionality without modifying core code. U
 
 ### When to Use Plugins vs. Configuration
 
-| Scenario                    | Use Plugin              | Use Configuration   |
-|-----------------------------|-------------------------|---------------------|
+| Scenario                    | Use Plugin               | Use Configuration    |
+|-----------------------------|--------------------------|----------------------|
 | Add regex patterns          | ✅ (via `getPatterns()`) | ✅ (via constructor) |
 | Custom transformation logic | ✅                       | ❌                   |
 | Conditional processing      | ✅                       | ❌                   |

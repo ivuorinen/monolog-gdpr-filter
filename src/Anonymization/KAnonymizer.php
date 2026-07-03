@@ -202,7 +202,7 @@ final class KAnonymizer
      */
     public static function createGdprDefault(?callable $auditLogger = null): self
     {
-        return (new self($auditLogger))
+        return new self($auditLogger)
             ->registerAgeStrategy('age')
             ->registerDateStrategy('birth_date', 'year')
             ->registerDateStrategy('created_at', 'month')

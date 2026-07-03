@@ -15,11 +15,11 @@ use Ivuorinen\MonologGdprFilter\MaskConstants as Mask;
  */
 final readonly class FieldMaskConfig
 {
-    public const MASK_REGEX = 'mask_regex';
+    public const string MASK_REGEX = 'mask_regex';
 
-    public const REMOVE = 'remove';
+    public const string REMOVE = 'remove';
 
-    public const REPLACE = 'replace';
+    public const string REPLACE = 'replace';
 
     public function __construct(
         public string $type,

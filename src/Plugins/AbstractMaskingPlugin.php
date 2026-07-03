@@ -27,6 +27,7 @@ abstract class AbstractMaskingPlugin implements MaskingPluginInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function preProcessContext(array $context): array
     {
         return $context;
@@ -35,6 +36,7 @@ abstract class AbstractMaskingPlugin implements MaskingPluginInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function postProcessContext(array $context): array
     {
         return $context;
@@ -43,6 +45,7 @@ abstract class AbstractMaskingPlugin implements MaskingPluginInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function preProcessMessage(string $message): string
     {
         return $message;
@@ -51,6 +54,7 @@ abstract class AbstractMaskingPlugin implements MaskingPluginInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function postProcessMessage(string $message): string
     {
         return $message;
@@ -59,6 +63,7 @@ abstract class AbstractMaskingPlugin implements MaskingPluginInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function getPatterns(): array
     {
         return [];
@@ -67,6 +72,7 @@ abstract class AbstractMaskingPlugin implements MaskingPluginInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function getFieldPaths(): array
     {
         return [];
@@ -75,6 +81,7 @@ abstract class AbstractMaskingPlugin implements MaskingPluginInterface
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function getPriority(): int
     {
         return $this->priority;

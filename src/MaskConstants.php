@@ -13,73 +13,73 @@ namespace Ivuorinen\MonologGdprFilter;
 final class MaskConstants
 {
     // Data type masks
-    public const MASK_INT = '***INT***';
-    public const MASK_FLOAT = '***FLOAT***';
-    public const MASK_STRING = '***STRING***';
-    public const MASK_BOOL = '***BOOL***';
-    public const MASK_NULL = '***NULL***';
-    public const MASK_ARRAY = '***ARRAY***';
-    public const MASK_OBJECT = '***OBJECT***';
-    public const MASK_RESOURCE = '***RESOURCE***';
+    public const string MASK_INT = '***INT***';
+    public const string MASK_FLOAT = '***FLOAT***';
+    public const string MASK_STRING = '***STRING***';
+    public const string MASK_BOOL = '***BOOL***';
+    public const string MASK_NULL = '***NULL***';
+    public const string MASK_ARRAY = '***ARRAY***';
+    public const string MASK_OBJECT = '***OBJECT***';
+    public const string MASK_RESOURCE = '***RESOURCE***';
 
     // Generic masks
-    public const MASK_GENERIC = '***';              // Simple generic mask
-    public const MASK_MASKED = '***MASKED***';
-    public const MASK_REDACTED = '***REDACTED***';
-    public const MASK_FILTERED = '***FILTERED***';
-    public const MASK_BRACKETS = '[MASKED]';
-    public const MASK_REDACTED_BRACKETS = '[REDACTED]';
+    public const string MASK_GENERIC = '***';              // Simple generic mask
+    public const string MASK_MASKED = '***MASKED***';
+    public const string MASK_REDACTED = '***REDACTED***';
+    public const string MASK_FILTERED = '***FILTERED***';
+    public const string MASK_BRACKETS = '[MASKED]';
+    public const string MASK_REDACTED_BRACKETS = '[REDACTED]';
 
     // Personal identifiers
-    public const MASK_HETU = '***HETU***';          // Finnish SSN
-    public const MASK_SSN = '***SSN***';            // Generic SSN
-    public const MASK_USSSN = '***USSSN***';        // US SSN
-    public const MASK_UKNI = '***UKNI***';          // UK National Insurance
-    public const MASK_CASIN = '***CASIN***';        // Canadian SIN
-    public const MASK_PASSPORT = '***PASSPORT***';
+    public const string MASK_HETU = '***HETU***';          // Finnish SSN
+    public const string MASK_SSN = '***SSN***';            // Generic SSN
+    public const string MASK_USSSN = '***USSSN***';        // US SSN
+    public const string MASK_UKNI = '***UKNI***';          // UK National Insurance
+    public const string MASK_CASIN = '***CASIN***';        // Canadian SIN
+    public const string MASK_PASSPORT = '***PASSPORT***';
 
     // Financial information
-    public const MASK_IBAN = '***IBAN***';
-    public const MASK_CC = '***CC***';              // Credit Card
-    public const MASK_CARD = '***CARD***';          // Credit Card (alternative)
-    public const MASK_UKBANK = '***UKBANK***';
-    public const MASK_CABANK = '***CABANK***';
+    public const string MASK_IBAN = '***IBAN***';
+    public const string MASK_CC = '***CC***';              // Credit Card
+    public const string MASK_CARD = '***CARD***';          // Credit Card (alternative)
+    public const string MASK_UKBANK = '***UKBANK***';
+    public const string MASK_CABANK = '***CABANK***';
 
     // Contact information
-    public const MASK_EMAIL = '***EMAIL***';
-    public const MASK_PHONE = '***PHONE***';
-    public const MASK_IP = '***IP***';
+    public const string MASK_EMAIL = '***EMAIL***';
+    public const string MASK_PHONE = '***PHONE***';
+    public const string MASK_IP = '***IP***';
 
     // Security tokens and keys
-    public const MASK_TOKEN = '***TOKEN***';
-    public const MASK_APIKEY = '***APIKEY***';
-    public const MASK_SECRET = '***SECRET***';
+    public const string MASK_TOKEN = '***TOKEN***';
+    public const string MASK_APIKEY = '***APIKEY***';
+    public const string MASK_SECRET = '***SECRET***';
 
     // Personal data
-    public const MASK_DOB = '***DOB***';            // Date of Birth
-    public const MASK_MAC = '***MAC***';            // MAC Address
+    public const string MASK_DOB = '***DOB***';            // Date of Birth
+    public const string MASK_MAC = '***MAC***';            // MAC Address
 
     // Vehicle and identification
-    public const MASK_VEHICLE = '***VEHICLE***';
+    public const string MASK_VEHICLE = '***VEHICLE***';
 
     // Healthcare
-    public const MASK_MEDICARE = '***MEDICARE***';
-    public const MASK_EHIC = '***EHIC***';          // European Health Insurance Card
+    public const string MASK_MEDICARE = '***MEDICARE***';
+    public const string MASK_EHIC = '***EHIC***';          // European Health Insurance Card
 
     // Custom/Internal
-    public const MASK_INTERNAL = '***INTERNAL***';
-    public const MASK_CUSTOMER = '***CUSTOMER***';
-    public const MASK_NUMBER = '***NUMBER***';
-    public const MASK_ITEM = '***ITEM***';
+    public const string MASK_INTERNAL = '***INTERNAL***';
+    public const string MASK_CUSTOMER = '***CUSTOMER***';
+    public const string MASK_NUMBER = '***NUMBER***';
+    public const string MASK_ITEM = '***ITEM***';
 
     // Custom mask patterns for partial masking
-    public const MASK_SSN_PATTERN = '***-**-****';      // SSN with format preserved
-    public const MASK_EMAIL_PATTERN = '***@***.***';    // Email with format preserved
+    public const string MASK_SSN_PATTERN = '***-**-****';      // SSN with format preserved
+    public const string MASK_EMAIL_PATTERN = '***@***.***';    // Email with format preserved
 
     // Error states
-    public const MASK_INVALID = '***INVALID***';
-    public const MASK_TOOLONG = '***TOOLONG***';
-    public const MASK_ERROR = '***ERROR***';
+    public const string MASK_INVALID = '***INVALID***';
+    public const string MASK_TOOLONG = '***TOOLONG***';
+    public const string MASK_ERROR = '***ERROR***';
 
     /**
      * Prevent instantiation.

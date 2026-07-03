@@ -66,8 +66,7 @@ class GdprProcessor implements ProcessorInterface
         );
 
         // Pre-validate and cache patterns for better performance
-        /** @psalm-suppress DeprecatedMethod - Internal use of caching mechanism */
-        PatternValidator::cachePatterns($patterns);
+        new PatternValidator()->cacheAllPatterns($patterns);
 
         // Create orchestrator to handle actual masking work
         $this->orchestrator = new MaskingOrchestrator(
@@ -86,9 +85,8 @@ class GdprProcessor implements ProcessorInterface
      *
      * @param callable(string,mixed,mixed):void $auditLogger The underlying audit logger
      * @param string $profile Rate limiting profile: 'strict', 'default', 'relaxed', or 'testing'
-     *
-     * @deprecated Use AuditLoggerFactory::create()->createRateLimited() instead
      */
+    #[\Deprecated(message: 'Use AuditLoggerFactory::create()->createRateLimited() instead')]
     public static function createRateLimitedAuditLogger(
         callable $auditLogger,
         string $profile = 'default'
@@ -106,9 +104,8 @@ class GdprProcessor implements ProcessorInterface
      * @param bool $rateLimited Whether to apply rate limiting (default: false for testing)
      *
      * @psalm-return RateLimitedAuditLogger|Closure(string, mixed, mixed):void
-     *
-     * @deprecated Use AuditLoggerFactory::create()->createArrayLogger() instead
      */
+    #[\Deprecated(message: 'Use AuditLoggerFactory::create()->createArrayLogger() instead')]
     public static function createArrayAuditLogger(
         array &$logStorage,
         bool $rateLimited = false
@@ -257,8 +254,7 @@ class GdprProcessor implements ProcessorInterface
     public static function validatePatternsArray(array $patterns): void
     {
         try {
-            /** @psalm-suppress DeprecatedMethod - Wrapper for deprecated validation */
-            PatternValidator::validateAll($patterns);
+            new PatternValidator()->validateAllPatterns($patterns);
         } catch (InvalidRegexPatternException $e) {
             throw PatternValidationException::forMultiplePatterns(
                 ['validation_error' => $e->getMessage()],

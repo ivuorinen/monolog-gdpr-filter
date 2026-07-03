@@ -24,6 +24,7 @@ class GdprServiceProvider extends ServiceProvider
     /**
      * Register services.
      */
+    #[\Override]
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__ . '/../../config/gdpr.php', 'gdpr');

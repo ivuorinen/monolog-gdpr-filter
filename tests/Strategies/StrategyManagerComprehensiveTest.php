@@ -160,31 +160,58 @@ final class StrategyManagerComprehensiveTest extends TestCase
     {
         // Create a mock strategy that throws
         $failingStrategy = new class implements MaskingStrategyInterface {
+            #[\Override]
             public function mask(mixed $value, string $path, LogRecord $logRecord): mixed
             {
                 throw new MaskingOperationFailedException('Strategy execution failed');
             }
 
+            /**
+             * @return true
+             */
+            #[\Override]
             public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
             {
                 return true;
             }
 
+            /**
+             * @return int
+             *
+             * @psalm-return 50
+             */
+            #[\Override]
             public function getPriority(): int
             {
                 return 50;
             }
 
+            /**
+             * @return string
+             *
+             * @psalm-return 'Failing Strategy'
+             */
+            #[\Override]
             public function getName(): string
             {
                 return 'Failing Strategy';
             }
 
+            /**
+             * @return true
+             */
+            #[\Override]
             public function validate(): bool
             {
                 return true;
             }
 
+            /**
+             * @return array
+             *
+             * @psalm-return array<never, never>
+             */
+            #[\Override]
             public function getConfiguration(): array
             {
                 return [];
@@ -350,31 +377,58 @@ final class StrategyManagerComprehensiveTest extends TestCase
     {
         // Create an invalid strategy by using empty array
         $invalidStrategy = new class implements MaskingStrategyInterface {
+            #[\Override]
             public function mask(mixed $value, string $path, LogRecord $logRecord): mixed
             {
                 return $value;
             }
 
+            /**
+             * @return false
+             */
+            #[\Override]
             public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
             {
                 return false;
             }
 
+            /**
+             * @return int
+             *
+             * @psalm-return 50
+             */
+            #[\Override]
             public function getPriority(): int
             {
                 return 50;
             }
 
+            /**
+             * @return string
+             *
+             * @psalm-return 'Invalid Strategy'
+             */
+            #[\Override]
             public function getName(): string
             {
                 return 'Invalid Strategy';
             }
 
+            /**
+             * @return false
+             */
+            #[\Override]
             public function validate(): bool
             {
                 return false;
             }
 
+            /**
+             * @return array
+             *
+             * @psalm-return array<never, never>
+             */
+            #[\Override]
             public function getConfiguration(): array
             {
                 return [];
@@ -396,31 +450,58 @@ final class StrategyManagerComprehensiveTest extends TestCase
     public function testValidateAllStrategiesCatchesExceptions(): void
     {
         $throwingStrategy = new class implements MaskingStrategyInterface {
+            #[\Override]
             public function mask(mixed $value, string $path, LogRecord $logRecord): mixed
             {
                 return $value;
             }
 
+            /**
+             * @return false
+             */
+            #[\Override]
             public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
             {
                 return false;
             }
 
+            /**
+             * @return int
+             *
+             * @psalm-return 50
+             */
+            #[\Override]
             public function getPriority(): int
             {
                 return 50;
             }
 
+            /**
+             * @return string
+             *
+             * @psalm-return 'Throwing Strategy'
+             */
+            #[\Override]
             public function getName(): string
             {
                 return 'Throwing Strategy';
             }
 
+            /**
+             * @return never
+             */
+            #[\Override]
             public function validate(): bool
             {
                 throw new MaskingOperationFailedException('Validation error');
             }
 
+            /**
+             * @return array
+             *
+             * @psalm-return array<never, never>
+             */
+            #[\Override]
             public function getConfiguration(): array
             {
                 return [];

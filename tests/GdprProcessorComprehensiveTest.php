@@ -272,9 +272,18 @@ final class GdprProcessorComprehensiveTest extends TestCase
         $processor = new GdprProcessor(
             patterns: [TestConstants::PATTERN_DIGITS => 'NUM'],
             conditionalRules: [
-                'rule1' => fn($record): bool => true,
-                'rule2' => fn($record): bool => true,
-                'rule3' => fn($record): bool => true,
+                'rule1' => /**
+                 * @return true
+                 */
+                fn($record): bool => true,
+                'rule2' => /**
+                 * @return true
+                 */
+                fn($record): bool => true,
+                'rule3' => /**
+                 * @return true
+                 */
+                fn($record): bool => true,
             ]
         );
 
@@ -298,7 +307,10 @@ final class GdprProcessorComprehensiveTest extends TestCase
                 'failing_rule' => function (): never {
                     throw new TestException('Rule failed');
                 },
-                'passing_rule' => fn($record): bool => true,
+                'passing_rule' => /**
+                 * @return true
+                 */
+                fn($record): bool => true,
             ]
         );
 

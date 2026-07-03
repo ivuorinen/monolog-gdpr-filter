@@ -91,7 +91,7 @@ services:
     command: tail -f /dev/null
 
   # Optional: PHP 8.5 for testing compatibility
-  php83:
+  php85:
     image: php:8.5-cli-alpine
     volumes:
       - ..:/app
@@ -197,9 +197,9 @@ docker compose exec php composer lint:fix
 ### Testing Multiple PHP Versions
 
 ```bash
-# Test with PHP 8.3
-docker compose --profile testing run php83 php -v
-docker compose --profile testing run php83 ./vendor/bin/phpunit
+# Test with PHP 8.5
+docker compose --profile testing run php85 php -v
+docker compose --profile testing run php85 ./vendor/bin/phpunit
 ```
 
 ## Debugging

@@ -62,10 +62,14 @@ final class KAnonymizerTest extends TestCase
         $anonymizer = new KAnonymizer();
         $anonymizer->registerDateStrategy('quarter_date', 'quarter');
 
-        $this->assertSame('2024-Q1', $anonymizer->anonymize(['quarter_date' => '2024-02-15'])['quarter_date']);
-        $this->assertSame('2024-Q2', $anonymizer->anonymize(['quarter_date' => '2024-05-15'])['quarter_date']);
-        $this->assertSame('2024-Q3', $anonymizer->anonymize(['quarter_date' => '2024-08-15'])['quarter_date']);
-        $this->assertSame('2024-Q4', $anonymizer->anonymize(['quarter_date' => '2024-11-15'])['quarter_date']);
+        $result1 = $anonymizer->anonymize(['quarter_date' => '2024-02-15']);
+        $this->assertSame('2024-Q1', $result1['quarter_date']);
+        $result2 = $anonymizer->anonymize(['quarter_date' => '2024-05-15']);
+        $this->assertSame('2024-Q2', $result2['quarter_date']);
+        $result3 = $anonymizer->anonymize(['quarter_date' => '2024-08-15']);
+        $this->assertSame('2024-Q3', $result3['quarter_date']);
+        $result4 = $anonymizer->anonymize(['quarter_date' => '2024-11-15']);
+        $this->assertSame('2024-Q4', $result4['quarter_date']);
     }
 
     public function testAnonymizeWithDateTimeObject(): void
@@ -115,7 +119,10 @@ final class KAnonymizerTest extends TestCase
     public function testAnonymizeWithCustomStrategy(): void
     {
         $anonymizer = new KAnonymizer();
-        $anonymizer->registerCustomStrategy(TestConstants::CONTEXT_EMAIL, fn(mixed $v): string => explode('@', (string) $v)[1] ?? 'unknown');
+        $anonymizer->registerCustomStrategy(
+            TestConstants::CONTEXT_EMAIL,
+            fn(mixed $v): string => explode('@', (string) $v)[1] ?? 'unknown'
+        );
 
         $record = [TestConstants::CONTEXT_EMAIL => TestConstants::EMAIL_JOHN];
         $result = $anonymizer->anonymize($record);
@@ -258,7 +265,12 @@ final class KAnonymizerTest extends TestCase
         $anonymizer->registerLocationStrategy('zip', 2);
         $anonymizer->registerDateStrategy('date', 'year');
 
-        $record = ['age' => 28, 'zip' => TestConstants::DATA_NUMBER_STRING, 'date' => '2024-06-15', 'name' => TestConstants::NAME_FIRST];
+        $record = [
+            'age' => 28,
+            'zip' => TestConstants::DATA_NUMBER_STRING,
+            'date' => '2024-06-15',
+            'name' => TestConstants::NAME_FIRST,
+        ];
         $result = $anonymizer->anonymize($record);
 
         $this->assertSame(TestConstants::AGE_RANGE_20_29, $result['age']);
@@ -269,7 +281,7 @@ final class KAnonymizerTest extends TestCase
 
     public function testFluentInterface(): void
     {
-        $anonymizer = (new KAnonymizer())
+        $anonymizer = new KAnonymizer()
             ->registerAgeStrategy('age')
             ->registerLocationStrategy('zip', 3)
             ->registerDateStrategy('date', 'month');

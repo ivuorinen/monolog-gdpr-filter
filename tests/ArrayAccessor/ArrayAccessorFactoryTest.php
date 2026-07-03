@@ -48,7 +48,9 @@ final class ArrayAccessorFactoryTest extends TestCase
 
     public function testWithCallableFactoryMethod(): void
     {
-        $customFactory = (fn(array $data): ArrayAccessorInterface => new DotArrayAccessor(array_merge($data, ['injected' => true])));
+        $customFactory = (fn(array $data): DotArrayAccessor => new DotArrayAccessor(
+            array_merge($data, ['injected' => true])
+        ));
 
         $factory = ArrayAccessorFactory::withCallable($customFactory);
         $accessor = $factory->create(['original' => 'data']);
@@ -77,7 +79,7 @@ final class ArrayAccessorFactoryTest extends TestCase
     public function testConstructorWithCallable(): void
     {
         $callCount = 0;
-        $customFactory = function (array $data) use (&$callCount): ArrayAccessorInterface {
+        $customFactory = function (array $data) use (&$callCount): DotArrayAccessor {
             $callCount++;
             return new DotArrayAccessor($data);
         };

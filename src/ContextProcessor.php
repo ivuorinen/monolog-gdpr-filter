@@ -107,8 +107,10 @@ class ContextProcessor
      * Mask a single value according to config or callback.
      * Returns an array: ['masked' => value|null, 'remove' => bool]
      *
-     * @psalm-return array{masked: mixed, remove: bool}
+     * @psalm-return array{masked: null|string, remove: bool}
      * @psalm-param mixed $value
+     *
+     * @return (bool|null|string)[]
      */
     public function maskValue(string $path, mixed $value, FieldMaskConfig|string|null $config): array
     {

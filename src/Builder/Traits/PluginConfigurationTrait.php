@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ivuorinen\MonologGdprFilter\Builder\Traits;
 
+use Ivuorinen\MonologGdprFilter\Builder\GdprProcessorBuilder;
 use Ivuorinen\MonologGdprFilter\Contracts\MaskingPluginInterface;
 
 /**
@@ -22,7 +23,7 @@ trait PluginConfigurationTrait
     /**
      * Register a masking plugin.
      */
-    public function addPlugin(MaskingPluginInterface $plugin): self
+    public function addPlugin(MaskingPluginInterface $plugin): GdprProcessorBuilder
     {
         $this->plugins[] = $plugin;
         return $this;
@@ -33,7 +34,7 @@ trait PluginConfigurationTrait
      *
      * @param list<MaskingPluginInterface> $plugins
      */
-    public function addPlugins(array $plugins): self
+    public function addPlugins(array $plugins): GdprProcessorBuilder
     {
         foreach ($plugins as $plugin) {
             $this->plugins[] = $plugin;
