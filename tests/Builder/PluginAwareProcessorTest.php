@@ -133,11 +133,6 @@ final class PluginAwareProcessorTest extends TestCase
                 return 'add-field-plugin';
             }
 
-            /**
-             * @return (mixed|string)[]
-             *
-             * @psalm-return array{added_by_plugin: 'true',...}
-             */
             #[\Override]
             public function preProcessContext(array $context): array
             {

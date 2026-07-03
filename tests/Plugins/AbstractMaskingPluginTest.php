@@ -121,11 +121,6 @@ final class AbstractMaskingPluginTest extends TestCase
                 return 'test-plugin';
             }
 
-            /**
-             * @return (mixed|true)[]
-             *
-             * @psalm-return array{added: true,...}
-             */
             #[\Override]
             public function preProcessContext(array $context): array
             {
