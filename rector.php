@@ -35,20 +35,14 @@ return RectorConfig::configure()
         // Skip regex pattern simplification - can break regex behavior ([0-9] vs \d with unicode)
         SimplifyRegexPatternRector::class,
 
-        // Skip entire directories for certain transformations
-        '*/tests/*' => [
-            // Don't modify test methods or assertions - they have specific requirements
-        ],
+        // Skip test directories - tests have specific requirements
+        '*/tests/*',
 
         // Skip specific files that are sensitive
-        __DIR__ . '/src/GdprProcessor.php' => [
-            // Don't modify the main processor class structure
-        ],
+        __DIR__ . '/src/GdprProcessor.php',
 
         // Skip Laravel integration files - they have specific requirements
-        __DIR__ . '/src/Laravel/*' => [
-            // Don't modify Laravel-specific code
-        ],
+        __DIR__ . '/src/Laravel/*',
     ])
     ->withImportNames(
         importNames: true,
@@ -67,5 +61,4 @@ return RectorConfig::configure()
         strictBooleans: false,     // Disable strict boolean changes
         privatization: false,      // Disable privatization changes
         naming: false,             // Disable naming changes
-        typeDeclarations: false,   // Disable type declaration changes
     );

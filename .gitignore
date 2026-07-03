@@ -9,7 +9,6 @@
 
 # Composer files
 /vendor/
-/composer.lock
 /composer.phar
 
 # Build data

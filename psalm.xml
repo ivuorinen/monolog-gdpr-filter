@@ -8,7 +8,6 @@
   noCache="false"
   findUnusedPsalmSuppress="true"
   skipChecksOnUnresolvableIncludes="true"
-  allowPhpStormGenerics="true"
   allowStringToStandInForClass="true"
   memoizeMethodCallResults="true"
   hoistConstants="true"
