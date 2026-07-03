@@ -73,7 +73,7 @@ final class TestConstants
     // Sensitive field values (for testing masking - not real credentials)
     public const string CREDENTIAL_VALUE = 'example_value_for_testing';
     public const string API_KEY = 'test_1234567890abcdef';
-    public const string API_KEY_TEST = 'sk_test_placeholder';
+    public const string API_KEY_TEST = 'api_key_test_placeholder';
     public const string BEARER_TOKEN = 'bearer_token_placeholder';
 
     // Identity Documents

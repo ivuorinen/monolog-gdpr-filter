@@ -207,7 +207,8 @@ Fix: Consolidate onto one masking path, or add cross-tests asserting identical o
 
 Category: tests
 Area: src/DefaultPatterns.php (API key pattern), tests/GdprDefaultPatternsTest.php:130-132
-Problem: `'sk_test_4eC39HqLyjWDarj'` (15-char suffix) matches only the generic
+Problem: the test API-key value at tests/GdprDefaultPatternsTest.php:130 (15-char
+suffix) matches only the generic
 `[A-Za-z0-9\-_]{20,}` alternation, never the `sk_(live|test)_[A-Za-z0-9]{16,}` branch; any
 string matching the `sk_` branch is always matched by the generic branch first.
 Evidence: Length analysis of the alternations; no test exercises the `sk_` branch.

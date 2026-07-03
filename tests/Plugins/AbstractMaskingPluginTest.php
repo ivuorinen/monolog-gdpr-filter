@@ -19,12 +19,12 @@ final class AbstractMaskingPluginTest extends TestCase
     protected function setUp(): void
     {
         $this->plugin = new class extends AbstractMaskingPlugin {
-            #[\Override]
             /**
              * @return string
              *
              * @psalm-return 'test-plugin'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'test-plugin';
@@ -50,12 +50,12 @@ final class AbstractMaskingPluginTest extends TestCase
                 parent::__construct(50);
             }
 
-            #[\Override]
             /**
              * @return string
              *
              * @psalm-return 'test-plugin'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'test-plugin';
@@ -110,23 +110,23 @@ final class AbstractMaskingPluginTest extends TestCase
     public function testCanOverridePreProcessContext(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
-            #[\Override]
             /**
              * @return string
              *
              * @psalm-return 'test-plugin'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'test-plugin';
             }
 
-            #[\Override]
             /**
              * @return (mixed|true)[]
              *
              * @psalm-return array{added: true,...}
              */
+            #[\Override]
             public function preProcessContext(array $context): array
             {
                 $context['added'] = true;
@@ -143,12 +143,12 @@ final class AbstractMaskingPluginTest extends TestCase
     public function testCanOverridePreProcessMessage(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
-            #[\Override]
             /**
              * @return string
              *
              * @psalm-return 'test-plugin'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'test-plugin';
@@ -167,23 +167,23 @@ final class AbstractMaskingPluginTest extends TestCase
     public function testCanOverrideGetPatterns(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
-            #[\Override]
             /**
              * @return string
              *
              * @psalm-return 'test-plugin'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'test-plugin';
             }
 
-            #[\Override]
             /**
              * @return string[]
              *
              * @psalm-return array{'/secret/': '[REDACTED]'}
              */
+            #[\Override]
             public function getPatterns(): array
             {
                 return [TestConstants::PATTERN_SECRET => TestConstants::MASK_REDACTED_BRACKETS];

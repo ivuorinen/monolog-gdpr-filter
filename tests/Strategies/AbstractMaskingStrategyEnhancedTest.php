@@ -29,21 +29,21 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
                 return $value;
             }
 
-            #[\Override]
             /**
              * @return true
              */
+            #[\Override]
             public function shouldApply(mixed $value, string $path, LogRecord $logRecord): bool
             {
                 return true;
             }
 
-            #[\Override]
             /**
              * @return string
              *
              * @psalm-return 'Test Strategy'
              */
+            #[\Override]
             public function getName(): string
             {
                 return TestConstants::STRATEGY_TEST;

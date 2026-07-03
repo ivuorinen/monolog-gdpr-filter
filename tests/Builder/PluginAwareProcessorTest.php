@@ -24,12 +24,12 @@ final class PluginAwareProcessorTest extends TestCase
     protected function setUp(): void
     {
         $this->testPlugin = new class extends AbstractMaskingPlugin {
-            #[\Override]
             /**
              * @return string
              *
              * @psalm-return 'test-plugin'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'test-plugin';
@@ -40,12 +40,12 @@ final class PluginAwareProcessorTest extends TestCase
     public function testInvokeAppliesPreProcessing(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
-            #[\Override]
             /**
              * @return string
              *
              * @psalm-return 'uppercase-plugin'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'uppercase-plugin';
@@ -80,21 +80,21 @@ final class PluginAwareProcessorTest extends TestCase
     public function testInvokeAppliesPostProcessing(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
-            #[\Override]
             /**
              * @return string
              *
              * @psalm-return 'suffix-plugin'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'suffix-plugin';
             }
 
-            #[\Override]
             /**
              * @return string
              */
+            #[\Override]
             public function postProcessMessage(string $message): string
             {
                 return $message . ' [processed]';
@@ -122,23 +122,23 @@ final class PluginAwareProcessorTest extends TestCase
     public function testInvokeAppliesPreProcessContext(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
-            #[\Override]
             /**
              * @return string
              *
              * @psalm-return 'add-field-plugin'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'add-field-plugin';
             }
 
-            #[\Override]
             /**
              * @return (mixed|string)[]
              *
              * @psalm-return array{added_by_plugin: 'true',...}
              */
+            #[\Override]
             public function preProcessContext(array $context): array
             {
                 $context['added_by_plugin'] = 'true';
@@ -166,12 +166,12 @@ final class PluginAwareProcessorTest extends TestCase
     public function testInvokeAppliesPostProcessContext(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
-            #[\Override]
             /**
              * @return string
              *
              * @psalm-return 'remove-field-plugin'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'remove-field-plugin';
@@ -212,21 +212,21 @@ final class PluginAwareProcessorTest extends TestCase
                 parent::__construct(10);
             }
 
-            #[\Override]
             /**
              * @return string
              *
              * @psalm-return 'plugin1'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'plugin1';
             }
 
-            #[\Override]
             /**
              * @return string
              */
+            #[\Override]
             public function postProcessMessage(string $message): string
             {
                 return $message . '-plugin1';
@@ -239,21 +239,21 @@ final class PluginAwareProcessorTest extends TestCase
                 parent::__construct(20);
             }
 
-            #[\Override]
             /**
              * @return string
              *
              * @psalm-return 'plugin2'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'plugin2';
             }
 
-            #[\Override]
             /**
              * @return string
              */
+            #[\Override]
             public function postProcessMessage(string $message): string
             {
                 return $message . '-plugin2';
@@ -294,12 +294,12 @@ final class PluginAwareProcessorTest extends TestCase
     public function testGetPlugins(): void
     {
         $plugin1 = new class extends AbstractMaskingPlugin {
-            #[\Override]
             /**
              * @return string
              *
              * @psalm-return 'plugin1'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'plugin1';
@@ -307,12 +307,12 @@ final class PluginAwareProcessorTest extends TestCase
         };
 
         $plugin2 = new class extends AbstractMaskingPlugin {
-            #[\Override]
             /**
              * @return string
              *
              * @psalm-return 'plugin2'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'plugin2';
@@ -395,21 +395,21 @@ final class PluginAwareProcessorTest extends TestCase
                 parent::__construct(20); // Lower priority (runs second)
             }
 
-            #[\Override]
             /**
              * @return string
              *
              * @psalm-return 'plugin1'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'plugin1';
             }
 
-            #[\Override]
             /**
              * @return string
              */
+            #[\Override]
             public function preProcessMessage(string $message): string
             {
                 return $message . '-plugin1';
@@ -422,21 +422,21 @@ final class PluginAwareProcessorTest extends TestCase
                 parent::__construct(10); // Higher priority (runs first)
             }
 
-            #[\Override]
             /**
              * @return string
              *
              * @psalm-return 'plugin2'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'plugin2';
             }
 
-            #[\Override]
             /**
              * @return string
              */
+            #[\Override]
             public function preProcessMessage(string $message): string
             {
                 return $message . '-plugin2';

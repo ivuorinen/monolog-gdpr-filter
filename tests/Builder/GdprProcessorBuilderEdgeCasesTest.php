@@ -153,12 +153,12 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
     public function getPluginsReturnsRegisteredPlugins(): void
     {
         $plugin1 = new class extends AbstractMaskingPlugin {
-            #[\Override]
             /**
              * @return string
              *
              * @psalm-return 'plugin-1'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'plugin-1';
@@ -166,12 +166,12 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
         };
 
         $plugin2 = new class extends AbstractMaskingPlugin {
-            #[\Override]
             /**
              * @return string
              *
              * @psalm-return 'plugin-2'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'plugin-2';
@@ -193,12 +193,12 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
     public function addPluginsAddsMultiplePlugins(): void
     {
         $plugin1 = new class extends AbstractMaskingPlugin {
-            #[\Override]
             /**
              * @return string
              *
              * @psalm-return 'plugin-1'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'plugin-1';
@@ -206,12 +206,12 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
         };
 
         $plugin2 = new class extends AbstractMaskingPlugin {
-            #[\Override]
             /**
              * @return string
              *
              * @psalm-return 'plugin-2'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'plugin-2';
@@ -243,12 +243,12 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
     public function buildWithPluginsReturnsPluginAwareProcessorWithPlugins(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
-            #[\Override]
             /**
              * @return string
              *
              * @psalm-return 'test-plugin'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'test-plugin';
@@ -266,12 +266,12 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
     public function buildWithPluginsSortsPluginsByPriority(): void
     {
         $lowPriority = new class (200) extends AbstractMaskingPlugin {
-            #[\Override]
             /**
              * @return string
              *
              * @psalm-return 'low-priority'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'low-priority';
@@ -279,12 +279,12 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
         };
 
         $highPriority = new class (10) extends AbstractMaskingPlugin {
-            #[\Override]
             /**
              * @return string
              *
              * @psalm-return 'high-priority'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'high-priority';
@@ -303,12 +303,12 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
     public function pluginContributesPatterns(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
-            #[\Override]
             /**
              * @return string
              *
              * @psalm-return 'pattern-plugin'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'pattern-plugin';
@@ -338,12 +338,12 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
     public function pluginContributesFieldPaths(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
-            #[\Override]
             /**
              * @return string
              *
              * @psalm-return 'field-plugin'
              */
+            #[\Override]
             public function getName(): string
             {
                 return 'field-plugin';
