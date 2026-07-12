@@ -180,7 +180,7 @@ class StrategyManager
     {
         return array_any(
             $this->getSortedStrategies(),
-            fn($strategy) => $strategy->shouldApply($value, $path, $logRecord)
+            fn(MaskingStrategyInterface $strategy): bool => $strategy->shouldApply($value, $path, $logRecord)
         );
     }
 
