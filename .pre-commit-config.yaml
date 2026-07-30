@@ -22,7 +22,7 @@ repos:
         args: [--autofix, --no-sort-keys]
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.49.0
+    rev: v0.49.1
     hooks:
       - id: markdownlint
         args: [-c, .markdownlint.json, --fix]
@@ -33,7 +33,7 @@ repos:
       - id: yamllint
 
   - repo: https://github.com/scop/pre-commit-shfmt
-    rev: v3.12.0-2
+    rev: v3.13.1-1
     hooks:
       - id: shfmt
 
@@ -50,7 +50,7 @@ repos:
         args: ["-shellcheck="]
 
   - repo: https://github.com/bridgecrewio/checkov.git
-    rev: "3.3.6"
+    rev: "3.3.8"
     hooks:
       - id: checkov
         args:
