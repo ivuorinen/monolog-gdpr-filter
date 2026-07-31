@@ -13,6 +13,7 @@ use Monolog\Level;
 use Monolog\LogRecord;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -43,6 +44,7 @@ final class MaskingBypassRegressionTest extends TestCase
      * Configuring a fieldPath must not disable regex masking of the other context
      * values (the fieldPaths branch used to skip recursive masking entirely).
      */
+    #[Test]
     public function testFieldPathConfigDoesNotDisableRegexMaskingOfOtherFields(): void
     {
         $processor = new GdprProcessor(
@@ -65,6 +67,7 @@ final class MaskingBypassRegressionTest extends TestCase
      * The 'recursive' array mask used to restart the depth counter at 0 on every
      * level, so maxDepth never tripped.
      */
+    #[Test]
     public function testRecursiveArrayMaskCannotBypassDepthGuard(): void
     {
         $deep = [];
@@ -98,6 +101,7 @@ final class MaskingBypassRegressionTest extends TestCase
      * A malformed UTF-8 byte makes PCRE abort every /u pattern. The value must not
      * be passed through unmasked when that happens.
      */
+    #[Test]
     public function testMalformedUtf8DoesNotDisableMasking(): void
     {
         $processor = new GdprProcessor(patterns: DefaultPatterns::get());
@@ -114,6 +118,7 @@ final class MaskingBypassRegressionTest extends TestCase
      * Patterns are applied one at a time, so a pattern that fails at runtime must
      * not discard the masking already done by the others.
      */
+    #[Test]
     public function testFailingPatternDoesNotVoidOtherPatterns(): void
     {
         $processor = new GdprProcessor(patterns: [
@@ -150,6 +155,7 @@ final class MaskingBypassRegressionTest extends TestCase
     }
 
     #[DataProvider('embeddedValueProvider')]
+    #[Test]
     public function testDefaultPatternsMaskValuesEmbeddedInAMessage(
         string $message,
         string $sensitive,
@@ -165,29 +171,65 @@ final class MaskingBypassRegressionTest extends TestCase
      * Empty objects used to be restored by rewriting the first N `[]` occurrences in the
      * encoded JSON, which also rewrote `[]` appearing inside string values.
      *
+     * Every input is deliberately written with whitespace between tokens. Only the JSON
+     * path decodes and re-encodes, which normalises that whitespace away, so a compact
+     * expectation cannot be satisfied by a plain regex substitution over the raw string.
+     * That is what makes these cases actually exercise restoreObjectShape().
+     *
      * @return array<string, array{string, string}>
      */
     public static function jsonShapeProvider(): array
     {
         return [
-            'empty object preserved' => ['{"meta":{},"v":"secret"}', '{"meta":{},"v":"***"}'],
+            'empty object preserved' => [
+                '{"meta": {}, "v": "secret"}',
+                '{"meta":{},"v":"***"}',
+            ],
             'bracket inside a string' => [
-                '{"note":"array literal [] here","meta":{},"v":"secret"}',
+                '{"note": "array literal [] here", "meta": {}, "v": "secret"}',
                 '{"note":"array literal [] here","meta":{},"v":"***"}',
             ],
-            'nested empty objects' => ['{"a":{},"b":{"c":{}},"v":"secret"}', '{"a":{},"b":{"c":{}},"v":"***"}'],
-            'empty array stays an array' => ['{"list":[],"meta":{},"v":"secret"}', '{"list":[],"meta":{},"v":"***"}'],
+            'nested empty objects' => [
+                '{"a": {}, "b": {"c": {}}, "v": "secret"}',
+                '{"a":{},"b":{"c":{}},"v":"***"}',
+            ],
+            'empty array stays an array' => [
+                '{"list": [], "meta": {}, "v": "secret"}',
+                '{"list":[],"meta":{},"v":"***"}',
+            ],
         ];
     }
 
+    /**
+     * Uses regExpMessage(), not maskMessage(): only regExpMessage() runs
+     * maskMessageWithJsonSupport(), so it is the sole entry point that reaches JsonMasker.
+     * maskMessage() is a plain per-pattern preg_replace loop, and asserting against it
+     * would pass even with restoreObjectShape() removed entirely.
+     */
+    #[Test]
     #[DataProvider('jsonShapeProvider')]
-    public function testJsonMaskingPreservesStructureWithoutCorruptingStrings(
+    public function jsonMaskingPreservesStructureWithoutCorruptingStrings(
         string $json,
         string $expected
     ): void {
         $processor = new GdprProcessor(patterns: ['/secret/' => '***']);
 
-        $this->assertSame($expected, $processor->maskMessage($json));
+        $this->assertSame($expected, $processor->regExpMessage($json));
+    }
+
+    /**
+     * Guards the guard: proves the provider above is routed through the JSON path rather
+     * than satisfied by raw string substitution. maskMessage() never decodes, so the
+     * whitespace survives and its output differs from the re-encoded form.
+     */
+    #[Test]
+    public function jsonShapeCasesAreNotSatisfiedByPlainSubstitution(): void
+    {
+        $processor = new GdprProcessor(patterns: ['/secret/' => '***']);
+        $json = '{"meta": {}, "v": "secret"}';
+
+        $this->assertSame('{"meta":{},"v":"***"}', $processor->regExpMessage($json));
+        $this->assertSame('{"meta": {}, "v": "***"}', $processor->maskMessage($json));
     }
 
     /**
@@ -214,6 +256,7 @@ final class MaskingBypassRegressionTest extends TestCase
     }
 
     #[DataProvider('uncoveredDefaultPatternProvider')]
+    #[Test]
     public function testPreviouslyUncoveredDefaultPatternsMaskAndDoNotOvermatch(
         string $sensitive,
         string $expectedMask,
@@ -238,6 +281,7 @@ final class MaskingBypassRegressionTest extends TestCase
      * was '' or '0', which re-emitted the unmasked value for any pattern that redacts
      * a message down to nothing.
      */
+    #[Test]
     public function testFullyRedactedMessageIsNotReplacedByTheOriginal(): void
     {
         // A card number masked away entirely must not come back.
@@ -253,6 +297,7 @@ final class MaskingBypassRegressionTest extends TestCase
      * The generic API-key heuristic matches any 20+ character token, so it must stay
      * whole-value anchored rather than eating ordinary words in a message.
      */
+    #[Test]
     public function testGenericApiKeyHeuristicDoesNotMaskOrdinaryMessageText(): void
     {
         $processor = new GdprProcessor(patterns: DefaultPatterns::get());

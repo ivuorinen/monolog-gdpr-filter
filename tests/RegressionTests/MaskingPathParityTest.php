@@ -14,6 +14,7 @@ use Monolog\Level;
 use Monolog\LogRecord;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -70,6 +71,7 @@ final class MaskingPathParityTest extends TestCase
      * Both masking paths must produce the same output for the same default patterns.
      */
     #[DataProvider('sensitiveValueProvider')]
+    #[Test]
     public function testWiredAndStrategyPathsAgreeOnDefaultPatterns(string $value): void
     {
         $patterns = DefaultPatterns::get();
@@ -87,6 +89,7 @@ final class MaskingPathParityTest extends TestCase
     /**
      * A custom pattern must behave identically on both paths too.
      */
+    #[Test]
     public function testWiredAndStrategyPathsAgreeOnCustomPatterns(): void
     {
         $patterns = ['/\bsecret-\w+\b/' => Mask::MASK_MASKED];
