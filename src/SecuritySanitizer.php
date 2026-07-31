@@ -73,7 +73,16 @@ final class SecuritySanitizer
         $sanitized = $message;
 
         foreach ($sensitivePatterns as $pattern => $replacement) {
-            $sanitized = preg_replace($pattern, $replacement, $sanitized) ?? $sanitized;
+            $result = preg_replace($pattern, $replacement, $sanitized);
+
+            if ($result === null) {
+                // A PCRE failure here means this message was NOT scrubbed. Keeping the
+                // partially-sanitised text would emit whatever that pattern existed to
+                // remove, so fail closed and drop the message entirely.
+                return Mask::MASK_REDACTED . ' (sanitization failed: ' . preg_last_error_msg() . ')';
+            }
+
+            $sanitized = $result;
         }
 
         // Truncate very long messages to prevent log flooding

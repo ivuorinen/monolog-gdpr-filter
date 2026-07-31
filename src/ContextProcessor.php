@@ -137,7 +137,7 @@ class ContextProcessor
         if ($config instanceof FieldMaskConfig) {
             switch ($config->type) {
                 case FieldMaskConfig::MASK_REGEX:
-                    $result['masked'] = $this->applyRegexMask($config, $value);
+                    $result['masked'] = $this->applyRegexMask($path, $config, $value);
                     break;
                 case FieldMaskConfig::REMOVE:
                     $result['masked'] = null;
@@ -167,7 +167,7 @@ class ContextProcessor
      * caller's custom pattern would be ignored. Arrays and objects are JSON-encoded
      * rather than cast, since (string) on an array yields the literal "Array".
      */
-    private function applyRegexMask(FieldMaskConfig $config, mixed $value): string
+    private function applyRegexMask(string $path, FieldMaskConfig $config, mixed $value): string
     {
         $subject = match (true) {
             is_string($value) => $value,
@@ -181,8 +181,22 @@ class ContextProcessor
         }
 
         $replacement = $config->getReplacement() ?? Mask::MASK_MASKED;
+        $masked = preg_replace($pattern, $replacement, $subject);
 
-        return preg_replace($pattern, $replacement, $subject) ?? $subject;
+        if ($masked === null) {
+            // PCRE failed (bad UTF-8, backtrack limit, ...). This field was explicitly
+            // configured for masking, so returning $subject would emit the raw value.
+            // Fail closed by redacting it wholesale, and record why.
+            $this->logAudit(
+                $path . '_regex_mask_error',
+                $value,
+                'Masking failed, value redacted: ' . preg_last_error_msg()
+            );
+
+            return $replacement;
+        }
+
+        return $masked;
     }
 
     /**

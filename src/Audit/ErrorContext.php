@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ivuorinen\MonologGdprFilter\Audit;
 
+use Ivuorinen\MonologGdprFilter\MaskConstants;
 use Throwable;
 
 /**
@@ -109,9 +110,14 @@ final readonly class ErrorContext
         $sanitized = $message;
         foreach ($patterns as $pattern => $replacement) {
             $result = preg_replace($pattern, $replacement, $sanitized);
-            if ($result !== null) {
-                $sanitized = $result;
+
+            if ($result === null) {
+                // Skipping the failed pattern would emit exactly what it exists to
+                // redact, so fail closed rather than returning a half-scrubbed message.
+                return MaskConstants::MASK_REDACTED . ' (sanitization failed)';
             }
+
+            $sanitized = $result;
         }
 
         return $sanitized;
