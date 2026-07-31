@@ -58,12 +58,17 @@ final class DataTypeMasker
      *
      * @param mixed $value The value to mask.
      * @param (callable(array<mixed>|string, int=):(array<mixed>|string))|null $recursiveMaskCallback
+     * @param int $currentDepth Depth of $value in the record, so the recursive array mask
+     *                          cannot reset the caller's depth guard.
      * @return mixed The masked value.
      *
      * @psalm-param mixed $value The value to mask.
      */
-    public function applyMasking(mixed $value, ?callable $recursiveMaskCallback = null): mixed
-    {
+    public function applyMasking(
+        mixed $value,
+        ?callable $recursiveMaskCallback = null,
+        int $currentDepth = 0
+    ): mixed {
         if ($this->dataTypeMasks === []) {
             return $value;
         }
@@ -82,7 +87,7 @@ final class DataTypeMasker
             'double' => is_numeric($mask) ? (float)$mask : $mask,
             'boolean' => $this->maskBoolean($mask, $value),
             'NULL' => $mask === 'preserve' ? null : $mask,
-            'array' => $this->maskArray($mask, $value, $recursiveMaskCallback),
+            'array' => $this->maskArray($mask, $value, $recursiveMaskCallback, $currentDepth),
             'object' => (object) ['masked' => $mask, 'original_class' => $value::class],
             default => $mask,
         };
@@ -113,13 +118,19 @@ final class DataTypeMasker
      *
      * @param array<mixed> $value
      * @param (callable(array<mixed>|string, int=):(array<mixed>|string))|null $recursiveMaskCallback
+     * @param int $currentDepth Depth of $value, so recursion continues from here rather
+     *                          than restarting at 0 and bypassing the depth guard.
      * @return array<mixed>|string
      */
-    private function maskArray(string $mask, array $value, ?callable $recursiveMaskCallback): array|string
-    {
+    private function maskArray(
+        string $mask,
+        array $value,
+        ?callable $recursiveMaskCallback,
+        int $currentDepth = 0
+    ): array|string {
         // For arrays, we can return a masked indicator or process recursively
         if ($mask === 'recursive' && $recursiveMaskCallback !== null) {
-            return $recursiveMaskCallback($value, 0);
+            return $recursiveMaskCallback($value, $currentDepth + 1);
         }
 
         return [$mask];
@@ -182,7 +193,12 @@ final class DataTypeMasker
 
         $type = gettype($value);
         if (!isset($this->dataTypeMasks[$type])) {
-            return $value;
+            // No data-type mask for this type. Strings must still go through the regex
+            // masker, otherwise configuring any fieldPath/callback would disable pattern
+            // masking for every other context value.
+            return is_string($value) && $recursiveMaskCallback !== null
+                ? $recursiveMaskCallback($value)
+                : $value;
         }
 
         $masked = $this->applyMasking($value, $recursiveMaskCallback);

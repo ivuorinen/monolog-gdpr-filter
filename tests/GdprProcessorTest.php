@@ -273,7 +273,7 @@ class GdprProcessorTest extends TestCase
         // Test that invalid regex patterns are caught during construction
         $this->expectException(InvalidRegexPatternException::class);
 
-        $this->expectExceptionMessage("Invalid regex pattern '/[invalid/'");
+        $this->expectExceptionMessageIsOrContains("Invalid regex pattern '/[invalid/'");
 
         $this->createProcessor([self::INVALID_REGEX => 'MASKED']);
     }
@@ -302,29 +302,29 @@ class GdprProcessorTest extends TestCase
         // Test that incomplete regex patterns are caught during construction
         $this->expectException(InvalidRegexPatternException::class);
 
-        $this->expectExceptionMessage("Invalid regex pattern '/(unclosed['");
+        $this->expectExceptionMessageIsOrContains("Invalid regex pattern '/(unclosed['");
 
         $this->createProcessor(['/(unclosed[' => 'REPLACED']);
     }
 
-    public function testRegExpMessageReturnsOriginalIfResultIsEmptyString(): void
+    public function testRegExpMessageReturnsEmptyStringWhenThatIsTheMaskedResult(): void
     {
         $patterns = [
             '/^foo$/' => '',
         ];
         $processor = $this->createProcessor($patterns);
         $result = $processor->regExpMessage('foo');
-        $this->assertSame('foo', $result, 'Should return original message if preg_replace result is empty string');
+        $this->assertSame('', $result, 'An empty masking result must not fall back to the original');
     }
 
-    public function testRegExpMessageReturnsOriginalIfResultIsStringZero(): void
+    public function testRegExpMessageReturnsStringZeroWhenThatIsTheMaskedResult(): void
     {
         $patterns = [
             '/^foo$/' => '0',
         ];
         $processor = $this->createProcessor($patterns);
         $result = $processor->regExpMessage('foo');
-        $this->assertSame('foo', $result, 'Should return original message if preg_replace result is string "0"');
+        $this->assertSame('0', $result, 'A "0" masking result must not fall back to the original');
     }
 
     public function testCreateRateLimitedAuditLoggerReturnsRateLimitedLogger(): void
@@ -363,6 +363,10 @@ class GdprProcessorTest extends TestCase
 
     public function testValidatePatternsArraySucceedsWithValidPatterns(): void
     {
+        // Void validator: passing means not throwing. Declared explicitly rather than
+        // faked with a vacuous assertion; rejection is covered by the matching negative tests.
+        $this->expectNotToPerformAssertions();
+
         $patterns = [
             TestConstants::PATTERN_EMAIL_FULL => Mask::MASK_EMAIL,
             TestConstants::PATTERN_SSN_FORMAT => Mask::MASK_SSN,
@@ -370,7 +374,6 @@ class GdprProcessorTest extends TestCase
 
         // Should not throw
         GdprProcessor::validatePatternsArray($patterns);
-        $this->assertTrue(true);
     }
 
     public function testValidatePatternsArrayThrowsForInvalidPattern(): void

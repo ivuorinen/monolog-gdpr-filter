@@ -164,7 +164,7 @@ final class MaskingOrchestrator
         if ($this->customCallbacks !== []) {
             $processedFields = array_merge(
                 $processedFields,
-                $this->contextProcessor->processCustomCallbacks($accessor)
+                $this->contextProcessor->processCustomCallbacks($accessor, $processedFields)
             );
         }
 
@@ -192,13 +192,13 @@ final class MaskingOrchestrator
             return $message;
         }
 
-        // Track original message for empty result protection
-        $originalMessage = $message;
-
-        // Handle JSON strings and regular patterns in a coordinated way
-        $message = $this->maskMessageWithJsonSupport($message);
-
-        return $message === '' || $message === '0' ? $originalMessage : $message;
+        // Handle JSON strings and regular patterns in a coordinated way.
+        //
+        // The result is returned as-is. '' and '0' are legitimate masking outcomes:
+        // applyPatterns() only adopts a replacement when preg_replace reported a match,
+        // so an empty result means a pattern deliberately masked the content away.
+        // Restoring the original on those values re-emitted the unmasked message.
+        return $this->maskMessageWithJsonSupport($message);
     }
 
     /**
@@ -210,10 +210,28 @@ final class MaskingOrchestrator
         $result = $this->jsonMasker->processMessage($message);
 
         // Now apply regular patterns to the entire result
+        return $this->applyPatterns($result);
+    }
+
+    /**
+     * Apply every configured pattern to a string, one pattern at a time.
+     *
+     * Patterns are applied individually rather than as a single batched
+     * preg_replace() so that one failing pattern cannot discard the masking done
+     * by all the others.
+     */
+    public function applyPatterns(string $subject): string
+    {
+        $result = $subject;
+
         foreach ($this->patterns as $regex => $replacement) {
             try {
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $newResult = preg_replace($regex, $replacement, $result, -1, $count);
+
+                if ($newResult === null) {
+                    $newResult = $this->retryOnMalformedUtf8($regex, $replacement, $result, $count);
+                }
 
                 if ($newResult === null) {
                     $error = preg_last_error_msg();
@@ -238,6 +256,34 @@ final class MaskingOrchestrator
         }
 
         return $result;
+    }
+
+    /**
+     * Retry a failed match against a UTF-8-scrubbed subject.
+     *
+     * A single malformed byte makes PCRE abort every /u pattern, which would
+     * otherwise let the untouched value through unmasked. Scrubbing replaces the
+     * invalid bytes so the pattern can still find the sensitive data; masking
+     * correctly is worth altering bytes that were not valid text to begin with.
+     *
+     * @param int $count Set to the number of replacements made on the retry.
+     */
+    private function retryOnMalformedUtf8(
+        string $regex,
+        string $replacement,
+        string $subject,
+        ?int &$count
+    ): ?string {
+        if (preg_last_error() !== PREG_BAD_UTF8_ERROR) {
+            return null;
+        }
+
+        if ($this->auditLogger !== null) {
+            ($this->auditLogger)('malformed_utf8_scrubbed', $subject, 'Retrying masking on scrubbed value');
+        }
+
+        /** @psalm-suppress ArgumentTypeCoercion */
+        return preg_replace($regex, $replacement, mb_scrub($subject, 'UTF-8'), -1, $count);
     }
 
     /**

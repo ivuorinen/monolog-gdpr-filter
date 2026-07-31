@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ivuorinen\MonologGdprFilter;
 
 use Ivuorinen\MonologGdprFilter\Contracts\ArrayAccessorInterface;
+use Ivuorinen\MonologGdprFilter\MaskConstants as Mask;
 use Throwable;
 
 /**
@@ -71,14 +72,17 @@ class ContextProcessor
      * Process custom callbacks on context fields.
      *
      * @param ArrayAccessorInterface $accessor
+     * @param list<string> $alreadyProcessed Paths already handled by maskFieldPaths(),
+     *                                       which runs the callback itself for any path
+     *                                       configured in both places.
      * @return string[] Array of processed field paths
      * @psalm-return list<string>
      */
-    public function processCustomCallbacks(ArrayAccessorInterface $accessor): array
+    public function processCustomCallbacks(ArrayAccessorInterface $accessor, array $alreadyProcessed = []): array
     {
         $processedFields = [];
         foreach ($this->customCallbacks as $path => $callback) {
-            if (!$accessor->has($path)) {
+            if (!$accessor->has($path) || in_array($path, $alreadyProcessed, true)) {
                 continue;
             }
 
@@ -117,14 +121,23 @@ class ContextProcessor
         $result = ['masked' => null, 'remove' => false];
         if (array_key_exists($path, $this->customCallbacks)) {
             $callback = $this->customCallbacks[$path];
-            $result['masked'] = $callback($value);
+
+            try {
+                $result['masked'] = $callback($value);
+            } catch (Throwable $e) {
+                // A throwing callback must not abort logging; mirror processCustomCallbacks.
+                $sanitized = SecuritySanitizer::sanitizeErrorMessage($e->getMessage());
+                $this->logAudit($path . '_callback_error', $value, 'Callback failed: ' . $sanitized);
+                $result['masked'] = null;
+            }
+
             return $result;
         }
 
         if ($config instanceof FieldMaskConfig) {
             switch ($config->type) {
                 case FieldMaskConfig::MASK_REGEX:
-                    $result['masked'] = ($this->regexProcessor)((string) $value);
+                    $result['masked'] = $this->applyRegexMask($config, $value);
                     break;
                 case FieldMaskConfig::REMOVE:
                     $result['masked'] = null;
@@ -144,6 +157,45 @@ class ContextProcessor
         }
 
         return $result;
+    }
+
+    /**
+     * Apply a MASK_REGEX config to a value.
+     *
+     * Honours a per-field pattern supplied via FieldMaskConfig::regexMask(); without
+     * that the field would silently fall back to the processor-wide patterns and the
+     * caller's custom pattern would be ignored. Arrays and objects are JSON-encoded
+     * rather than cast, since (string) on an array yields the literal "Array".
+     */
+    private function applyRegexMask(FieldMaskConfig $config, mixed $value): string
+    {
+        $subject = match (true) {
+            is_string($value) => $value,
+            is_array($value), is_object($value) => $this->encodeForMasking($value),
+            default => (string) $value,
+        };
+
+        $pattern = $config->getRegexPattern();
+        if ($pattern === null || $pattern === '') {
+            return ($this->regexProcessor)($subject);
+        }
+
+        $replacement = $config->getReplacement() ?? Mask::MASK_MASKED;
+
+        return preg_replace($pattern, $replacement, $subject) ?? $subject;
+    }
+
+    /**
+     * JSON-encode a structured value so a regex can be applied to it.
+     *
+     * Returns an empty string when encoding fails (e.g. a resource or malformed UTF-8),
+     * so the caller masks an empty value rather than leaking the original.
+     */
+    private function encodeForMasking(mixed $value): string
+    {
+        $encoded = json_encode($value, JSON_UNESCAPED_SLASHES);
+
+        return $encoded === false ? '' : $encoded;
     }
 
     /**

@@ -165,7 +165,7 @@ class RecursiveProcessor
     public function processArrayValue(array $value, int $currentDepth): array
     {
         // For arrays: apply data type masking if configured, otherwise recurse
-        $masked = $this->dataTypeMasker->applyMasking($value, $this->recursiveMask(...));
+        $masked = $this->dataTypeMasker->applyMasking($value, $this->recursiveMask(...), $currentDepth);
 
         return $masked !== $value
             ? $masked  // Data type masking was applied
