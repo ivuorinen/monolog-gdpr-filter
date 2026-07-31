@@ -10,6 +10,8 @@ use Ivuorinen\MonologGdprFilter\Strategies\FieldPathMaskingStrategy;
 use Ivuorinen\MonologGdprFilter\Strategies\StrategyManager;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
 use Ivuorinen\MonologGdprFilter\DefaultPatterns;
+use Ivuorinen\MonologGdprFilter\PatternValidator;
+use Ivuorinen\MonologGdprFilter\SecuritySanitizer;
 use Monolog\Level;
 use Monolog\LogRecord;
 use DateTimeImmutable;
@@ -35,24 +37,36 @@ final class PatternTester
         $errors = [];
         $matches = [];
         $masked = $text;
+        $validator = new PatternValidator();
 
         foreach ($patterns as $pattern => $replacement) {
-            // Validate pattern
-            if (@preg_match($pattern, '') === false) {
-                $errors[] = "Invalid pattern: {$pattern}";
+            // Reject unsafe patterns using the library's own validator rather than a bare
+            // syntax check, so the playground applies the same rules as the processor.
+            if (!$validator->validate($pattern)) {
+                $errors[] = "Invalid or unsafe pattern: {$pattern}";
                 continue;
             }
 
             // Find matches
-            if (preg_match_all($pattern, $text, $found)) {
+            $found = [];
+            if (@preg_match_all($pattern, $text, $found) === false) {
+                $errors[] = "Match failed for {$pattern}: " . preg_last_error_msg();
+                continue;
+            }
+
+            if ($found[0] !== []) {
                 $matches[$pattern] = $found[0];
             }
 
-            // Apply replacement
+            // Apply replacement. A null result means PCRE aborted; reporting the masked
+            // text as if nothing happened would claim the value was masked when it was not.
             $result = @preg_replace($pattern, $replacement, $masked);
-            if ($result !== null) {
-                $masked = $result;
+            if ($result === null) {
+                $errors[] = "Masking failed for {$pattern}: " . preg_last_error_msg();
+                continue;
             }
+
+            $masked = $result;
         }
 
         return [
@@ -133,7 +147,8 @@ final class PatternTester
                 'errors' => $errors,
             ];
         } catch (Throwable $e) {
-            $errors[] = $e->getMessage();
+            // Sanitised: raw messages leak internal paths and config to the client.
+            $errors[] = SecuritySanitizer::sanitizeErrorMessage($e->getMessage());
 
             return [
                 'original_message' => $message,
@@ -204,7 +219,8 @@ final class PatternTester
                 'errors' => $errors,
             ];
         } catch (Throwable $e) {
-            $errors[] = $e->getMessage();
+            // Sanitised: raw messages leak internal paths and config to the client.
+            $errors[] = SecuritySanitizer::sanitizeErrorMessage($e->getMessage());
 
             return [
                 'original_message' => $message,

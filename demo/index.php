@@ -179,17 +179,17 @@ Phone: +1 (555) 123-4567</textarea>
 
         <div class="panel full-width">
             <h2>Results</h2>
-            <div id="results" class="result">Results will appear here...</div>
+            <div id="results" class="result" role="status" aria-live="polite" aria-atomic="true">Results will appear here...</div>
         </div>
 
         <div class="panel">
             <h2>Default Patterns</h2>
-            <div id="defaultPatterns" class="patterns-list">Loading...</div>
+            <div id="defaultPatterns" class="patterns-list" role="status" aria-live="polite">Loading...</div>
         </div>
 
         <div class="panel">
             <h2>Audit Log</h2>
-            <div id="auditLog" class="result">Audit log will appear here...</div>
+            <div id="auditLog" class="result" role="status" aria-live="polite" aria-atomic="true">Audit log will appear here...</div>
         </div>
     </div>
 
