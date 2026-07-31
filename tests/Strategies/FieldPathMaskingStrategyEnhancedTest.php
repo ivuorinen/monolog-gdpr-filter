@@ -28,7 +28,7 @@ final class FieldPathMaskingStrategyEnhancedTest extends TestCase
         $record = $this->createLogRecord('Test');
 
         $this->expectException(MaskingOperationFailedException::class);
-        $this->expectExceptionMessage('Regex pattern is null');
+        $this->expectExceptionMessageIsOrContains('Regex pattern is null');
 
         $strategy->mask(TestConstants::VALUE_TEST, 'field', $record);
     }

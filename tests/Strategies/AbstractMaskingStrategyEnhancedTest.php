@@ -38,11 +38,6 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
                 return true;
             }
 
-            /**
-             * @return string
-             *
-             * @psalm-return 'Test Strategy'
-             */
             #[\Override]
             public function getName(): string
             {
@@ -69,7 +64,7 @@ final class AbstractMaskingStrategyEnhancedTest extends TestCase
         $resource = fopen('php://memory', 'r');
 
         $this->expectException(MaskingOperationFailedException::class);
-        $this->expectExceptionMessage('Cannot convert value to string');
+        $this->expectExceptionMessageIsOrContains('Cannot convert value to string');
 
         try {
             // Array containing a resource should fail to encode

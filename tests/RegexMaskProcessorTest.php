@@ -110,7 +110,7 @@ class RegexMaskProcessorTest extends TestCase
     {
         // Test that invalid regex patterns are caught during construction
         $this->expectException(InvalidRegexPatternException::class);
-        $this->expectExceptionMessage("Invalid regex pattern '/[invalid/'");
+        $this->expectExceptionMessageIsOrContains("Invalid regex pattern '/[invalid/'");
 
         new GdprProcessor(['/[invalid/' => 'MASKED']);
     }

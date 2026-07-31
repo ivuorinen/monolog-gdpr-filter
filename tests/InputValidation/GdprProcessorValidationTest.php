@@ -38,7 +38,7 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForNonStringPatternKey(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Pattern must be of type string, got integer');
+        $this->expectExceptionMessageIsOrContains('Pattern must be of type string, got integer');
 
         new GdprProcessor([123 => 'replacement']);
     }
@@ -47,7 +47,7 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForEmptyPatternKey(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Pattern cannot be empty');
+        $this->expectExceptionMessageIsOrContains('Pattern cannot be empty');
 
         new GdprProcessor(['' => 'replacement']);
     }
@@ -56,7 +56,7 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForWhitespaceOnlyPatternKey(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Pattern cannot be empty');
+        $this->expectExceptionMessageIsOrContains('Pattern cannot be empty');
 
         new GdprProcessor(['   ' => 'replacement']);
     }
@@ -65,7 +65,7 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForNonStringPatternReplacement(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Pattern replacement must be of type string, got integer');
+        $this->expectExceptionMessageIsOrContains('Pattern replacement must be of type string, got integer');
 
         $processor = new GdprProcessor([TestConstants::PATTERN_TEST => 123]);
         $this->assertInstanceOf(GdprProcessor::class, $processor);
@@ -75,7 +75,7 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForInvalidRegexPattern(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
-        $this->expectExceptionMessage("Invalid regex pattern 'invalid_pattern'");
+        $this->expectExceptionMessageIsOrContains("Invalid regex pattern 'invalid_pattern'");
 
         new GdprProcessor(['invalid_pattern' => 'replacement']);
     }
@@ -95,7 +95,7 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForNonStringFieldPathKey(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Field path must be of type string, got integer');
+        $this->expectExceptionMessageIsOrContains('Field path must be of type string, got integer');
 
         new GdprProcessor([], [123 => FieldMaskConfig::remove()]);
     }
@@ -104,7 +104,7 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForEmptyFieldPathKey(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Field path cannot be empty');
+        $this->expectExceptionMessageIsOrContains('Field path cannot be empty');
 
         new GdprProcessor([], ['' => FieldMaskConfig::remove()]);
     }
@@ -113,7 +113,7 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForWhitespaceOnlyFieldPathKey(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Field path cannot be empty');
+        $this->expectExceptionMessageIsOrContains('Field path cannot be empty');
 
         new GdprProcessor([], ['   ' => FieldMaskConfig::remove()]);
     }
@@ -122,7 +122,9 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForInvalidFieldPathValue(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Field path value must be of type FieldMaskConfig or string, got integer');
+        $this->expectExceptionMessageIsOrContains(
+            'Field path value must be of type FieldMaskConfig or string, got integer'
+        );
 
         $processor = new GdprProcessor([], [TestConstants::FIELD_USER_EMAIL => 123]);
         $this->assertInstanceOf(GdprProcessor::class, $processor);
@@ -132,7 +134,7 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForEmptyStringFieldPathValue(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage("Cannot have empty string value");
+        $this->expectExceptionMessageIsOrContains("Cannot have empty string value");
 
         $processor = new GdprProcessor([], [TestConstants::FIELD_USER_EMAIL => '']);
         $this->assertInstanceOf(GdprProcessor::class, $processor);
@@ -154,7 +156,7 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForNonStringCustomCallbackKey(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Custom callback path must be of type string, got integer');
+        $this->expectExceptionMessageIsOrContains('Custom callback path must be of type string, got integer');
 
         new GdprProcessor([], [], [123 => fn($value) => $value]);
     }
@@ -163,7 +165,7 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForEmptyCustomCallbackKey(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Custom callback path cannot be empty');
+        $this->expectExceptionMessageIsOrContains('Custom callback path cannot be empty');
 
         new GdprProcessor([], [], ['' => fn($value) => $value]);
     }
@@ -172,7 +174,7 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForWhitespaceOnlyCustomCallbackKey(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Custom callback path cannot be empty');
+        $this->expectExceptionMessageIsOrContains('Custom callback path cannot be empty');
 
         new GdprProcessor([], [], ['   ' => fn($value) => $value]);
     }
@@ -181,7 +183,7 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForNonCallableCustomCallback(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage("Must be callable");
+        $this->expectExceptionMessageIsOrContains("Must be callable");
 
         new GdprProcessor([], [], ['user.id' => 'not_callable']);
     }
@@ -201,7 +203,7 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForNonCallableAuditLogger(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Audit logger must be of type callable or null, got string');
+        $this->expectExceptionMessageIsOrContains('Audit logger must be of type callable or null, got string');
 
         new GdprProcessor([], [], [], 'not_callable');
     }
@@ -224,7 +226,7 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForZeroMaxDepth(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Must be a positive integer');
+        $this->expectExceptionMessageIsOrContains('Must be a positive integer');
 
         new GdprProcessor([], [], [], null, 0);
     }
@@ -233,7 +235,7 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForNegativeMaxDepth(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Must be a positive integer');
+        $this->expectExceptionMessageIsOrContains('Must be a positive integer');
 
         new GdprProcessor([], [], [], null, -10);
     }
@@ -242,7 +244,7 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForExcessiveMaxDepth(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Cannot exceed 1,000 for stack safety');
+        $this->expectExceptionMessageIsOrContains('Cannot exceed 1,000 for stack safety');
 
         new GdprProcessor([], [], [], null, 1001);
     }
@@ -264,7 +266,7 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForNonStringDataTypeMaskKey(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Data type mask key must be of type string, got integer');
+        $this->expectExceptionMessageIsOrContains('Data type mask key must be of type string, got integer');
 
         new GdprProcessor([], [], [], null, 100, [123 => MaskConstants::MASK_MASKED]);
     }
@@ -274,7 +276,7 @@ class GdprProcessorValidationTest extends TestCase
     {
         $this->expectException(InvalidConfigurationException::class);
         $expectedMsg = 'Must be one of: integer, double, string, boolean, NULL, array, object, resource';
-        $this->expectExceptionMessage($expectedMsg);
+        $this->expectExceptionMessageIsOrContains($expectedMsg);
 
         new GdprProcessor([], [], [], null, 100, ['invalid_type' => MaskConstants::MASK_MASKED]);
     }
@@ -283,7 +285,7 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForNonStringDataTypeMaskValue(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Data type mask value must be of type string, got integer');
+        $this->expectExceptionMessageIsOrContains('Data type mask value must be of type string, got integer');
 
         new GdprProcessor([], [], [], null, 100, ['string' => 123]);
     }
@@ -292,7 +294,7 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForEmptyDataTypeMaskValue(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage("Cannot be empty");
+        $this->expectExceptionMessageIsOrContains("Cannot be empty");
 
         new GdprProcessor([], [], [], null, 100, ['string' => '']);
     }
@@ -301,7 +303,7 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForWhitespaceOnlyDataTypeMaskValue(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage("Cannot be empty");
+        $this->expectExceptionMessageIsOrContains("Cannot be empty");
 
         new GdprProcessor([], [], [], null, 100, ['string' => '   ']);
     }
@@ -327,7 +329,7 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForNonStringConditionalRuleKey(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Conditional rule name must be of type string, got integer');
+        $this->expectExceptionMessageIsOrContains('Conditional rule name must be of type string, got integer');
 
         new GdprProcessor([], [], [], null, 100, [], [123 => fn(): true => true]);
     }
@@ -336,7 +338,7 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForEmptyConditionalRuleKey(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Conditional rule name cannot be empty');
+        $this->expectExceptionMessageIsOrContains('Conditional rule name cannot be empty');
 
         new GdprProcessor([], [], [], null, 100, [], ['' => fn(): true => true]);
     }
@@ -345,7 +347,7 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForWhitespaceOnlyConditionalRuleKey(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Conditional rule name cannot be empty');
+        $this->expectExceptionMessageIsOrContains('Conditional rule name cannot be empty');
 
         new GdprProcessor([], [], [], null, 100, [], ['   ' => fn(): true => true]);
     }
@@ -354,7 +356,7 @@ class GdprProcessorValidationTest extends TestCase
     public function constructorThrowsExceptionForNonCallableConditionalRule(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage("Must have a callable callback");
+        $this->expectExceptionMessageIsOrContains("Must have a callable callback");
 
         new GdprProcessor([], [], [], null, 100, [], ['level_rule' => 'not_callable']);
     }
@@ -398,7 +400,7 @@ class GdprProcessorValidationTest extends TestCase
     {
         // Should throw for the first validation error (patterns)
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Pattern must be of type string, got integer');
+        $this->expectExceptionMessageIsOrContains('Pattern must be of type string, got integer');
 
         new GdprProcessor(
             patterns: [123 => 'replacement'], // First error

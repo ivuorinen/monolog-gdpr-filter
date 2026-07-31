@@ -25,7 +25,7 @@ class FieldMaskConfigValidationTest extends TestCase
     public function regexMaskThrowsExceptionForEmptyPattern(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Regex pattern cannot be empty');
+        $this->expectExceptionMessageIsOrContains('Regex pattern cannot be empty');
 
         FieldMaskConfig::regexMask('');
     }
@@ -34,7 +34,7 @@ class FieldMaskConfigValidationTest extends TestCase
     public function regexMaskThrowsExceptionForWhitespaceOnlyPattern(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Regex pattern cannot be empty');
+        $this->expectExceptionMessageIsOrContains('Regex pattern cannot be empty');
 
         FieldMaskConfig::regexMask('   ');
     }
@@ -43,7 +43,7 @@ class FieldMaskConfigValidationTest extends TestCase
     public function regexMaskThrowsExceptionForEmptyReplacement(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Replacement string cannot be empty');
+        $this->expectExceptionMessageIsOrContains('Replacement string cannot be empty');
 
         FieldMaskConfig::regexMask('/valid/', '');
     }
@@ -52,7 +52,7 @@ class FieldMaskConfigValidationTest extends TestCase
     public function regexMaskThrowsExceptionForWhitespaceOnlyReplacement(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Replacement string cannot be empty');
+        $this->expectExceptionMessageIsOrContains('Replacement string cannot be empty');
 
         FieldMaskConfig::regexMask('/valid/', '   ');
     }
@@ -61,7 +61,7 @@ class FieldMaskConfigValidationTest extends TestCase
     public function regexMaskThrowsExceptionForInvalidRegexPattern(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
-        $this->expectExceptionMessage("Invalid regex pattern 'invalid_regex'");
+        $this->expectExceptionMessageIsOrContains("Invalid regex pattern 'invalid_regex'");
 
         FieldMaskConfig::regexMask('invalid_regex');
     }
@@ -70,7 +70,9 @@ class FieldMaskConfigValidationTest extends TestCase
     public function regexMaskThrowsExceptionForIncompleteRegexPattern(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
-        $this->expectExceptionMessage("Invalid regex pattern '" . TestConstants::PATTERN_INVALID_UNCLOSED . "'");
+        $this->expectExceptionMessageIsOrContains(
+            "Invalid regex pattern '" . TestConstants::PATTERN_INVALID_UNCLOSED . "'"
+        );
 
         FieldMaskConfig::regexMask(TestConstants::PATTERN_INVALID_UNCLOSED);
     }
@@ -79,7 +81,7 @@ class FieldMaskConfigValidationTest extends TestCase
     public function regexMaskThrowsExceptionForEmptyDelimitersPattern(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
-        $this->expectExceptionMessage("Invalid regex pattern '//'");
+        $this->expectExceptionMessageIsOrContains("Invalid regex pattern '//'");
 
         FieldMaskConfig::regexMask('//');
     }
@@ -118,7 +120,7 @@ class FieldMaskConfigValidationTest extends TestCase
     public function fromArrayThrowsExceptionForInvalidType(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage("Must be one of: mask_regex, remove, replace");
+        $this->expectExceptionMessageIsOrContains("Must be one of: mask_regex, remove, replace");
 
         FieldMaskConfig::fromArray(['type' => 'invalid_type']);
     }
@@ -127,7 +129,7 @@ class FieldMaskConfigValidationTest extends TestCase
     public function fromArrayThrowsExceptionForEmptyReplacementWithReplaceType(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage(TestConstants::ERROR_REPLACE_TYPE_EMPTY);
+        $this->expectExceptionMessageIsOrContains(TestConstants::ERROR_REPLACE_TYPE_EMPTY);
 
         FieldMaskConfig::fromArray([
             'type' => FieldMaskConfig::REPLACE,
@@ -139,7 +141,7 @@ class FieldMaskConfigValidationTest extends TestCase
     public function fromArrayThrowsExceptionForNullReplacementWithReplaceType(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage(TestConstants::ERROR_REPLACE_TYPE_EMPTY);
+        $this->expectExceptionMessageIsOrContains(TestConstants::ERROR_REPLACE_TYPE_EMPTY);
 
         FieldMaskConfig::fromArray([
             'type' => FieldMaskConfig::REPLACE,
@@ -151,7 +153,7 @@ class FieldMaskConfigValidationTest extends TestCase
     public function fromArrayThrowsExceptionForWhitespaceOnlyReplacementWithReplaceType(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage(TestConstants::ERROR_REPLACE_TYPE_EMPTY);
+        $this->expectExceptionMessageIsOrContains(TestConstants::ERROR_REPLACE_TYPE_EMPTY);
 
         FieldMaskConfig::fromArray([
             'type' => FieldMaskConfig::REPLACE,

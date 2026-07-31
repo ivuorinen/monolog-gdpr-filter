@@ -68,11 +68,6 @@ final class ConditionalMaskingStrategyComprehensiveTest extends TestCase
                 return 50;
             }
 
-            /**
-             * @return string
-             *
-             * @psalm-return 'Test Strategy'
-             */
             #[\Override]
             public function getName(): string
             {
@@ -105,7 +100,7 @@ final class ConditionalMaskingStrategyComprehensiveTest extends TestCase
         $record = $this->createLogRecord('Test');
 
         $this->expectException(MaskingOperationFailedException::class);
-        $this->expectExceptionMessage('Conditional masking failed');
+        $this->expectExceptionMessageIsOrContains('Conditional masking failed');
 
         $strategy->mask('value', 'field', $record);
     }

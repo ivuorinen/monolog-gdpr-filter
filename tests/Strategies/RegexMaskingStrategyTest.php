@@ -62,7 +62,7 @@ final class RegexMaskingStrategyTest extends TestCase
     public function constructorThrowsForReDoSVulnerablePattern(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
-        $this->expectExceptionMessage('catastrophic backtracking');
+        $this->expectExceptionMessageIsOrContains('catastrophic backtracking');
 
         new RegexMaskingStrategy([TestConstants::PATTERN_REDOS_VULNERABLE => MaskConstants::MASK_GENERIC]);
     }

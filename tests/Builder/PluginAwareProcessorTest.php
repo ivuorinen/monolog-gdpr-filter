@@ -14,37 +14,24 @@ use Monolog\LogRecord;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Tests\TestConstants;
+use Tests\TestHelpers;
 
 #[CoversClass(PluginAwareProcessor::class)]
 final class PluginAwareProcessorTest extends TestCase
 {
+    use TestHelpers;
+
     private AbstractMaskingPlugin $testPlugin;
 
     #[\Override]
     protected function setUp(): void
     {
-        $this->testPlugin = new class extends AbstractMaskingPlugin {
-            /**
-             * @return string
-             *
-             * @psalm-return 'test-plugin'
-             */
-            #[\Override]
-            public function getName(): string
-            {
-                return 'test-plugin';
-            }
-        };
+        $this->testPlugin = $this->namedPlugin('test-plugin');
     }
 
     public function testInvokeAppliesPreProcessing(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
-            /**
-             * @return string
-             *
-             * @psalm-return 'uppercase-plugin'
-             */
             #[\Override]
             public function getName(): string
             {
@@ -80,11 +67,6 @@ final class PluginAwareProcessorTest extends TestCase
     public function testInvokeAppliesPostProcessing(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
-            /**
-             * @return string
-             *
-             * @psalm-return 'suffix-plugin'
-             */
             #[\Override]
             public function getName(): string
             {
@@ -122,11 +104,6 @@ final class PluginAwareProcessorTest extends TestCase
     public function testInvokeAppliesPreProcessContext(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
-            /**
-             * @return string
-             *
-             * @psalm-return 'add-field-plugin'
-             */
             #[\Override]
             public function getName(): string
             {
@@ -161,11 +138,6 @@ final class PluginAwareProcessorTest extends TestCase
     public function testInvokeAppliesPostProcessContext(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
-            /**
-             * @return string
-             *
-             * @psalm-return 'remove-field-plugin'
-             */
             #[\Override]
             public function getName(): string
             {
@@ -207,11 +179,6 @@ final class PluginAwareProcessorTest extends TestCase
                 parent::__construct(10);
             }
 
-            /**
-             * @return string
-             *
-             * @psalm-return 'plugin1'
-             */
             #[\Override]
             public function getName(): string
             {
@@ -234,11 +201,6 @@ final class PluginAwareProcessorTest extends TestCase
                 parent::__construct(20);
             }
 
-            /**
-             * @return string
-             *
-             * @psalm-return 'plugin2'
-             */
             #[\Override]
             public function getName(): string
             {
@@ -288,31 +250,9 @@ final class PluginAwareProcessorTest extends TestCase
 
     public function testGetPlugins(): void
     {
-        $plugin1 = new class extends AbstractMaskingPlugin {
-            /**
-             * @return string
-             *
-             * @psalm-return 'plugin1'
-             */
-            #[\Override]
-            public function getName(): string
-            {
-                return 'plugin1';
-            }
-        };
+        $plugin1 = $this->namedPlugin('plugin1');
 
-        $plugin2 = new class extends AbstractMaskingPlugin {
-            /**
-             * @return string
-             *
-             * @psalm-return 'plugin2'
-             */
-            #[\Override]
-            public function getName(): string
-            {
-                return 'plugin2';
-            }
-        };
+        $plugin2 = $this->namedPlugin('plugin2');
 
         $processor = GdprProcessorBuilder::create()
             ->addPlugin($plugin1)
@@ -390,11 +330,6 @@ final class PluginAwareProcessorTest extends TestCase
                 parent::__construct(20); // Lower priority (runs second)
             }
 
-            /**
-             * @return string
-             *
-             * @psalm-return 'plugin1'
-             */
             #[\Override]
             public function getName(): string
             {
@@ -417,11 +352,6 @@ final class PluginAwareProcessorTest extends TestCase
                 parent::__construct(10); // Higher priority (runs first)
             }
 
-            /**
-             * @return string
-             *
-             * @psalm-return 'plugin2'
-             */
             #[\Override]
             public function getName(): string
             {

@@ -67,7 +67,7 @@ final class FieldMaskConfigEnhancedTest extends TestCase
     public function testRegexMaskThrowsOnEmptyPattern(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('regex pattern');
+        $this->expectExceptionMessageIsOrContains('regex pattern');
 
         FieldMaskConfig::regexMask('   ', 'MASKED');
     }
@@ -75,7 +75,7 @@ final class FieldMaskConfigEnhancedTest extends TestCase
     public function testRegexMaskThrowsOnEmptyReplacement(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('replacement string');
+        $this->expectExceptionMessageIsOrContains('replacement string');
 
         FieldMaskConfig::regexMask(TestConstants::PATTERN_TEST, '   ');
     }
@@ -192,7 +192,7 @@ final class FieldMaskConfigEnhancedTest extends TestCase
     public function testFromArrayThrowsOnInvalidType(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Must be one of');
+        $this->expectExceptionMessageIsOrContains('Must be one of');
 
         FieldMaskConfig::fromArray(['type' => 'invalid_type']);
     }
@@ -200,7 +200,7 @@ final class FieldMaskConfigEnhancedTest extends TestCase
     public function testFromArrayThrowsOnNullReplacementForReplaceType(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage(TestConstants::ERROR_REPLACE_TYPE_EMPTY);
+        $this->expectExceptionMessageIsOrContains(TestConstants::ERROR_REPLACE_TYPE_EMPTY);
 
         FieldMaskConfig::fromArray([
             'type' => FieldMaskConfig::REPLACE,
@@ -211,7 +211,7 @@ final class FieldMaskConfigEnhancedTest extends TestCase
     public function testFromArrayThrowsOnEmptyReplacementForReplaceType(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage(TestConstants::ERROR_REPLACE_TYPE_EMPTY);
+        $this->expectExceptionMessageIsOrContains(TestConstants::ERROR_REPLACE_TYPE_EMPTY);
 
         FieldMaskConfig::fromArray([
             'type' => FieldMaskConfig::REPLACE,

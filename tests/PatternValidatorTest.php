@@ -125,7 +125,7 @@ class PatternValidatorTest extends TestCase
     public function validateAllThrowsForInvalidPattern(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
-        $this->expectExceptionMessage('Pattern failed validation or is potentially unsafe');
+        $this->expectExceptionMessageIsOrContains('Pattern failed validation or is potentially unsafe');
 
         PatternValidator::validateAll(['invalid_pattern' => 'mask']);
     }
@@ -133,6 +133,10 @@ class PatternValidatorTest extends TestCase
     #[Test]
     public function validateAllPassesForValidPatterns(): void
     {
+        // Void validator: passing means not throwing. Declared explicitly rather than
+        // faked with a vacuous assertion; rejection is covered by the matching negative tests.
+        $this->expectNotToPerformAssertions();
+
         $patterns = [
             TestConstants::PATTERN_SSN_FORMAT => 'SSN',
             '/[a-z]+@[a-z]+\.[a-z]+/' => 'Email',
@@ -140,7 +144,6 @@ class PatternValidatorTest extends TestCase
 
         // Should not throw
         PatternValidator::validateAll($patterns);
-        $this->assertTrue(true);
     }
 
     #[Test]
@@ -367,7 +370,7 @@ class PatternValidatorTest extends TestCase
         $validator = new PatternValidator();
 
         $this->expectException(InvalidRegexPatternException::class);
-        $this->expectExceptionMessage('Pattern failed validation or is potentially unsafe');
+        $this->expectExceptionMessageIsOrContains('Pattern failed validation or is potentially unsafe');
 
         $validator->validateAllPatterns(['invalid_pattern' => 'mask']);
     }
@@ -375,6 +378,10 @@ class PatternValidatorTest extends TestCase
     #[Test]
     public function validateAllPatternsPassesForValidPatterns(): void
     {
+        // Void validator: passing means not throwing. Declared explicitly rather than
+        // faked with a vacuous assertion; rejection is covered by the matching negative tests.
+        $this->expectNotToPerformAssertions();
+
         $validator = new PatternValidator();
         $patterns = [
             TestConstants::PATTERN_SSN_FORMAT => 'SSN',
@@ -383,7 +390,6 @@ class PatternValidatorTest extends TestCase
 
         // Should not throw
         $validator->validateAllPatterns($patterns);
-        $this->assertTrue(true);
     }
 
     #[Test]
