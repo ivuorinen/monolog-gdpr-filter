@@ -51,9 +51,10 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
-          # Fail loudly: a missing or rotated CODECOV_TOKEN would otherwise skip the
-          # upload silently and forever.
-          fail_ci_if_error: true
+          # Fail loudly on push, so a missing or rotated CODECOV_TOKEN cannot skip the
+          # upload silently and forever. Not on pull_request: fork PRs never receive
+          # secrets, so failing there would punish contributors for a repo-level setting.
+          fail_ci_if_error: ${{ github.event_name == 'push' }}
 
       - name: Code Coverage Summary Report
         id: coverage-summary
