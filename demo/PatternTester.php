@@ -246,6 +246,11 @@ final class PatternTester
     /**
      * Validate a single regex pattern.
      *
+     * Applies the same rules as testPatterns() and the processor itself: a
+     * syntax-only check would report catastrophic-backtracking patterns as valid
+     * here while testPatterns() rejected them, so the playground would contradict
+     * itself depending on which button you pressed.
+     *
      * @return array{valid: bool, error: string|null}
      */
     public function validatePattern(string $pattern): array
@@ -255,8 +260,11 @@ final class PatternTester
         }
 
         if (@preg_match($pattern, '') === false) {
-            $error = preg_last_error_msg();
-            return ['valid' => false, 'error' => $error];
+            return ['valid' => false, 'error' => preg_last_error_msg()];
+        }
+
+        if (!new PatternValidator()->validate($pattern)) {
+            return ['valid' => false, 'error' => 'Pattern rejected as unsafe (possible catastrophic backtracking)'];
         }
 
         return ['valid' => true, 'error' => null];
