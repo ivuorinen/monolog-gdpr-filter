@@ -1,0 +1,22 @@
+# Gitleaks configuration.
+#
+# This repository is a GDPR masking library, so its tests necessarily contain
+# realistic-looking credentials as fixtures — they are the input that proves the
+# masking works. Those are allowlisted below so the baseline is clean and any new
+# hit is a real finding.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Synthetic credentials used as masking test fixtures"
+
+paths = [
+  # Every credential-shaped string under tests/ is a fixture: the suite exists to
+  # assert that such values get masked, so it cannot avoid containing them. Real
+  # secrets belong in CI secrets, never in this tree, so scoping the exemption to
+  # tests/ keeps src/, config/, demo/ and workflows fully covered.
+  '''^tests/''',
+  # Audit findings quote the same fixtures as evidence.
+  '''^docs/audit/''',
+]

@@ -45,6 +45,16 @@ jobs:
           name: coverage-report
           path: coverage.xml
 
+      # Codecov consumes the same coverage.xml produced above, so the suite runs once.
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          # Fail loudly: a missing or rotated CODECOV_TOKEN would otherwise skip the
+          # upload silently and forever.
+          fail_ci_if_error: true
+
       - name: Code Coverage Summary Report
         id: coverage-summary
         uses: saschanowak/CloverCodeCoverageSummary@74291a4a2e8b848605aae10d27adbe7d17aa71e5 # 1.1.1

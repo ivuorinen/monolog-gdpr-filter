@@ -18,6 +18,9 @@ services:
   # PHP 8.5 for testing compatibility
   php85:
     image: php:8.5-cli-alpine
+    # The stock image has no non-root user; match the Dockerfile's developer uid/gid
+    # so this service does not run as root against the mounted source tree.
+    user: "1000:1000"
     volumes:
       - ..:/app
     working_dir: /app

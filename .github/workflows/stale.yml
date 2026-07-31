@@ -8,10 +8,9 @@ on:
   workflow_call:
   workflow_dispatch:
 
-permissions:
-  contents: read
-  packages: read
-  statuses: read
+# Deny by default; the stale job below grants exactly what it needs. Matches ci.yml
+# and test-coverage.yaml, and stops a future job from silently inheriting more.
+permissions: {}
 
 jobs:
   stale:
