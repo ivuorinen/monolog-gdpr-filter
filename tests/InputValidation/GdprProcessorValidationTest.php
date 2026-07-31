@@ -218,7 +218,12 @@ class GdprProcessorValidationTest extends TestCase
     #[Test]
     public function constructorAcceptsCallableAuditLogger(): void
     {
-        $processor = new GdprProcessor([], [], [], fn($path, $original, $masked): null => null);
+        $processor = new GdprProcessor(
+            [],
+            [],
+            [],
+            static fn (string $path, mixed $original, mixed $masked): null => null
+        );
         $this->assertInstanceOf(GdprProcessor::class, $processor);
     }
 
@@ -386,7 +391,7 @@ class GdprProcessorValidationTest extends TestCase
             patterns: [TestConstants::PATTERN_DIGITS => MaskConstants::MASK_NUMBER],
             fieldPaths: [TestConstants::FIELD_USER_EMAIL => FieldMaskConfig::remove()],
             customCallbacks: ['user.id' => fn($value): string => hash('sha256', (string) $value)],
-            auditLogger: fn($path, $original, $masked): null => null,
+            auditLogger: static fn (string $path, mixed $original, mixed $masked): null => null,
             maxDepth: 50,
             dataTypeMasks: ['string' => MaskConstants::MASK_STRING],
             conditionalRules: ['level_rule' => fn(LogRecord $record): true => true]

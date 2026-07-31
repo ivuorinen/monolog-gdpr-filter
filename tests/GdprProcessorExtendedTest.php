@@ -36,7 +36,7 @@ final class GdprProcessorExtendedTest extends TestCase
     #[Test]
     public function createRateLimitedAuditLoggerUsesDefaultProfile(): void
     {
-        $baseLogger = fn($path, $original, $masked): null => null;
+        $baseLogger = static fn (string $path, mixed $original, mixed $masked): null => null;
         $rateLimitedLogger = GdprProcessor::createRateLimitedAuditLogger($baseLogger);
 
         $this->assertInstanceOf(RateLimitedAuditLogger::class, $rateLimitedLogger);
