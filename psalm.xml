@@ -51,26 +51,19 @@
       </errorLevel>
     </InvalidReturnType>
 
-    <!-- Override attributes - suppress for now to avoid breaking changes -->
-    <MissingOverrideAttribute errorLevel="suppress" />
+    <!--
+      Each suppression below was verified load-bearing: flipping it to "error" produces
+      the issue count noted. Suppressions that produced zero issues at errorLevel 5
+      (MissingOverrideAttribute, Mixed*, Missing{Return,Param,Property}Type,
+      MismatchingDocblockReturnType, PropertyNotSetInConstructor, PossiblyUnusedProperty,
+      PossiblyInvalidCast) were removed as dead config. Tightening errorLevel below 5 may
+      surface those again — re-add them with a fresh justification if so.
+    -->
 
-    <!-- Class finalization - suppress to avoid API breaking changes -->
+    <!-- Class finalization - suppress to avoid API breaking changes (3 issues) -->
     <ClassMustBeFinal errorLevel="suppress" />
 
-    <!-- Mixed types - necessary for flexible APIs -->
-    <MixedArgument errorLevel="suppress" />
-    <MixedAssignment errorLevel="suppress" />
-    <MixedMethodCall errorLevel="suppress" />
-    <MixedPropertyFetch errorLevel="suppress" />
-    <MixedArrayAccess errorLevel="suppress" />
-
-    <!-- Missing type annotations - backward compatibility -->
-    <MissingReturnType errorLevel="suppress" />
-    <MissingParamType errorLevel="suppress" />
-    <MissingPropertyType errorLevel="suppress" />
-
-    <!-- Prevent Psalm from adding complex nested return types -->
-    <MismatchingDocblockReturnType errorLevel="suppress" />
+    <!-- Prevent Psalm from adding complex nested return types (50 + 50 issues) -->
     <MoreSpecificReturnType errorLevel="suppress" />
     <LessSpecificReturnStatement errorLevel="suppress" />
 
@@ -118,21 +111,16 @@
     <!-- Laravel-specific patterns -->
     <!-- (Laravel directory is excluded from scanning) -->
 
-    <!-- Intentional design choices -->
-    <PropertyNotSetInConstructor errorLevel="suppress" />
+    <!-- Public API surface is intentionally wider than internal usage (161 issues) -->
     <PossiblyUnusedMethod errorLevel="suppress" />
-    <PossiblyUnusedProperty errorLevel="suppress" />
 
-    <!-- Array access patterns for configuration -->
+    <!-- Array access patterns for configuration (25 + 1 issues) -->
     <PossiblyUndefinedArrayOffset errorLevel="suppress" />
     <PossiblyInvalidArrayOffset errorLevel="suppress" />
 
-    <!-- Closure patterns in callbacks -->
+    <!-- Closure patterns in callbacks (88 + 88 + 18 issues) -->
     <UnusedClosureParam errorLevel="suppress" />
     <MissingClosureParamType errorLevel="suppress" />
     <MissingClosureReturnType errorLevel="suppress" />
-
-    <!-- String manipulation patterns -->
-    <PossiblyInvalidCast errorLevel="suppress" />
   </issueHandlers>
 </psalm>

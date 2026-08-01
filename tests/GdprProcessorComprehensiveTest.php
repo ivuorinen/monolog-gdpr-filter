@@ -147,9 +147,9 @@ final class GdprProcessorComprehensiveTest extends TestCase
         $this->assertStringContainsString('MASKED', $result);
     }
 
-    public function testRegExpMessagePreservesOriginalWhenResultIsZero(): void
+    public function testRegExpMessageReturnsZeroWhenThatIsTheMaskedResult(): void
     {
-        // Pattern that would replace everything with '0'
+        // Pattern that replaces everything with '0'
         $processor = new GdprProcessor(
             patterns: ['/.+/' => '0']
         );
@@ -157,8 +157,10 @@ final class GdprProcessorComprehensiveTest extends TestCase
         $original = TestConstants::MESSAGE_TEST_LOWERCASE;
         $result = $processor->regExpMessage($original);
 
-        // Should return original since result would be '0' which is treated as empty
-        $this->assertSame($original, $result);
+        // '0' is a legitimate masking result. Returning $original here would re-emit
+        // the unmasked message.
+        $this->assertSame('0', $result);
+        $this->assertNotSame($original, $result);
     }
 
     public function testValidatePatternsArrayWithInvalidPattern(): void
@@ -172,13 +174,15 @@ final class GdprProcessorComprehensiveTest extends TestCase
 
     public function testValidatePatternsArrayWithValidPatterns(): void
     {
+        // Void validator: passing means not throwing. Declared explicitly rather than
+        // faked with a vacuous assertion; rejection is covered by the matching negative tests.
+        $this->expectNotToPerformAssertions();
+
         // Should not throw exception
         GdprProcessor::validatePatternsArray([
             TestConstants::PATTERN_DIGITS => Mask::MASK_MASKED,
             TestConstants::PATTERN_SAFE => Mask::MASK_REDACTED,
         ]);
-
-        $this->assertTrue(true);
     }
 
     public function testGetDefaultPatternsReturnsArray(): void
@@ -187,10 +191,21 @@ final class GdprProcessorComprehensiveTest extends TestCase
 
         $this->assertIsArray($patterns);
         $this->assertNotEmpty($patterns);
-        // Check for US SSN pattern (uses ^ and $ anchors, not \b)
-        $this->assertArrayHasKey('/^\d{3}-\d{2}-\d{4}$/', $patterns);
         // Check for Finnish HETU pattern
         $this->assertArrayHasKey('/\b\d{6}[-+A]?\d{3}[A-Z]\b/u', $patterns);
+
+        // Assert behaviour rather than the pattern literal: the defaults must mask a US
+        // SSN and a HETU both standalone and embedded in a message.
+        $processor = new GdprProcessor(patterns: $patterns);
+        $this->assertSame(Mask::MASK_USSSN, $processor->maskMessage(TestConstants::SSN_US));
+        $this->assertSame(
+            'ssn ' . Mask::MASK_USSSN . ' logged',
+            $processor->maskMessage('ssn 123-45-6789 logged')
+        );
+        $this->assertSame(
+            'hetu ' . Mask::MASK_HETU . ' logged',
+            $processor->maskMessage('hetu 010190-123A logged')
+        );
     }
 
     public function testRecursiveMaskDelegatesToRecursiveProcessor(): void

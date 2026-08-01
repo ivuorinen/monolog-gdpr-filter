@@ -38,7 +38,7 @@ final class StrategyManagerComprehensiveTest extends TestCase
         $invalidStrategy = new RegexMaskingStrategy([]); // Empty patterns = invalid
 
         $this->expectException(GdprProcessorException::class);
-        $this->expectExceptionMessage('Invalid masking strategy');
+        $this->expectExceptionMessageIsOrContains('Invalid masking strategy');
 
         $manager = new StrategyManager();
         $manager->addStrategy($invalidStrategy);
@@ -186,11 +186,6 @@ final class StrategyManagerComprehensiveTest extends TestCase
                 return 50;
             }
 
-            /**
-             * @return string
-             *
-             * @psalm-return 'Failing Strategy'
-             */
             #[\Override]
             public function getName(): string
             {
@@ -222,7 +217,7 @@ final class StrategyManagerComprehensiveTest extends TestCase
         $record = $this->createLogRecord('Test');
 
         $this->expectException(MaskingOperationFailedException::class);
-        $this->expectExceptionMessage("Strategy 'Failing Strategy' failed");
+        $this->expectExceptionMessageIsOrContains("Strategy 'Failing Strategy' failed");
 
         $manager->maskValue('test', 'field', $record);
     }
@@ -403,11 +398,6 @@ final class StrategyManagerComprehensiveTest extends TestCase
                 return 50;
             }
 
-            /**
-             * @return string
-             *
-             * @psalm-return 'Invalid Strategy'
-             */
             #[\Override]
             public function getName(): string
             {
@@ -476,11 +466,6 @@ final class StrategyManagerComprehensiveTest extends TestCase
                 return 50;
             }
 
-            /**
-             * @return string
-             *
-             * @psalm-return 'Throwing Strategy'
-             */
             #[\Override]
             public function getName(): string
             {

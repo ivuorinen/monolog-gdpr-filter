@@ -43,7 +43,7 @@ class GdprProcessor implements ProcessorInterface
      * @throws \InvalidArgumentException When any parameter is invalid
      */
     public function __construct(
-        private readonly array $patterns,
+        array $patterns,
         array $fieldPaths = [],
         array $customCallbacks = [],
         $auditLogger = null,
@@ -196,33 +196,15 @@ class GdprProcessor implements ProcessorInterface
     }
 
     /**
-     * Mask a string using all regex patterns at once.
+     * Mask a string using all regex patterns.
+     *
+     * Delegates to the orchestrator so there is a single pattern-application
+     * implementation: patterns are applied one at a time, so a single failing
+     * pattern cannot void the masking performed by the others.
      */
     public function maskMessage(string $value = ''): string
     {
-        $keys = array_keys($this->patterns);
-        $values = array_values($this->patterns);
-
-        try {
-            /** @psalm-suppress ArgumentTypeCoercion */
-            $result = preg_replace($keys, $values, $value);
-            if ($result === null) {
-                $error = preg_last_error_msg();
-                if ($this->auditLogger !== null) {
-                    ($this->auditLogger)('preg_replace_batch_error', $value, 'Error: ' . $error);
-                }
-
-                return $value;
-            }
-
-            return $result;
-        } catch (\Error $error) {
-            if ($this->auditLogger !== null) {
-                ($this->auditLogger)('regex_batch_error', implode(', ', $keys), $error->getMessage());
-            }
-
-            return $value;
-        }
+        return $this->orchestrator->applyPatterns($value);
     }
 
     /**

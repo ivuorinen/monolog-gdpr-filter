@@ -12,6 +12,7 @@ use Ivuorinen\MonologGdprFilter\MaskConstants;
 use Ivuorinen\MonologGdprFilter\Exceptions\InvalidRegexPatternException;
 use Ivuorinen\MonologGdprFilter\Exceptions\RuleExecutionException;
 use Ivuorinen\MonologGdprFilter\GdprProcessor;
+use Ivuorinen\MonologGdprFilter\Exceptions\GdprProcessorException;
 use Ivuorinen\MonologGdprFilter\PatternValidator;
 use Monolog\Level;
 use Monolog\LogRecord;
@@ -347,9 +348,6 @@ class CriticalBugRegressionTest extends TestCase
                     'Pattern failed validation or is potentially unsafe',
                     $e->getMessage()
                 );
-            } catch (Throwable $e) {
-                // Other exceptions are also acceptable for malformed patterns
-                $this->assertInstanceOf(Throwable::class, $e);
             }
         }
 

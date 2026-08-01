@@ -36,7 +36,7 @@ final class GdprProcessorExtendedTest extends TestCase
     #[Test]
     public function createRateLimitedAuditLoggerUsesDefaultProfile(): void
     {
-        $baseLogger = fn($path, $original, $masked): null => null;
+        $baseLogger = static fn (string $path, mixed $original, mixed $masked): null => null;
         $rateLimitedLogger = GdprProcessor::createRateLimitedAuditLogger($baseLogger);
 
         $this->assertInstanceOf(RateLimitedAuditLogger::class, $rateLimitedLogger);
@@ -223,15 +223,17 @@ final class GdprProcessorExtendedTest extends TestCase
     }
 
     #[Test]
-    public function regExpMessagePreservesOriginalWhenMaskingResultsInEmpty(): void
+    public function regExpMessageReturnsEmptyWhenMaskingRemovesEverything(): void
     {
         $processor = new GdprProcessor(patterns: ['/.+/' => '']);
 
         $original = TestConstants::MESSAGE_TEST_LOWERCASE;
         $result = $processor->regExpMessage($original);
 
-        // Should return original since masking would produce empty string
-        $this->assertSame($original, $result);
+        // Masking the whole message away is the requested behaviour; returning the
+        // original would leak it.
+        $this->assertSame('', $result);
+        $this->assertNotSame($original, $result);
     }
 
     #[Test]

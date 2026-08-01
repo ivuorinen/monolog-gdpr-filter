@@ -145,9 +145,9 @@ final class GdprProcessorConditionalRulesTest extends TestCase
         $this->assertStringContainsString(Mask::MASK_GENERIC, $errorMessage);
     }
 
-    public function testRegExpMessageReturnsOriginalWhenResultIsEmpty(): void
+    public function testRegExpMessageReturnsEmptyWhenThatIsTheMaskedResult(): void
     {
-        // Test the edge case where masking results in empty string
+        // Masking everything away is a legitimate outcome, not a failure
         $processor = new GdprProcessor(
             patterns: ['/.*/' => ''], // Replace everything with empty
             fieldPaths: [],
@@ -155,13 +155,12 @@ final class GdprProcessorConditionalRulesTest extends TestCase
 
         $result = $processor->regExpMessage(TestConstants::MESSAGE_TEST_LOWERCASE);
 
-        // Should return original message when result would be empty
-        $this->assertSame(TestConstants::MESSAGE_TEST_LOWERCASE, $result);
+        $this->assertSame('', $result);
+        $this->assertNotSame(TestConstants::MESSAGE_TEST_LOWERCASE, $result);
     }
 
-    public function testRegExpMessageReturnsOriginalWhenResultIsZero(): void
+    public function testRegExpMessageReturnsZeroWhenThatIsTheMaskedResult(): void
     {
-        // Test the edge case where masking results in '0'
         $processor = new GdprProcessor(
             patterns: [TestConstants::PATTERN_TEST => '0'],
             fieldPaths: [],
@@ -169,7 +168,7 @@ final class GdprProcessorConditionalRulesTest extends TestCase
 
         $result = $processor->regExpMessage('test');
 
-        // '0' is treated as empty by the check, so original is returned
-        $this->assertSame('test', $result);
+        // '0' must not be mistaken for "nothing happened"
+        $this->assertSame('0', $result);
     }
 }

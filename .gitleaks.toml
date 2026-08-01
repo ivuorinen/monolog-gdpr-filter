@@ -1,0 +1,42 @@
+# Gitleaks configuration.
+#
+# This repository is a GDPR masking library, so its tests necessarily contain
+# credential-shaped strings as fixtures — they are the input that proves the
+# masking works.
+#
+# The allowlist below names those fixture VALUES explicitly rather than
+# exempting whole directories. That distinction matters: a real credential
+# committed anywhere in this repository — tests/ included — still produces a
+# finding. Every entry is a synthetic value already present in git history.
+#
+# Adding a new fixture means adding it here too. That is deliberate friction:
+# it forces a human to look at the value and confirm it is not real.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Synthetic credentials used as masking test fixtures"
+regexTarget = "match"
+
+regexes = [
+  # Stripe-shaped fixtures (tests/TestConstants.php, tests/Audit/ErrorContextTest.php,
+  # tests/SecuritySanitizerTest.php, tests/RegressionTests/ComprehensiveValidationTest.php)
+  '''sk_live_abc123def456ghi789''',
+  '''sk_live_abc123def456''',
+  '''sk_live_1234567890abcdef''',
+  '''sk_live_1234567890''',
+  '''sk_test_placeholder''',
+  # Stripe's own published documentation test key, quoted in the audit findings
+  '''sk_test_4eC39HqLyjWDarj''',
+
+  # Generic API-key-shaped fixtures
+  '''test_1234567890abcdef''',
+  '''abc123def456''',
+  '''abcd1234567890''',
+  '''xyz9876543210abc''',
+
+  # Non-credential fixtures asserted against SecuritySanitizer
+  '''super_secret_jwt_key_2024''',
+  '''password=secret123''',
+]

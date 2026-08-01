@@ -50,7 +50,7 @@ final class StrategyEdgeCasesTest extends TestCase
     public function regexStrategyDetectsReDoSPatterns(string $pattern): void
     {
         $this->expectException(InvalidRegexPatternException::class);
-        $this->expectExceptionMessage('catastrophic backtracking');
+        $this->expectExceptionMessageIsOrContains('catastrophic backtracking');
 
         $strategy = new RegexMaskingStrategy([$pattern => MaskConstants::MASK_GENERIC]);
         $this->assertInstanceOf(RegexMaskingStrategy::class, $strategy);

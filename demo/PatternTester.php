@@ -10,6 +10,8 @@ use Ivuorinen\MonologGdprFilter\Strategies\FieldPathMaskingStrategy;
 use Ivuorinen\MonologGdprFilter\Strategies\StrategyManager;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
 use Ivuorinen\MonologGdprFilter\DefaultPatterns;
+use Ivuorinen\MonologGdprFilter\PatternValidator;
+use Ivuorinen\MonologGdprFilter\SecuritySanitizer;
 use Monolog\Level;
 use Monolog\LogRecord;
 use DateTimeImmutable;
@@ -35,24 +37,36 @@ final class PatternTester
         $errors = [];
         $matches = [];
         $masked = $text;
+        $validator = new PatternValidator();
 
         foreach ($patterns as $pattern => $replacement) {
-            // Validate pattern
-            if (@preg_match($pattern, '') === false) {
-                $errors[] = "Invalid pattern: {$pattern}";
+            // Reject unsafe patterns using the library's own validator rather than a bare
+            // syntax check, so the playground applies the same rules as the processor.
+            if (!$validator->validate($pattern)) {
+                $errors[] = "Invalid or unsafe pattern: {$pattern}";
                 continue;
             }
 
             // Find matches
-            if (preg_match_all($pattern, $text, $found)) {
+            $found = [];
+            if (@preg_match_all($pattern, $text, $found) === false) {
+                $errors[] = "Match failed for {$pattern}: " . preg_last_error_msg();
+                continue;
+            }
+
+            if ($found[0] !== []) {
                 $matches[$pattern] = $found[0];
             }
 
-            // Apply replacement
+            // Apply replacement. A null result means PCRE aborted; reporting the masked
+            // text as if nothing happened would claim the value was masked when it was not.
             $result = @preg_replace($pattern, $replacement, $masked);
-            if ($result !== null) {
-                $masked = $result;
+            if ($result === null) {
+                $errors[] = "Masking failed for {$pattern}: " . preg_last_error_msg();
+                continue;
             }
+
+            $masked = $result;
         }
 
         return [
@@ -133,7 +147,8 @@ final class PatternTester
                 'errors' => $errors,
             ];
         } catch (Throwable $e) {
-            $errors[] = $e->getMessage();
+            // Sanitised: raw messages leak internal paths and config to the client.
+            $errors[] = SecuritySanitizer::sanitizeErrorMessage($e->getMessage());
 
             return [
                 'original_message' => $message,
@@ -204,7 +219,8 @@ final class PatternTester
                 'errors' => $errors,
             ];
         } catch (Throwable $e) {
-            $errors[] = $e->getMessage();
+            // Sanitised: raw messages leak internal paths and config to the client.
+            $errors[] = SecuritySanitizer::sanitizeErrorMessage($e->getMessage());
 
             return [
                 'original_message' => $message,
@@ -230,6 +246,11 @@ final class PatternTester
     /**
      * Validate a single regex pattern.
      *
+     * Applies the same rules as testPatterns() and the processor itself: a
+     * syntax-only check would report catastrophic-backtracking patterns as valid
+     * here while testPatterns() rejected them, so the playground would contradict
+     * itself depending on which button you pressed.
+     *
      * @return array{valid: bool, error: string|null}
      */
     public function validatePattern(string $pattern): array
@@ -239,8 +260,11 @@ final class PatternTester
         }
 
         if (@preg_match($pattern, '') === false) {
-            $error = preg_last_error_msg();
-            return ['valid' => false, 'error' => $error];
+            return ['valid' => false, 'error' => preg_last_error_msg()];
+        }
+
+        if (!new PatternValidator()->validate($pattern)) {
+            return ['valid' => false, 'error' => 'Pattern rejected as unsafe (possible catastrophic backtracking)'];
         }
 
         return ['valid' => true, 'error' => null];

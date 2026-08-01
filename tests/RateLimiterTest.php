@@ -149,7 +149,7 @@ class RateLimiterTest extends TestCase
     {
         // Test that zero max requests throws an exception due to validation
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage('Maximum requests must be a positive integer, got: 0');
+        $this->expectExceptionMessageIsOrContains('Maximum requests must be a positive integer, got: 0');
 
         new RateLimiter(0, 60);
     }
@@ -204,7 +204,7 @@ class RateLimiterTest extends TestCase
 
         // Empty string key should throw validation exception
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage(TestConstants::ERROR_RATE_LIMIT_KEY_EMPTY);
+        $this->expectExceptionMessageIsOrContains(TestConstants::ERROR_RATE_LIMIT_KEY_EMPTY);
 
         $rateLimiter->isAllowed('');
     }

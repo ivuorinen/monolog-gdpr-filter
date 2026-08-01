@@ -32,7 +32,7 @@ class RateLimiterValidationTest extends TestCase
     public function constructorThrowsExceptionForZeroMaxRequests(): void
     {
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage('Maximum requests must be a positive integer, got: 0');
+        $this->expectExceptionMessageIsOrContains('Maximum requests must be a positive integer, got: 0');
 
         new RateLimiter(0, 60);
     }
@@ -41,7 +41,7 @@ class RateLimiterValidationTest extends TestCase
     public function constructorThrowsExceptionForNegativeMaxRequests(): void
     {
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage('Maximum requests must be a positive integer, got: -10');
+        $this->expectExceptionMessageIsOrContains('Maximum requests must be a positive integer, got: -10');
 
         new RateLimiter(-10, 60);
     }
@@ -50,7 +50,7 @@ class RateLimiterValidationTest extends TestCase
     public function constructorThrowsExceptionForExcessiveMaxRequests(): void
     {
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage('Cannot exceed 1,000,000 for memory safety');
+        $this->expectExceptionMessageIsOrContains('Cannot exceed 1,000,000 for memory safety');
 
         new RateLimiter(1000001, 60);
     }
@@ -59,7 +59,9 @@ class RateLimiterValidationTest extends TestCase
     public function constructorThrowsExceptionForZeroWindowSeconds(): void
     {
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage('Time window must be a positive integer representing seconds, got: 0');
+        $this->expectExceptionMessageIsOrContains(
+            'Time window must be a positive integer representing seconds, got: 0'
+        );
 
         new RateLimiter(10, 0);
     }
@@ -68,7 +70,9 @@ class RateLimiterValidationTest extends TestCase
     public function constructorThrowsExceptionForNegativeWindowSeconds(): void
     {
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage('Time window must be a positive integer representing seconds, got: -30');
+        $this->expectExceptionMessageIsOrContains(
+            'Time window must be a positive integer representing seconds, got: -30'
+        );
 
         new RateLimiter(10, -30);
     }
@@ -77,7 +81,7 @@ class RateLimiterValidationTest extends TestCase
     public function constructorThrowsExceptionForExcessiveWindowSeconds(): void
     {
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage('Cannot exceed 86,400 (24 hours) for practical reasons');
+        $this->expectExceptionMessageIsOrContains('Cannot exceed 86,400 (24 hours) for practical reasons');
 
         new RateLimiter(10, 86401);
     }
@@ -107,7 +111,7 @@ class RateLimiterValidationTest extends TestCase
         $rateLimiter = new RateLimiter(10, 60);
 
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage(TestConstants::ERROR_RATE_LIMIT_KEY_EMPTY);
+        $this->expectExceptionMessageIsOrContains(TestConstants::ERROR_RATE_LIMIT_KEY_EMPTY);
 
         $rateLimiter->isAllowed('');
     }
@@ -118,7 +122,7 @@ class RateLimiterValidationTest extends TestCase
         $rateLimiter = new RateLimiter(10, 60);
 
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage(TestConstants::ERROR_RATE_LIMIT_KEY_EMPTY);
+        $this->expectExceptionMessageIsOrContains(TestConstants::ERROR_RATE_LIMIT_KEY_EMPTY);
 
         $rateLimiter->isAllowed('   ');
     }
@@ -130,7 +134,7 @@ class RateLimiterValidationTest extends TestCase
         $longKey = str_repeat('a', 251);
 
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage('Rate limiting key length (251) exceeds maximum (250 characters)');
+        $this->expectExceptionMessageIsOrContains('Rate limiting key length (251) exceeds maximum (250 characters)');
 
         $rateLimiter->isAllowed($longKey);
     }
@@ -141,7 +145,7 @@ class RateLimiterValidationTest extends TestCase
         $rateLimiter = new RateLimiter(10, 60);
 
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage('Rate limiting key cannot contain control characters');
+        $this->expectExceptionMessageIsOrContains('Rate limiting key cannot contain control characters');
 
         $rateLimiter->isAllowed("test\x00key");
     }
@@ -161,7 +165,7 @@ class RateLimiterValidationTest extends TestCase
         $rateLimiter = new RateLimiter(10, 60);
 
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage(TestConstants::ERROR_RATE_LIMIT_KEY_EMPTY);
+        $this->expectExceptionMessageIsOrContains(TestConstants::ERROR_RATE_LIMIT_KEY_EMPTY);
 
         $rateLimiter->getTimeUntilReset('');
     }
@@ -172,7 +176,7 @@ class RateLimiterValidationTest extends TestCase
         $rateLimiter = new RateLimiter(10, 60);
 
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage(TestConstants::ERROR_RATE_LIMIT_KEY_EMPTY);
+        $this->expectExceptionMessageIsOrContains(TestConstants::ERROR_RATE_LIMIT_KEY_EMPTY);
 
         $rateLimiter->getStats('');
     }
@@ -183,7 +187,7 @@ class RateLimiterValidationTest extends TestCase
         $rateLimiter = new RateLimiter(10, 60);
 
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage(TestConstants::ERROR_RATE_LIMIT_KEY_EMPTY);
+        $this->expectExceptionMessageIsOrContains(TestConstants::ERROR_RATE_LIMIT_KEY_EMPTY);
 
         $rateLimiter->getRemainingRequests('');
     }
@@ -192,7 +196,7 @@ class RateLimiterValidationTest extends TestCase
     public function clearKeyThrowsExceptionForInvalidKey(): void
     {
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage(TestConstants::ERROR_RATE_LIMIT_KEY_EMPTY);
+        $this->expectExceptionMessageIsOrContains(TestConstants::ERROR_RATE_LIMIT_KEY_EMPTY);
 
         RateLimiter::clearKey('');
     }
@@ -201,7 +205,7 @@ class RateLimiterValidationTest extends TestCase
     public function setCleanupIntervalThrowsExceptionForZeroSeconds(): void
     {
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage('Cleanup interval must be a positive integer, got: 0');
+        $this->expectExceptionMessageIsOrContains('Cleanup interval must be a positive integer, got: 0');
 
         RateLimiter::setCleanupInterval(0);
     }
@@ -210,7 +214,7 @@ class RateLimiterValidationTest extends TestCase
     public function setCleanupIntervalThrowsExceptionForNegativeSeconds(): void
     {
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage('Cleanup interval must be a positive integer, got: -100');
+        $this->expectExceptionMessageIsOrContains('Cleanup interval must be a positive integer, got: -100');
 
         RateLimiter::setCleanupInterval(-100);
     }
@@ -219,7 +223,7 @@ class RateLimiterValidationTest extends TestCase
     public function setCleanupIntervalThrowsExceptionForTooSmallValue(): void
     {
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage(
+        $this->expectExceptionMessageIsOrContains(
             'Cleanup interval (30 seconds) is too short, minimum is 60 seconds'
         );
 
@@ -230,7 +234,7 @@ class RateLimiterValidationTest extends TestCase
     public function setCleanupIntervalThrowsExceptionForExcessiveValue(): void
     {
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage(
+        $this->expectExceptionMessageIsOrContains(
             'Cannot exceed 604,800 seconds (1 week) for practical reasons'
         );
 

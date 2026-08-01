@@ -412,6 +412,32 @@ $processor = GdprProcessorBuilder::create()
 | Health       | Medicare numbers, European Health Insurance Card (EHIC)     |
 | Dates        | Birth dates in multiple formats                             |
 
+Patterns are boundary-anchored, so they match a sensitive value whether it is the whole
+field value or embedded in a longer log message. The one exception is the generic
+API-key heuristic (`[A-Za-z0-9\-_]{20,}`), which stays whole-value anchored — unanchored
+it would match ordinary long words in a message.
+
+Patterns are applied in order, most specific first, so a value is masked under the right
+label (a US SSN as `***USSSN***` rather than `***MEDICARE***`). Keep that ordering in
+mind when supplying your own patterns.
+
+## Standalone Components
+
+Some subsystems ship as independent building blocks rather than as part of the
+`GdprProcessor` pipeline. They are supported and tested, but `GdprProcessor` does not
+call them — you wire them up yourself:
+
+| Component                                             | Use it for                                                                        |
+|-------------------------------------------------------|-----------------------------------------------------------------------------------|
+| `Strategies\StrategyManager` + `Strategies\*Strategy` | Priority-ordered, path-scoped masking as an alternative to the processor pipeline |
+| `Streaming\StreamingProcessor`                        | Masking large log files line by line without loading them into memory             |
+| `SerializedDataProcessor`                             | Masking inside serialized or encoded payloads                                     |
+| `Anonymization\KAnonymizer`                           | k-anonymity generalization over a dataset, rather than per-record masking         |
+
+`GdprProcessor` and `StrategyManager` are held to identical output by
+`tests/RegressionTests/MaskingPathParityTest.php`; if you switch between them, that test
+is the contract.
+
 ## Performance Considerations
 
 ### Pattern Optimization

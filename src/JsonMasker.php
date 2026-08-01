@@ -194,29 +194,69 @@ final class JsonMasker
             }
         }
 
-        // Encode the processed data
-        $encoded = json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        // json_decode(..., true) turned every JSON object into a PHP array, so an empty
+        // object is indistinguishable from an empty array by the time we re-encode.
+        // Walk the original structure to restore object identity where it was lost.
+        $encoded = json_encode(
+            $this->restoreObjectShape($data, json_decode($originalJson, false)),
+            JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+        );
 
-        if ($encoded === false) {
-            return false;
+        return $encoded;
+    }
+
+    /**
+     * Restore object-vs-array identity on the processed data using the original shape.
+     *
+     * Only the container type is taken from $original; every value comes from the
+     * processed $data, so masking is never undone.
+     *
+     * @param mixed $data Processed value.
+     * @param mixed $original Same position in the originally decoded (object-preserving) JSON.
+     */
+    private function restoreObjectShape(mixed $data, mixed $original): mixed
+    {
+        if (!is_array($data)) {
+            return $data;
         }
 
-        // Fix empty arrays that should be empty objects by comparing with original
-        return $this->fixEmptyObjects($encoded, $originalJson);
+        if (is_object($original)) {
+            $result = new \stdClass();
+            foreach ($data as $key => $value) {
+                $result->{(string) $key} = $this->restoreObjectShape(
+                    $value,
+                    $original->{(string) $key} ?? null
+                );
+            }
+
+            return $result;
+        }
+
+        $result = [];
+        foreach ($data as $key => $value) {
+            $result[$key] = $this->restoreObjectShape(
+                $value,
+                is_array($original) ? ($original[$key] ?? null) : null
+            );
+        }
+
+        return $result;
     }
 
     /**
      * Fix empty arrays that should be empty objects in the encoded JSON.
      */
+    #[\Deprecated(message: <<<'TXT'
+    Superseded by restoreObjectShape(), which compares structures instead
+                 of rewriting the first N `[]` occurrences in the encoded output — that
+                 blind replacement also corrupted `[]` appearing inside string values.
+    TXT)]
     public function fixEmptyObjects(string $encoded, string $original): string
     {
-        // Count empty objects in original and empty arrays in encoded
         $originalEmptyObjects = substr_count($original, '{}');
         $encodedEmptyArrays = substr_count($encoded, '[]');
 
-        // If we lost empty objects (they became arrays), fix them
         if ($originalEmptyObjects > 0 && $encodedEmptyArrays >= $originalEmptyObjects) {
-            // Replace empty arrays with empty objects, up to the number we had originally
             for ($i = 0; $i < $originalEmptyObjects; $i++) {
                 $encoded = preg_replace('/\[\]/', '{}', $encoded, 1) ?? $encoded;
             }

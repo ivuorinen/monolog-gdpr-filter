@@ -62,7 +62,7 @@ final class CallbackMaskingStrategyTest extends TestCase
         $record = $this->createLogRecord();
 
         $this->expectException(MaskingOperationFailedException::class);
-        $this->expectExceptionMessage('Callback threw exception');
+        $this->expectExceptionMessageIsOrContains('Callback threw exception');
 
         $strategy->mask('value', TestConstants::FIELD_USER_DATA, $record);
     }

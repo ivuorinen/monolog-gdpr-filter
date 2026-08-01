@@ -151,7 +151,7 @@ final class StreamingProcessorTest extends TestCase
         $processor = new StreamingProcessor($this->createOrchestrator(), 10);
 
         $this->expectException(StreamingOperationFailedException::class);
-        $this->expectExceptionMessage('Cannot open input file for streaming:');
+        $this->expectExceptionMessageIsOrContains('Cannot open input file for streaming:');
 
         iterator_to_array($processor->processFile(
             '/nonexistent/path/file.log', /**
@@ -192,7 +192,7 @@ final class StreamingProcessorTest extends TestCase
         $processor = new StreamingProcessor($this->createOrchestrator(), 10);
 
         $this->expectException(StreamingOperationFailedException::class);
-        $this->expectExceptionMessage('Cannot open output file for streaming:');
+        $this->expectExceptionMessageIsOrContains('Cannot open output file for streaming:');
 
         $processor->processToFile([], '/nonexistent/path/output.log', fn(array $r): string => '');
     }

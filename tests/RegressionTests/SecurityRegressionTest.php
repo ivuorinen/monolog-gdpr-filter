@@ -21,6 +21,7 @@ use Ivuorinen\MonologGdprFilter\RateLimiter;
 use Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
 use Ivuorinen\MonologGdprFilter\Exceptions\GdprProcessorException;
+use Ivuorinen\MonologGdprFilter\Exceptions\InvalidRegexPatternException;
 use Ivuorinen\MonologGdprFilter\PatternValidator;
 use Ivuorinen\MonologGdprFilter\DataTypeMasker;
 use InvalidArgumentException;
@@ -69,50 +70,46 @@ class SecurityRegressionTest extends TestCase
      * Validates that dangerous regex patterns that could cause catastrophic
      * backtracking are properly detected and rejected.
      */
-    #[Test]
-    public function redosProtectionRejectsCatastrophicBacktrackingPatterns(): void
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function catastrophicBacktrackingPatternProvider(): array
     {
-        $redosPatterns = [
+        return [
             // Nested quantifiers - classic ReDoS
-            TestConstants::PATTERN_REDOS_VULNERABLE,
-            TestConstants::PATTERN_REDOS_NESTED_STAR,
-            '/^(a+)*$/',
+            'nested plus' => [TestConstants::PATTERN_REDOS_VULNERABLE],
+            'nested star' => [TestConstants::PATTERN_REDOS_NESTED_STAR],
+            'plus in star' => ['/^(a+)*$/'],
 
             // Alternation with overlapping
-            '/^(a|a)*$/',
-            '/^(.*|.*)$/',
+            'duplicate alternation' => ['/^(a|a)*$/'],
+            'duplicate any' => ['/^(.*|.*)$/'],
 
             // Complex nested structures
-            '/^((a+)+)+$/',
-            '/^(a+b+)+$/',
+            'triple nested' => ['/^((a+)+)+$/'],
+            'two groups' => ['/^(a+b+)+$/'],
 
             // Character class with nested quantifiers
-            '/^([a-zA-Z]+)*$/',
-            '/^(\w+)*$/',
+            'class in star' => ['/^([a-zA-Z]+)*$/'],
+            'word in star' => ['/^(\w+)*$/'],
 
             // Lookahead/lookbehind with quantifiers
-            '/^(?=.*a)(?=.*b)(.*)+$/',
+            'lookahead quantified' => ['/^(?=.*a)(?=.*b)(.*)+$/'],
 
             // Complex alternation
-            '/^(a|ab|abc|abcd)*$/',
+            'prefix alternation' => ['/^(a|ab|abc|abcd)*$/'],
         ];
+    }
 
-        foreach ($redosPatterns as $pattern) {
-            try {
-                PatternValidator::validateAll([$pattern => TestConstants::DATA_MASKED]);
-                // If validation passes, log for future improvement but don't fail
-                error_log('Warning: ReDoS pattern not caught by validation: ' . $pattern);
-                $this->assertTrue(true, 'Pattern validation completed for: ' . $pattern);
-            } catch (InvalidArgumentException $e) {
-                $this->assertStringContainsString(
-                    'Invalid or unsafe regex pattern',
-                    $e->getMessage()
-                );
-            } catch (Throwable $e) {
-                // Other exceptions are acceptable for malformed patterns
-                $this->assertInstanceOf(Throwable::class, $e);
-            }
-        }
+    #[Test]
+    #[DataProvider('catastrophicBacktrackingPatternProvider')]
+    public function redosProtectionRejectsCatastrophicBacktrackingPatterns(string $pattern): void
+    {
+        // Every pattern here MUST be rejected. Accepting one is a security regression, so
+        // the expectation is asserted rather than tolerated.
+        $this->expectException(InvalidRegexPatternException::class);
+
+        new PatternValidator()->validateAllPatterns([$pattern => TestConstants::DATA_MASKED]);
     }
 
     /**
@@ -263,7 +260,10 @@ class SecurityRegressionTest extends TestCase
             $current = &$current['level'];
         }
 
-        $current = 'deep_value';
+        // Store the payload as an entry rather than overwriting the reference target,
+        // which would widen $deepNesting's inferred type to array|string.
+        $current['value'] = 'deep_value';
+        unset($current);
 
         $processor = $this->createProcessor(
             patterns: ['/deep_value/' => MaskConstants::MASK_MASKED],
@@ -348,38 +348,60 @@ class SecurityRegressionTest extends TestCase
      *
      * Tests that malicious input is properly validated and sanitized.
      */
-    #[Test]
-    public function inputValidationAttackPrevention(): void
+    /**
+     * Patterns the constructor must refuse outright.
+     *
+     * @return array<string, array{string}>
+     */
+    public static function rejectedPatternProvider(): array
     {
-        // Test malicious regex patterns that could be injected
-        $maliciousPatterns = [
-            TestConstants::PATTERN_RECURSIVE, // Recursive pattern
-            TestConstants::PATTERN_NAMED_RECURSION, // Named recursion
-            '/\x{10000000}/', // Invalid Unicode
-            '/(?#comment).*(?#)/', // Comment injection
-            '', // Empty pattern
-            'not_a_regex', // Invalid regex format
+        return [
+            'recursive' => [TestConstants::PATTERN_RECURSIVE],
+            'named recursion' => [TestConstants::PATTERN_NAMED_RECURSION],
+            'invalid unicode' => ['/\x{10000000}/'],
+            'empty pattern' => [''],
+            'not a regex' => ['not_a_regex'],
         ];
+    }
 
-        foreach ($maliciousPatterns as $pattern) {
-            try {
-                $this->createProcessor(
-                    patterns: [$pattern => TestConstants::DATA_MASKED],
-                    fieldPaths: [],
-                    customCallbacks: [],
-                    auditLogger: null,
-                    maxDepth: 100,
-                    dataTypeMasks: []
-                );
+    #[Test]
+    #[DataProvider('rejectedPatternProvider')]
+    public function inputValidationRejectsMaliciousPatterns(string $pattern): void
+    {
+        // Each of these must be refused; "accepted" is a security regression, so the
+        // test expects the failure instead of tolerating either outcome.
+        $this->expectException(GdprProcessorException::class);
 
-                // If we reach here, the pattern was accepted, which might be OK for some cases
-                // but we should still validate it properly
-                $this->assertTrue(true);
-            } catch (Throwable $e) {
-                // Expected for malicious patterns
-                $this->assertInstanceOf(Throwable::class, $e);
-            }
-        }
+        $this->createProcessor(
+            patterns: [$pattern => TestConstants::DATA_MASKED],
+            fieldPaths: [],
+            customCallbacks: [],
+            auditLogger: null,
+            maxDepth: 100,
+            dataTypeMasks: []
+        );
+    }
+
+    /**
+     * Inline comments are legal PCRE and are deliberately tolerated. Pinning this
+     * separately keeps the reject list above meaningful.
+     */
+    #[Test]
+    public function inputValidationAcceptsPatternsWithInlineComments(): void
+    {
+        $processor = $this->createProcessor(
+            patterns: ['/(?#comment).*(?#)/' => TestConstants::DATA_MASKED],
+            fieldPaths: [],
+            customCallbacks: [],
+            auditLogger: null,
+            maxDepth: 100,
+            dataTypeMasks: []
+        );
+
+        // `.*` also matches the empty string at the end, so the replacement appears twice.
+        $masked = $processor->maskMessage('anything');
+        $this->assertStringNotContainsString('anything', $masked);
+        $this->assertStringContainsString(TestConstants::DATA_MASKED, $masked);
     }
 
     /**

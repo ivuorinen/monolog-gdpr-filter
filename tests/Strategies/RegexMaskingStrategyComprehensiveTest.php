@@ -81,7 +81,7 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
     public function testDetectReDoSRiskWithNestedQuantifiers(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
-        $this->expectExceptionMessage('ReDoS');
+        $this->expectExceptionMessageIsOrContains('ReDoS');
 
         // Pattern with (x+)+ - catastrophic backtracking
         $strategy = new RegexMaskingStrategy([
@@ -93,7 +93,7 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
     public function testDetectReDoSRiskWithNestedStarQuantifiers(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
-        $this->expectExceptionMessage('ReDoS');
+        $this->expectExceptionMessageIsOrContains('ReDoS');
 
         // Pattern with (x*)* - catastrophic backtracking
         $strategy = new RegexMaskingStrategy([
@@ -105,7 +105,7 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
     public function testDetectReDoSRiskWithQuantifiedPlusGroup(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
-        $this->expectExceptionMessage('ReDoS');
+        $this->expectExceptionMessageIsOrContains('ReDoS');
 
         // Pattern with (x+){n,m} - catastrophic backtracking
         $strategy = new RegexMaskingStrategy([
@@ -117,7 +117,7 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
     public function testDetectReDoSRiskWithQuantifiedStarGroup(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
-        $this->expectExceptionMessage('ReDoS');
+        $this->expectExceptionMessageIsOrContains('ReDoS');
 
         // Pattern with (x*){n,m} - catastrophic backtracking
         $strategy = new RegexMaskingStrategy([
@@ -129,7 +129,7 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
     public function testDetectReDoSRiskWithIdenticalDotStarAlternations(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
-        $this->expectExceptionMessage('ReDoS');
+        $this->expectExceptionMessageIsOrContains('ReDoS');
 
         // Pattern with (.*|.*) - identical alternations
         $strategy = new RegexMaskingStrategy([
@@ -141,7 +141,7 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
     public function testDetectReDoSRiskWithIdenticalDotPlusAlternations(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
-        $this->expectExceptionMessage('ReDoS');
+        $this->expectExceptionMessageIsOrContains('ReDoS');
 
         // Pattern with (.+|.+) - identical alternations
         $strategy = new RegexMaskingStrategy([
@@ -153,7 +153,7 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
     public function testDetectReDoSRiskWithMultipleOverlappingAlternationsStar(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
-        $this->expectExceptionMessage('ReDoS');
+        $this->expectExceptionMessageIsOrContains('ReDoS');
 
         // Pattern with multiple overlapping alternations with *
         $strategy = new RegexMaskingStrategy([
@@ -165,7 +165,7 @@ final class RegexMaskingStrategyComprehensiveTest extends TestCase
     public function testDetectReDoSRiskWithMultipleOverlappingAlternationsPlus(): void
     {
         $this->expectException(InvalidRegexPatternException::class);
-        $this->expectExceptionMessage('ReDoS');
+        $this->expectExceptionMessageIsOrContains('ReDoS');
 
         // Pattern with multiple overlapping alternations with +
         $strategy = new RegexMaskingStrategy([

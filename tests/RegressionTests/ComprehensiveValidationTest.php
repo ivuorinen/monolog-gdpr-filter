@@ -19,6 +19,7 @@ use Ivuorinen\MonologGdprFilter\RateLimitedAuditLogger;
 use Ivuorinen\MonologGdprFilter\FieldMaskConfig;
 use Ivuorinen\MonologGdprFilter\Exceptions\RuleExecutionException;
 use Ivuorinen\MonologGdprFilter\DataTypeMasker;
+use Ivuorinen\MonologGdprFilter\Exceptions\GdprProcessorException;
 use Ivuorinen\MonologGdprFilter\PatternValidator;
 use stdClass;
 use Tests\TestConstants;
@@ -442,9 +443,10 @@ class ComprehensiveValidationTest extends TestCase
                     $memoryIncrease,
                     'Memory usage should be reasonable for ' . $name
                 );
-            } catch (Throwable $e) {
-                // Some extreme values might cause controlled exceptions
-                $this->assertInstanceOf(Throwable::class, $e);
+            } catch (GdprProcessorException $e) {
+                // Extreme values may raise a controlled library exception; anything else
+                // is unexpected and propagates so the test fails.
+                $this->assertNotSame('', $e->getMessage(), 'Controlled failure must explain itself');
             }
         }
     }

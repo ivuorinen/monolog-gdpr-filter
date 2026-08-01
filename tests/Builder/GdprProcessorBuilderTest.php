@@ -17,10 +17,13 @@ use Monolog\LogRecord;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Tests\TestConstants;
+use Tests\TestHelpers;
 
 #[CoversClass(GdprProcessorBuilder::class)]
 final class GdprProcessorBuilderTest extends TestCase
 {
+    use TestHelpers;
+
     public function testCreateReturnsBuilder(): void
     {
         $builder = GdprProcessorBuilder::create();
@@ -222,11 +225,6 @@ final class GdprProcessorBuilderTest extends TestCase
     public function testAddPlugin(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
-            /**
-             * @return string
-             *
-             * @psalm-return 'test-plugin'
-             */
             #[\Override]
             public function getName(): string
             {
@@ -252,31 +250,9 @@ final class GdprProcessorBuilderTest extends TestCase
 
     public function testAddPlugins(): void
     {
-        $plugin1 = new class extends AbstractMaskingPlugin {
-            /**
-             * @return string
-             *
-             * @psalm-return 'plugin1'
-             */
-            #[\Override]
-            public function getName(): string
-            {
-                return 'plugin1';
-            }
-        };
+        $plugin1 = $this->namedPlugin('plugin1');
 
-        $plugin2 = new class extends AbstractMaskingPlugin {
-            /**
-             * @return string
-             *
-             * @psalm-return 'plugin2'
-             */
-            #[\Override]
-            public function getName(): string
-            {
-                return 'plugin2';
-            }
-        };
+        $plugin2 = $this->namedPlugin('plugin2');
 
         $builder = GdprProcessorBuilder::create()->addPlugins([$plugin1, $plugin2]);
 
@@ -296,18 +272,7 @@ final class GdprProcessorBuilderTest extends TestCase
 
     public function testBuildWithPluginsReturnsPluginAwareProcessor(): void
     {
-        $plugin = new class extends AbstractMaskingPlugin {
-            /**
-             * @return string
-             *
-             * @psalm-return 'test-plugin'
-             */
-            #[\Override]
-            public function getName(): string
-            {
-                return 'test-plugin';
-            }
-        };
+        $plugin = $this->namedPlugin('test-plugin');
 
         $processor = GdprProcessorBuilder::create()
             ->addPattern(TestConstants::PATTERN_TEST, MaskConstants::MASK_GENERIC)
@@ -320,11 +285,6 @@ final class GdprProcessorBuilderTest extends TestCase
     public function testPluginPatternsAreApplied(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
-            /**
-             * @return string
-             *
-             * @psalm-return 'secret-plugin'
-             */
             #[\Override]
             public function getName(): string
             {
@@ -363,11 +323,6 @@ final class GdprProcessorBuilderTest extends TestCase
     public function testPluginFieldPathsAreApplied(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
-            /**
-             * @return string
-             *
-             * @psalm-return 'field-plugin'
-             */
             #[\Override]
             public function getName(): string
             {

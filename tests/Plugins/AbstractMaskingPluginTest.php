@@ -19,11 +19,6 @@ final class AbstractMaskingPluginTest extends TestCase
     protected function setUp(): void
     {
         $this->plugin = new class extends AbstractMaskingPlugin {
-            /**
-             * @return string
-             *
-             * @psalm-return 'test-plugin'
-             */
             #[\Override]
             public function getName(): string
             {
@@ -50,11 +45,6 @@ final class AbstractMaskingPluginTest extends TestCase
                 parent::__construct(50);
             }
 
-            /**
-             * @return string
-             *
-             * @psalm-return 'test-plugin'
-             */
             #[\Override]
             public function getName(): string
             {
@@ -110,11 +100,6 @@ final class AbstractMaskingPluginTest extends TestCase
     public function testCanOverridePreProcessContext(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
-            /**
-             * @return string
-             *
-             * @psalm-return 'test-plugin'
-             */
             #[\Override]
             public function getName(): string
             {
@@ -138,11 +123,6 @@ final class AbstractMaskingPluginTest extends TestCase
     public function testCanOverridePreProcessMessage(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
-            /**
-             * @return string
-             *
-             * @psalm-return 'test-plugin'
-             */
             #[\Override]
             public function getName(): string
             {
@@ -162,11 +142,6 @@ final class AbstractMaskingPluginTest extends TestCase
     public function testCanOverrideGetPatterns(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
-            /**
-             * @return string
-             *
-             * @psalm-return 'test-plugin'
-             */
             #[\Override]
             public function getName(): string
             {

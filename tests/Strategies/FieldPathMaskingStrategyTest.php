@@ -222,7 +222,7 @@ final class FieldPathMaskingStrategyTest extends TestCase
         $this->assertIsResource($resource, 'Failed to open php://memory');
 
         $this->expectException(MaskingOperationFailedException::class);
-        $this->expectExceptionMessage('user.field');
+        $this->expectExceptionMessageIsOrContains('user.field');
 
         try {
             $strategy->mask($resource, 'user.field', $this->logRecord);

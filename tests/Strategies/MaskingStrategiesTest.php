@@ -340,9 +340,6 @@ class MaskingStrategiesTest extends TestCase
                 return $this->pathMatches($path, TestConstants::PATH_USER_WILDCARD);
             }
 
-            /**
-             * @psalm-return 'Test Strategy'
-             */
             #[\Override]
             public function getName(): string
             {
@@ -504,9 +501,6 @@ class MaskingStrategiesTest extends TestCase
                 return false;
             }
 
-            /**
-             * @psalm-return 'Invalid'
-             */
             #[\Override]
             public function getName(): string
             {

@@ -18,6 +18,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Tests\TestConstants;
+use Tests\TestHelpers;
 
 /**
  * Edge case tests for GdprProcessorBuilder.
@@ -26,6 +27,8 @@ use Tests\TestConstants;
 #[CoversClass(PluginAwareProcessor::class)]
 final class GdprProcessorBuilderEdgeCasesTest extends TestCase
 {
+    use TestHelpers;
+
     /**
      * @param array<string, mixed> $context
      */
@@ -152,31 +155,9 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
     #[Test]
     public function getPluginsReturnsRegisteredPlugins(): void
     {
-        $plugin1 = new class extends AbstractMaskingPlugin {
-            /**
-             * @return string
-             *
-             * @psalm-return 'plugin-1'
-             */
-            #[\Override]
-            public function getName(): string
-            {
-                return 'plugin-1';
-            }
-        };
+        $plugin1 = $this->namedPlugin('plugin-1');
 
-        $plugin2 = new class extends AbstractMaskingPlugin {
-            /**
-             * @return string
-             *
-             * @psalm-return 'plugin-2'
-             */
-            #[\Override]
-            public function getName(): string
-            {
-                return 'plugin-2';
-            }
-        };
+        $plugin2 = $this->namedPlugin('plugin-2');
 
         $builder = GdprProcessorBuilder::create()
             ->addPlugin($plugin1)
@@ -192,31 +173,9 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
     #[Test]
     public function addPluginsAddsMultiplePlugins(): void
     {
-        $plugin1 = new class extends AbstractMaskingPlugin {
-            /**
-             * @return string
-             *
-             * @psalm-return 'plugin-1'
-             */
-            #[\Override]
-            public function getName(): string
-            {
-                return 'plugin-1';
-            }
-        };
+        $plugin1 = $this->namedPlugin('plugin-1');
 
-        $plugin2 = new class extends AbstractMaskingPlugin {
-            /**
-             * @return string
-             *
-             * @psalm-return 'plugin-2'
-             */
-            #[\Override]
-            public function getName(): string
-            {
-                return 'plugin-2';
-            }
-        };
+        $plugin2 = $this->namedPlugin('plugin-2');
 
         $builder = GdprProcessorBuilder::create()
             ->addPlugins([$plugin1, $plugin2]);
@@ -242,18 +201,7 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
     #[Test]
     public function buildWithPluginsReturnsPluginAwareProcessorWithPlugins(): void
     {
-        $plugin = new class extends AbstractMaskingPlugin {
-            /**
-             * @return string
-             *
-             * @psalm-return 'test-plugin'
-             */
-            #[\Override]
-            public function getName(): string
-            {
-                return 'test-plugin';
-            }
-        };
+        $plugin = $this->namedPlugin('test-plugin');
 
         $processor = GdprProcessorBuilder::create()
             ->addPlugin($plugin)
@@ -266,11 +214,6 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
     public function buildWithPluginsSortsPluginsByPriority(): void
     {
         $lowPriority = new class (200) extends AbstractMaskingPlugin {
-            /**
-             * @return string
-             *
-             * @psalm-return 'low-priority'
-             */
             #[\Override]
             public function getName(): string
             {
@@ -279,11 +222,6 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
         };
 
         $highPriority = new class (10) extends AbstractMaskingPlugin {
-            /**
-             * @return string
-             *
-             * @psalm-return 'high-priority'
-             */
             #[\Override]
             public function getName(): string
             {
@@ -303,11 +241,6 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
     public function pluginContributesPatterns(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
-            /**
-             * @return string
-             *
-             * @psalm-return 'pattern-plugin'
-             */
             #[\Override]
             public function getName(): string
             {
@@ -338,11 +271,6 @@ final class GdprProcessorBuilderEdgeCasesTest extends TestCase
     public function pluginContributesFieldPaths(): void
     {
         $plugin = new class extends AbstractMaskingPlugin {
-            /**
-             * @return string
-             *
-             * @psalm-return 'field-plugin'
-             */
             #[\Override]
             public function getName(): string
             {

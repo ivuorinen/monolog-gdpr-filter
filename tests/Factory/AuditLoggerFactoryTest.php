@@ -87,12 +87,15 @@ final class AuditLoggerFactoryTest extends TestCase
 
     public function testCreateNullLoggerDoesNothing(): void
     {
+        // Void validator: passing means not throwing. Declared explicitly rather than
+        // faked with a vacuous assertion; rejection is covered by the matching negative tests.
+        $this->expectNotToPerformAssertions();
+
         $factory = AuditLoggerFactory::create();
         $logger = $factory->createNullLogger();
 
         // Should not throw
         $logger('path', 'original', TestConstants::DATA_MASKED);
-        $this->assertTrue(true);
     }
 
     public function testCreateCallbackLoggerReturnsClosure(): void

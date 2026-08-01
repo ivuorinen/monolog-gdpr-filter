@@ -15,6 +15,7 @@ use Ivuorinen\MonologGdprFilter\DefaultPatterns;
 use Ivuorinen\MonologGdprFilter\MaskConstants;
 use Ivuorinen\MonologGdprFilter\RateLimiter;
 use Ivuorinen\MonologGdprFilter\PatternValidator;
+use Ivuorinen\MonologGdprFilter\Plugins\AbstractMaskingPlugin;
 use DateTimeImmutable;
 use Monolog\JsonSerializableDateTimeImmutable;
 use Monolog\Level;
@@ -174,6 +175,33 @@ trait TestHelpers
      * @param array<array{path: string, original: mixed, masked: mixed}> $storage
      *
      * @psalm-return \Closure(string, mixed, mixed):void
+     */
+    /**
+     * Build a masking plugin whose only distinguishing feature is its name.
+     *
+     * Most plugin tests only need "a plugin called X"; defining an anonymous class
+     * inline for each one duplicated the same three lines a dozen times. Tests that
+     * need a real hook (preProcessMessage, getPatterns, a priority, …) still declare
+     * their own anonymous class.
+     */
+    protected function namedPlugin(string $name): AbstractMaskingPlugin
+    {
+        return new class ($name) extends AbstractMaskingPlugin {
+            public function __construct(private readonly string $pluginName)
+            {
+                parent::__construct();
+            }
+
+            #[\Override]
+            public function getName(): string
+            {
+                return $this->pluginName;
+            }
+        };
+    }
+
+    /**
+     * @param list<array{path: string, original: mixed, masked: mixed}> $storage
      */
     protected function createAuditLogger(array &$storage): \Closure
     {

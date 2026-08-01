@@ -281,12 +281,15 @@ final class ContextProcessorTest extends TestCase
 
     public function testLogAuditDoesNothingWhenNoLogger(): void
     {
+        // Void validator: passing means not throwing. Declared explicitly rather than
+        // faked with a vacuous assertion; rejection is covered by the matching negative tests.
+        $this->expectNotToPerformAssertions();
+
         $regexProcessor = fn(string $val): string => $val;
         $processor = new ContextProcessor([], [], null, $regexProcessor);
 
         // Should not throw
         $processor->logAudit('path', 'original', TestConstants::DATA_MASKED);
-        $this->assertTrue(true);
     }
 
     public function testLogAuditDoesNothingWhenValuesUnchanged(): void

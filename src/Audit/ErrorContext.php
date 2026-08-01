@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ivuorinen\MonologGdprFilter\Audit;
 
+use Ivuorinen\MonologGdprFilter\SecuritySanitizer;
 use Throwable;
 
 /**
@@ -106,15 +107,8 @@ final readonly class ErrorContext
             '/\/(?:var|home|etc|usr|opt)\/[^\s:]+/' => '/[PATH_REDACTED]',
         ];
 
-        $sanitized = $message;
-        foreach ($patterns as $pattern => $replacement) {
-            $result = preg_replace($pattern, $replacement, $sanitized);
-            if ($result !== null) {
-                $sanitized = $result;
-            }
-        }
-
-        return $sanitized;
+        // Shared with SecuritySanitizer so the two fail-closed scrubbers cannot drift.
+        return SecuritySanitizer::scrubOrRedact($patterns, $message);
     }
 
     /**

@@ -24,6 +24,12 @@ final class PatternValidator
     private array $instanceCache = [];
 
     /**
+     * Upper bound on validation-cache entries, so neither cache grows without limit
+     * in a long-running worker process.
+     */
+    private const int MAX_CACHE_ENTRIES = 1000;
+
+    /**
      * Static cache for compiled regex patterns (for backward compatibility).
      * @var array<string, bool>
      */
@@ -116,9 +122,27 @@ final class PatternValidator
         }
 
         $isValid = $this->performValidation($pattern);
-        $this->instanceCache[$pattern] = $isValid;
+        self::rememberIn($this->instanceCache, $pattern, $isValid);
 
         return $isValid;
+    }
+
+    /**
+     * Record a validation result, bounding the cache.
+     *
+     * Callers may validate attacker- or config-supplied patterns, and under a
+     * long-running worker (Octane, RoadRunner, Swoole) an unbounded cache would grow
+     * for the worker's whole lifetime. Oldest entries are dropped first.
+     *
+     * @param array<string, bool> $cache
+     */
+    private static function rememberIn(array &$cache, string $pattern, bool $isValid): void
+    {
+        if (count($cache) >= self::MAX_CACHE_ENTRIES) {
+            $cache = array_slice($cache, intdiv(self::MAX_CACHE_ENTRIES, 2), null, true);
+        }
+
+        $cache[$pattern] = $isValid;
     }
 
     /**
@@ -247,7 +271,7 @@ final class PatternValidator
         $validator = new self();
         $isValid = $validator->performValidation($pattern);
 
-        self::$validPatternCache[$pattern] = $isValid;
+        self::rememberIn(self::$validPatternCache, $pattern, $isValid);
         return $isValid;
     }
 

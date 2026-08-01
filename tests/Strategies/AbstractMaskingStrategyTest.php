@@ -45,16 +45,6 @@ final class AbstractMaskingStrategyTest extends TestCase
                 return true;
             }
 
-            /**
-             * @return string
-             *
-             * @psalm-return 'Test Strategy'
-             */
-            /**
-             * @return string
-             *
-             * @psalm-return 'Test Strategy'
-             */
             #[\Override]
             public function getName(): string
             {
@@ -184,7 +174,7 @@ final class AbstractMaskingStrategyTest extends TestCase
         $this->assertIsResource($resource, 'Failed to open php://memory');
 
         $this->expectException(MaskingOperationFailedException::class);
-        $this->expectExceptionMessage('resource');
+        $this->expectExceptionMessageIsOrContains('resource');
 
         try {
             $this->strategy->testValueToString($resource);

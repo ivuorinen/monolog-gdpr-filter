@@ -136,7 +136,7 @@ final class RateLimiterComprehensiveTest extends TestCase
         $limiter = new RateLimiter(maxRequests: 10, windowSeconds: 60);
 
         $this->expectException(InvalidRateLimitConfigurationException::class);
-        $this->expectExceptionMessage('control characters');
+        $this->expectExceptionMessageIsOrContains('control characters');
 
         // Key with null byte (control character)
         $limiter->isAllowed("key\x00with\x00null");

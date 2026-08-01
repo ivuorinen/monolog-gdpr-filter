@@ -55,7 +55,16 @@ jobs:
         run: composer test
 
       - name: Run Psalm static analysis
-        run: ./vendor/bin/psalm --show-info=true
+        # Psalm exits 0 for INFO-level issues, so --show-info alone could never enforce
+        # CLAUDE.md's "INFO-level issues are NOT acceptable" rule. Fail explicitly on any.
+        run: |
+          set -o pipefail
+          ./vendor/bin/psalm --show-info=true --no-progress | tee psalm-report.txt
+          if grep -q '^INFO:' psalm-report.txt; then
+            echo "::error::Psalm reported INFO-level issues; the project policy is zero."
+            grep '^INFO:' psalm-report.txt
+            exit 1
+          fi
 
       - name: Run PHPStan static analysis
         run: ./vendor/bin/phpstan analyse --memory-limit=1G --no-progress
@@ -66,38 +75,8 @@ jobs:
       - name: Run Rector (dry-run)
         run: ./vendor/bin/rector --dry-run --no-progress-bar
 
-  coverage:
-    runs-on: ubuntu-latest
-    name: Coverage
-    permissions:
-      contents: read
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
-        with:
-          php-version-file: '.php-version'
-          extensions: mbstring, xml, ctype, iconv, intl, json
-          tools: composer:v2
-          coverage: pcov
-
-      - name: Install dependencies
-        run: composer install --prefer-dist --no-progress
-
-      - name: Run tests with coverage
-        run: composer test:ci
-
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage.xml
-          fail_ci_if_error: false
+  # Coverage is produced once, by the "Test & Coverage" workflow, which also uploads
+  # to Codecov. Running it here too meant the whole suite executed twice per push.
 
   security:
     runs-on: ubuntu-latest

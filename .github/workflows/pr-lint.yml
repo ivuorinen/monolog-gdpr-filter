@@ -20,10 +20,16 @@ jobs:
     name: PR Lint
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # Scoped to what the action actually needs:
+    #   contents: write       APPLY_FIXES: all commits linter fixes back
+    #   pull-requests: write  posts the MegaLinter PR comment
+    #   statuses: write       GITHUB_STATUS_REPORTER: true in .mega-linter.yml
+    #   packages: read        pulling the MegaLinter image from ghcr
+    # `actions: write` and `issues: write` were dropped: nothing in
+    # ivuorinen/actions/pr-lint touches the Actions or Issues APIs, and the action's own
+    # header documents only contents/pull-requests as required.
     permissions:
-      actions: write
       contents: write
-      issues: write
       packages: read
       pull-requests: write
       statuses: write

@@ -9,54 +9,17 @@ parameters:
         - config
 
     # Conservative settings
-    reportUnmatchedIgnoredErrors: false
+    reportUnmatchedIgnoredErrors: true
     treatPhpDocTypesAsCertain: false
 
     # Ignore specific patterns that are acceptable
     ignoreErrors:
         # Allow mixed types for backward compatibility
-        - '#Parameter \#\d+ \$\w+ of method .* expects .*, mixed given#'
         - '#Method .* return type has no value type specified in iterable type array#'
         - '#Property .* type has no value type specified in iterable type array#'
 
-        # Allow callable types validated at runtime
-        - '#Cannot call callable .* on .* type callable#'
-        - '#Parameter \#\d+ .* expects callable.*: callable given#'
-
-        # Allow reflection patterns in tests
-        - '#Call to method .* on an unknown class ReflectionClass#'
-        - '#Access to an undefined property ReflectionClass::\$.*#'
-        - '#Call to an undefined method ReflectionMethod::.*#'
-
-        # Allow PHPUnit patterns
-        - '#Call to an undefined method PHPUnit\\Framework\\.*::(assert.*|expect.*)#'
-        - '#Parameter \#\d+ \$.*Test::.* expects .*, .* given#'
-
-        # Allow Laravel function calls
-        - '#Function config not found#'
-        - '#Function app not found#'
-        - '#Function now not found#'
-        - '#Function config_path not found#'
-        - '#Function env not found#'
-
         # Allow configuration array access patterns
         - '#Offset .* does not exist on array#'
-        - '#Cannot access offset .* on mixed#'
-
-        # Allow intentional mixed usage in flexible APIs
-        - '#Argument of an invalid type mixed supplied for foreach#'
-        - '#Parameter \#\d+ .* expects .*, mixed given#'
-        - '#Cannot call method .* on mixed#'
-
-        # Allow string manipulation patterns
-        - '#Binary operation .* between .* and .* results in an error#'
-
-        # Allow test-specific patterns
-        - '#Call to function not_callable#'
-        - '#Method DateTimeImmutable::offsetGet\(\) invoked with \d+ parameter#'
-
-        # Allow complex return types in GdprProcessor
-        - '#Method Ivuorinen\\MonologGdprFilter\\GdprProcessor::getDefaultPatterns\(\) should return array.* but returns array.*#'
 
         # Allow intentional validation test failures
         - '#Parameter .* of (method|class) Ivuorinen\\MonologGdprFilter\\(GdprProcessor|RateLimitedAuditLogger).*(constructor|__construct).* expects .*, .* given#'
@@ -79,13 +42,6 @@ parameters:
 
         # Allow PHPUnit attributes with named arguments
         - '#Attribute class PHPUnit\\Framework\\Attributes\\.*#'
-
-        # Allow intentional static method calls in tests
-        - '#Static call to instance method#'
-        - '#Method .* invoked with \d+ parameter.*, \d+ required#'
-
-        # Allow nullsafe operator usage
-        - '#Using nullsafe method call on non-nullable type#'
 
         # Allow unused test constants (used by trait)
         - '#Constant Tests\\.*::.* is unused#'

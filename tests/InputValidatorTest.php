@@ -20,10 +20,14 @@ final class InputValidatorTest extends TestCase
     #[Test]
     public function validateAllPassesWithValidInputs(): void
     {
+        // Void validator: passing means not throwing. Declared explicitly rather than
+        // faked with a vacuous assertion; rejection is covered by the matching negative tests.
+        $this->expectNotToPerformAssertions();
+
         $patterns = [TestConstants::PATTERN_SSN_FORMAT => MaskConstants::MASK_GENERIC];
         $fieldPaths = [TestConstants::FIELD_USER_EMAIL => MaskConstants::MASK_GENERIC];
         $customCallbacks = ['user.id' => fn($value): string => (string) $value];
-        $auditLogger = fn($field, $old, $new): null => null;
+        $auditLogger = static fn (string $field, mixed $old, mixed $new): null => null;
         $maxDepth = 10;
         $dataTypeMasks = ['string' => MaskConstants::MASK_GENERIC];
         $conditionalRules = ['rule1' => fn($value): true => true];
@@ -37,38 +41,49 @@ final class InputValidatorTest extends TestCase
             $dataTypeMasks,
             $conditionalRules
         );
-
-        $this->assertTrue(true); // If we get here, validation passed
     }
 
     #[Test]
     public function validatePatternsThrowsForNonStringPattern(): void
     {
-        $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('pattern');
-        $this->expectExceptionMessage('string');
-
-        InputValidator::validatePatterns([123 => MaskConstants::MASK_GENERIC]);
+        // expectExceptionMessageIsOrContains() sets a single predicate, so a second call
+        // would silently replace the first and only 'string' would be enforced. Catch and
+        // assert both fragments instead.
+        try {
+            InputValidator::validatePatterns([123 => MaskConstants::MASK_GENERIC]);
+            $this->fail('Expected InvalidConfigurationException for a non-string pattern');
+        } catch (InvalidConfigurationException $e) {
+            $this->assertStringContainsString('pattern', $e->getMessage());
+            $this->assertStringContainsString('string', $e->getMessage());
+        }
     }
 
     #[Test]
     public function validatePatternsThrowsForEmptyPattern(): void
     {
-        $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('pattern');
-        $this->expectExceptionMessage('empty');
-
-        InputValidator::validatePatterns(['' => MaskConstants::MASK_GENERIC]);
+        // expectExceptionMessageIsOrContains() sets a single predicate, so chaining
+        // two would enforce only the second. Assert both fragments explicitly.
+        try {
+            InputValidator::validatePatterns(['' => MaskConstants::MASK_GENERIC]);
+            $this->fail('Expected InvalidConfigurationException');
+        } catch (InvalidConfigurationException $e) {
+            $this->assertStringContainsString('pattern', $e->getMessage());
+            $this->assertStringContainsString('empty', $e->getMessage());
+        }
     }
 
     #[Test]
     public function validatePatternsThrowsForNonStringReplacement(): void
     {
-        $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('replacement');
-        $this->expectExceptionMessage('string');
-
-        InputValidator::validatePatterns([TestConstants::PATTERN_TEST => 123]);
+        // expectExceptionMessageIsOrContains() sets a single predicate, so chaining
+        // two would enforce only the second. Assert both fragments explicitly.
+        try {
+            InputValidator::validatePatterns([TestConstants::PATTERN_TEST => 123]);
+            $this->fail('Expected InvalidConfigurationException');
+        } catch (InvalidConfigurationException $e) {
+            $this->assertStringContainsString('replacement', $e->getMessage());
+            $this->assertStringContainsString('string', $e->getMessage());
+        }
     }
 
     #[Test]
@@ -82,39 +97,49 @@ final class InputValidatorTest extends TestCase
     #[Test]
     public function validatePatternsPassesForValidPatterns(): void
     {
+        // Void validator: passing means not throwing. Declared explicitly rather than
+        // faked with a vacuous assertion; rejection is covered by the matching negative tests.
+        $this->expectNotToPerformAssertions();
+
         InputValidator::validatePatterns([
             TestConstants::PATTERN_SSN_FORMAT => MaskConstants::MASK_SSN_PATTERN,
             TestConstants::PATTERN_SAFE => TestConstants::MASK_REDACTED_PLAIN,
         ]);
-
-        $this->assertTrue(true);
     }
 
     #[Test]
     public function validateFieldPathsThrowsForNonStringPath(): void
     {
-        $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('field path');
-        $this->expectExceptionMessage('string');
-
-        InputValidator::validateFieldPaths([123 => MaskConstants::MASK_GENERIC]);
+        // expectExceptionMessageIsOrContains() sets a single predicate, so chaining
+        // two would enforce only the second. Assert both fragments explicitly.
+        try {
+            InputValidator::validateFieldPaths([123 => MaskConstants::MASK_GENERIC]);
+            $this->fail('Expected InvalidConfigurationException');
+        } catch (InvalidConfigurationException $e) {
+            $this->assertStringContainsString('field path', $e->getMessage());
+            $this->assertStringContainsString('string', $e->getMessage());
+        }
     }
 
     #[Test]
     public function validateFieldPathsThrowsForEmptyPath(): void
     {
-        $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('field path');
-        $this->expectExceptionMessage('empty');
-
-        InputValidator::validateFieldPaths(['' => MaskConstants::MASK_GENERIC]);
+        // expectExceptionMessageIsOrContains() sets a single predicate, so chaining
+        // two would enforce only the second. Assert both fragments explicitly.
+        try {
+            InputValidator::validateFieldPaths(['' => MaskConstants::MASK_GENERIC]);
+            $this->fail('Expected InvalidConfigurationException');
+        } catch (InvalidConfigurationException $e) {
+            $this->assertStringContainsString('field path', $e->getMessage());
+            $this->assertStringContainsString('empty', $e->getMessage());
+        }
     }
 
     #[Test]
     public function validateFieldPathsThrowsForInvalidConfigType(): void
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('field path value');
+        $this->expectExceptionMessageIsOrContains('field path value');
 
         InputValidator::validateFieldPaths([TestConstants::FIELD_USER_EMAIL => 123]);
     }
@@ -122,16 +147,24 @@ final class InputValidatorTest extends TestCase
     #[Test]
     public function validateFieldPathsThrowsForEmptyStringValue(): void
     {
-        $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage(TestConstants::FIELD_USER_EMAIL);
-        $this->expectExceptionMessage('empty string');
-
-        InputValidator::validateFieldPaths([TestConstants::FIELD_USER_EMAIL => '']);
+        // expectExceptionMessageIsOrContains() sets a single predicate, so chaining
+        // two would enforce only the second. Assert both fragments explicitly.
+        try {
+            InputValidator::validateFieldPaths([TestConstants::FIELD_USER_EMAIL => '']);
+            $this->fail('Expected InvalidConfigurationException');
+        } catch (InvalidConfigurationException $e) {
+            $this->assertStringContainsString(TestConstants::FIELD_USER_EMAIL, $e->getMessage());
+            $this->assertStringContainsString('empty string', $e->getMessage());
+        }
     }
 
     #[Test]
     public function validateFieldPathsPassesForValidPaths(): void
     {
+        // Void validator: passing means not throwing. Declared explicitly rather than
+        // faked with a vacuous assertion; rejection is covered by the matching negative tests.
+        $this->expectNotToPerformAssertions();
+
         $ssnConfig = FieldMaskConfig::regexMask(
             TestConstants::PATTERN_SSN_FORMAT,
             MaskConstants::MASK_SSN_PATTERN
@@ -142,158 +175,216 @@ final class InputValidatorTest extends TestCase
             TestConstants::FIELD_USER_PASSWORD => FieldMaskConfig::remove(),
             TestConstants::FIELD_USER_SSN => $ssnConfig,
         ]);
-
-        $this->assertTrue(true);
     }
 
     #[Test]
     public function validateCustomCallbacksThrowsForNonStringPath(): void
     {
-        $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('custom callback path');
-        $this->expectExceptionMessage('string');
-
-        InputValidator::validateCustomCallbacks([123 => fn($v): string => (string) $v]);
+        // expectExceptionMessageIsOrContains() sets a single predicate, so chaining
+        // two would enforce only the second. Assert both fragments explicitly.
+        try {
+            InputValidator::validateCustomCallbacks([123 => fn($v): string => (string) $v]);
+            $this->fail('Expected InvalidConfigurationException');
+        } catch (InvalidConfigurationException $e) {
+            $this->assertStringContainsString('custom callback path', $e->getMessage());
+            $this->assertStringContainsString('string', $e->getMessage());
+        }
     }
 
     #[Test]
     public function validateCustomCallbacksThrowsForEmptyPath(): void
     {
-        $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('custom callback path');
-        $this->expectExceptionMessage('empty');
-
-        InputValidator::validateCustomCallbacks(['' => fn($v): string => (string) $v]);
+        // expectExceptionMessageIsOrContains() sets a single predicate, so chaining
+        // two would enforce only the second. Assert both fragments explicitly.
+        try {
+            InputValidator::validateCustomCallbacks(['' => fn($v): string => (string) $v]);
+            $this->fail('Expected InvalidConfigurationException');
+        } catch (InvalidConfigurationException $e) {
+            $this->assertStringContainsString('custom callback path', $e->getMessage());
+            $this->assertStringContainsString('empty', $e->getMessage());
+        }
     }
 
     #[Test]
     public function validateCustomCallbacksThrowsForNonCallable(): void
     {
-        $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('custom callback');
-        $this->expectExceptionMessage('callable');
-
-        InputValidator::validateCustomCallbacks(['user.id' => 'not-a-callback']);
+        // expectExceptionMessageIsOrContains() sets a single predicate, so chaining
+        // two would enforce only the second. Assert both fragments explicitly.
+        try {
+            InputValidator::validateCustomCallbacks(['user.id' => 'not-a-callback']);
+            $this->fail('Expected InvalidConfigurationException');
+        } catch (InvalidConfigurationException $e) {
+            $this->assertStringContainsString('custom callback', $e->getMessage());
+            $this->assertStringContainsString('callable', $e->getMessage());
+        }
     }
 
     #[Test]
     public function validateCustomCallbacksPassesForValidCallbacks(): void
     {
+        // Void validator: passing means not throwing. Declared explicitly rather than
+        // faked with a vacuous assertion; rejection is covered by the matching negative tests.
+        $this->expectNotToPerformAssertions();
+
         InputValidator::validateCustomCallbacks([
             'user.id' => fn($value): string => (string) $value,
             TestConstants::FIELD_USER_NAME => fn($value) => strtoupper((string) $value),
         ]);
-
-        $this->assertTrue(true);
     }
 
     #[Test]
     public function validateAuditLoggerThrowsForNonCallable(): void
     {
-        $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('audit logger');
-        $this->expectExceptionMessage('callable');
-
-        InputValidator::validateAuditLogger('not-a-callback');
+        // expectExceptionMessageIsOrContains() sets a single predicate, so chaining
+        // two would enforce only the second. Assert both fragments explicitly.
+        try {
+            InputValidator::validateAuditLogger('not-a-callback');
+            $this->fail('Expected InvalidConfigurationException');
+        } catch (InvalidConfigurationException $e) {
+            $this->assertStringContainsString('audit logger', $e->getMessage());
+            $this->assertStringContainsString('callable', $e->getMessage());
+        }
     }
 
     #[Test]
     public function validateAuditLoggerPassesForNull(): void
     {
+        // Void validator: passing means not throwing. Declared explicitly rather than
+        // faked with a vacuous assertion; rejection is covered by the matching negative tests.
+        $this->expectNotToPerformAssertions();
+
         InputValidator::validateAuditLogger(null);
-        $this->assertTrue(true);
     }
 
     #[Test]
     public function validateAuditLoggerPassesForCallable(): void
     {
-        InputValidator::validateAuditLogger(fn($field, $old, $new): null => null);
-        $this->assertTrue(true);
+        // Void validator: passing means not throwing. Declared explicitly rather than
+        // faked with a vacuous assertion; rejection is covered by the matching negative tests.
+        $this->expectNotToPerformAssertions();
+
+        InputValidator::validateAuditLogger(
+            static fn (string $field, mixed $old, mixed $new): null => null
+        );
     }
 
     #[Test]
     public function validateMaxDepthThrowsForZero(): void
     {
-        $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('max_depth');
-        $this->expectExceptionMessage('positive integer');
-
-        InputValidator::validateMaxDepth(0);
+        // expectExceptionMessageIsOrContains() sets a single predicate, so chaining
+        // two would enforce only the second. Assert both fragments explicitly.
+        try {
+            InputValidator::validateMaxDepth(0);
+            $this->fail('Expected InvalidConfigurationException');
+        } catch (InvalidConfigurationException $e) {
+            $this->assertStringContainsString('max_depth', $e->getMessage());
+            $this->assertStringContainsString('positive integer', $e->getMessage());
+        }
     }
 
     #[Test]
     public function validateMaxDepthThrowsForNegative(): void
     {
-        $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('max_depth');
-        $this->expectExceptionMessage('positive integer');
-
-        InputValidator::validateMaxDepth(-1);
+        // expectExceptionMessageIsOrContains() sets a single predicate, so chaining
+        // two would enforce only the second. Assert both fragments explicitly.
+        try {
+            InputValidator::validateMaxDepth(-1);
+            $this->fail('Expected InvalidConfigurationException');
+        } catch (InvalidConfigurationException $e) {
+            $this->assertStringContainsString('max_depth', $e->getMessage());
+            $this->assertStringContainsString('positive integer', $e->getMessage());
+        }
     }
 
     #[Test]
     public function validateMaxDepthThrowsForTooLarge(): void
     {
-        $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('max_depth');
-        $this->expectExceptionMessage('1,000');
-
-        InputValidator::validateMaxDepth(1001);
+        // expectExceptionMessageIsOrContains() sets a single predicate, so chaining
+        // two would enforce only the second. Assert both fragments explicitly.
+        try {
+            InputValidator::validateMaxDepth(1001);
+            $this->fail('Expected InvalidConfigurationException');
+        } catch (InvalidConfigurationException $e) {
+            $this->assertStringContainsString('max_depth', $e->getMessage());
+            $this->assertStringContainsString('1,000', $e->getMessage());
+        }
     }
 
     #[Test]
     public function validateMaxDepthPassesForValidValue(): void
     {
+        // Void validator: passing means not throwing. Declared explicitly rather than
+        // faked with a vacuous assertion; rejection is covered by the matching negative tests.
+        $this->expectNotToPerformAssertions();
+
         InputValidator::validateMaxDepth(10);
         InputValidator::validateMaxDepth(1);
         InputValidator::validateMaxDepth(1000);
-
-        $this->assertTrue(true);
     }
 
     #[Test]
     public function validateDataTypeMasksThrowsForNonStringType(): void
     {
-        $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('data type mask key');
-        $this->expectExceptionMessage('string');
-
-        InputValidator::validateDataTypeMasks([123 => MaskConstants::MASK_GENERIC]);
+        // expectExceptionMessageIsOrContains() sets a single predicate, so chaining
+        // two would enforce only the second. Assert both fragments explicitly.
+        try {
+            InputValidator::validateDataTypeMasks([123 => MaskConstants::MASK_GENERIC]);
+            $this->fail('Expected InvalidConfigurationException');
+        } catch (InvalidConfigurationException $e) {
+            $this->assertStringContainsString('data type mask key', $e->getMessage());
+            $this->assertStringContainsString('string', $e->getMessage());
+        }
     }
 
     #[Test]
     public function validateDataTypeMasksThrowsForInvalidType(): void
     {
-        $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('invalid_type');
-        $this->expectExceptionMessage('integer, double, string, boolean');
-
-        InputValidator::validateDataTypeMasks(['invalid_type' => MaskConstants::MASK_GENERIC]);
+        // expectExceptionMessageIsOrContains() sets a single predicate, so chaining
+        // two would enforce only the second. Assert both fragments explicitly.
+        try {
+            InputValidator::validateDataTypeMasks(['invalid_type' => MaskConstants::MASK_GENERIC]);
+            $this->fail('Expected InvalidConfigurationException');
+        } catch (InvalidConfigurationException $e) {
+            $this->assertStringContainsString('invalid_type', $e->getMessage());
+            $this->assertStringContainsString('integer, double, string, boolean', $e->getMessage());
+        }
     }
 
     #[Test]
     public function validateDataTypeMasksThrowsForNonStringMask(): void
     {
-        $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('data type mask value');
-        $this->expectExceptionMessage('string');
-
-        InputValidator::validateDataTypeMasks(['string' => 123]);
+        // expectExceptionMessageIsOrContains() sets a single predicate, so chaining
+        // two would enforce only the second. Assert both fragments explicitly.
+        try {
+            InputValidator::validateDataTypeMasks(['string' => 123]);
+            $this->fail('Expected InvalidConfigurationException');
+        } catch (InvalidConfigurationException $e) {
+            $this->assertStringContainsString('data type mask value', $e->getMessage());
+            $this->assertStringContainsString('string', $e->getMessage());
+        }
     }
 
     #[Test]
     public function validateDataTypeMasksThrowsForEmptyMask(): void
     {
-        $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('string');
-        $this->expectExceptionMessage('empty');
-
-        InputValidator::validateDataTypeMasks(['string' => '']);
+        // expectExceptionMessageIsOrContains() sets a single predicate, so chaining
+        // two would enforce only the second. Assert both fragments explicitly.
+        try {
+            InputValidator::validateDataTypeMasks(['string' => '']);
+            $this->fail('Expected InvalidConfigurationException');
+        } catch (InvalidConfigurationException $e) {
+            $this->assertStringContainsString('string', $e->getMessage());
+            $this->assertStringContainsString('empty', $e->getMessage());
+        }
     }
 
     #[Test]
     public function validateDataTypeMasksPassesForValidTypes(): void
     {
+        // Void validator: passing means not throwing. Declared explicitly rather than
+        // faked with a vacuous assertion; rejection is covered by the matching negative tests.
+        $this->expectNotToPerformAssertions();
+
         InputValidator::validateDataTypeMasks([
             'integer' => MaskConstants::MASK_GENERIC,
             'double' => MaskConstants::MASK_GENERIC,
@@ -304,48 +395,60 @@ final class InputValidatorTest extends TestCase
             'object' => '{}',
             'resource' => 'RESOURCE',
         ]);
-
-        $this->assertTrue(true);
     }
 
     #[Test]
     public function validateConditionalRulesThrowsForNonStringRuleName(): void
     {
-        $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('conditional rule name');
-        $this->expectExceptionMessage('string');
-
-        InputValidator::validateConditionalRules([123 => fn($v): true => true]);
+        // expectExceptionMessageIsOrContains() sets a single predicate, so chaining
+        // two would enforce only the second. Assert both fragments explicitly.
+        try {
+            InputValidator::validateConditionalRules([123 => fn($v): true => true]);
+            $this->fail('Expected InvalidConfigurationException');
+        } catch (InvalidConfigurationException $e) {
+            $this->assertStringContainsString('conditional rule name', $e->getMessage());
+            $this->assertStringContainsString('string', $e->getMessage());
+        }
     }
 
     #[Test]
     public function validateConditionalRulesThrowsForEmptyRuleName(): void
     {
-        $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('conditional rule name');
-        $this->expectExceptionMessage('empty');
-
-        InputValidator::validateConditionalRules(['' => fn($v): true => true]);
+        // expectExceptionMessageIsOrContains() sets a single predicate, so chaining
+        // two would enforce only the second. Assert both fragments explicitly.
+        try {
+            InputValidator::validateConditionalRules(['' => fn($v): true => true]);
+            $this->fail('Expected InvalidConfigurationException');
+        } catch (InvalidConfigurationException $e) {
+            $this->assertStringContainsString('conditional rule name', $e->getMessage());
+            $this->assertStringContainsString('empty', $e->getMessage());
+        }
     }
 
     #[Test]
     public function validateConditionalRulesThrowsForNonCallable(): void
     {
-        $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('rule1');
-        $this->expectExceptionMessage('callable');
-
-        InputValidator::validateConditionalRules(['rule1' => 'not-a-callback']);
+        // expectExceptionMessageIsOrContains() sets a single predicate, so chaining
+        // two would enforce only the second. Assert both fragments explicitly.
+        try {
+            InputValidator::validateConditionalRules(['rule1' => 'not-a-callback']);
+            $this->fail('Expected InvalidConfigurationException');
+        } catch (InvalidConfigurationException $e) {
+            $this->assertStringContainsString('rule1', $e->getMessage());
+            $this->assertStringContainsString('callable', $e->getMessage());
+        }
     }
 
     #[Test]
     public function validateConditionalRulesPassesForValidRules(): void
     {
+        // Void validator: passing means not throwing. Declared explicitly rather than
+        // faked with a vacuous assertion; rejection is covered by the matching negative tests.
+        $this->expectNotToPerformAssertions();
+
         InputValidator::validateConditionalRules([
             'rule1' => fn($value): bool => $value > 100,
             'rule2' => is_string(...),
         ]);
-
-        $this->assertTrue(true);
     }
 }

@@ -9,6 +9,11 @@ use Ivuorinen\MonologGdprFilter\JsonMasker;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @psalm-suppress DeprecatedMethod - deliberately exercises fixEmptyObjects(), which is
+ *                 deprecated but still public API; its behaviour stays under test until
+ *                 the method is removed.
+ */
 #[CoversClass(JsonMasker::class)]
 final class JsonMaskerEnhancedTest extends TestCase
 {

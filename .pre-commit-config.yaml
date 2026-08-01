@@ -49,6 +49,13 @@ repos:
       - id: actionlint
         args: ["-shellcheck="]
 
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+        # Fixture credentials under tests/ are allowlisted in .gitleaks.toml;
+        # src/, config/, demo/ and the workflows stay fully covered.
+
   - repo: https://github.com/bridgecrewio/checkov.git
     rev: "3.3.8"
     hooks:
