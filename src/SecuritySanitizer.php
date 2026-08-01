@@ -70,24 +70,39 @@ final class SecuritySanitizer
                 . '192\.168\.\d{1,3}\.\d{1,3})\b/' => '***.***.***',
         ];
 
-        $sanitized = $message;
-
-        foreach ($sensitivePatterns as $pattern => $replacement) {
-            $result = preg_replace($pattern, $replacement, $sanitized);
-
-            if ($result === null) {
-                // A PCRE failure here means this message was NOT scrubbed. Keeping the
-                // partially-sanitised text would emit whatever that pattern existed to
-                // remove, so fail closed and drop the message entirely.
-                return Mask::MASK_REDACTED . ' (sanitization failed: ' . preg_last_error_msg() . ')';
-            }
-
-            $sanitized = $result;
-        }
+        $sanitized = self::scrubOrRedact($sensitivePatterns, $message);
 
         // Truncate very long messages to prevent log flooding
         if (strlen($sanitized) > 500) {
             return substr($sanitized, 0, 500) . '... (truncated for security)';
+        }
+
+        return $sanitized;
+    }
+
+    /**
+     * Apply every scrubbing pattern to a subject, failing closed on PCRE errors.
+     *
+     * A PCRE failure means the subject was NOT scrubbed. Returning the
+     * partially-sanitised text would emit exactly what the failing pattern exists to
+     * remove, so the whole subject is dropped instead.
+     *
+     * Shared by ErrorContext::sanitizeMessage() so the two cannot drift apart.
+     *
+     * @param array<non-empty-string, string> $patterns Pattern => replacement.
+     */
+    public static function scrubOrRedact(array $patterns, string $subject): string
+    {
+        $sanitized = $subject;
+
+        foreach ($patterns as $pattern => $replacement) {
+            $result = preg_replace($pattern, $replacement, $sanitized);
+
+            if ($result === null) {
+                return Mask::MASK_REDACTED . ' (sanitization failed: ' . preg_last_error_msg() . ')';
+            }
+
+            $sanitized = $result;
         }
 
         return $sanitized;
