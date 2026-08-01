@@ -136,32 +136,41 @@ final class MaskingBypassRegressionTest extends TestCase
      * Default patterns must match sensitive values embedded in a message, not only
      * when the value is the whole string.
      *
+     * Each case gives a sprintf template plus the fixture value, so the surrounding
+     * sentence and the value asserted absent are built from the same constant. Spelling
+     * the value inline twice would let them drift, and the "must not contain" assertion
+     * would then pass for the wrong reason.
+     *
      * @return array<string, array{string, string, string}>
      */
     public static function embeddedValueProvider(): array
     {
         return [
-            'email' => ['user john.doe@example.com logged in', TestConstants::EMAIL_JOHN_DOE, Mask::MASK_EMAIL],
-            'phone' => ['called +358 40 1234567 today', TestConstants::PHONE_INTL, Mask::MASK_PHONE],
-            'iban' => ['paid to FI21 1234 5600 0007 85 ok', TestConstants::IBAN_FI, Mask::MASK_IBAN],
-            'us ssn' => ['ssn is 123-45-6789 here', TestConstants::SSN_US, Mask::MASK_USSSN],
-            'bearer' => ['auth Bearer abcdefghijklmnop123 ok', 'abcdefghijklmnop123', Mask::MASK_TOKEN],
-            'dob' => ['born 1985-03-12 in Turku', '1985-03-12', Mask::MASK_DOB],
-            'passport' => ['passport A123456 issued', TestConstants::PASSPORT, Mask::MASK_PASSPORT],
-            'mac' => ['nic 00:1A:2B:3C:4D:5E up', '00:1A:2B:3C:4D:5E', Mask::MASK_MAC],
-            'hetu' => ['hetu 010190-123A logged', TestConstants::HETU, Mask::MASK_HETU],
+            'email' => ['user %s logged in', TestConstants::EMAIL_JOHN_DOE, Mask::MASK_EMAIL],
+            'phone' => ['called %s today', TestConstants::PHONE_INTL, Mask::MASK_PHONE],
+            'iban' => ['paid to %s ok', TestConstants::IBAN_FI, Mask::MASK_IBAN],
+            'us ssn' => ['ssn is %s here', TestConstants::SSN_US, Mask::MASK_USSSN],
+            'bearer' => ['auth Bearer %s ok', TestConstants::BEARER_TOKEN, Mask::MASK_TOKEN],
+            'dob' => ['born %s in Turku', TestConstants::DOB, Mask::MASK_DOB],
+            'passport' => ['passport %s issued', TestConstants::PASSPORT, Mask::MASK_PASSPORT],
+            'mac' => ['nic %s up', TestConstants::MAC_ADDRESS, Mask::MASK_MAC],
+            'hetu' => ['hetu %s logged', TestConstants::HETU, Mask::MASK_HETU],
         ];
     }
 
     #[DataProvider('embeddedValueProvider')]
     #[Test]
     public function testDefaultPatternsMaskValuesEmbeddedInAMessage(
-        string $message,
+        string $template,
         string $sensitive,
         string $expectedMask
     ): void {
+        $message = sprintf($template, $sensitive);
         $masked = (new GdprProcessor(patterns: DefaultPatterns::get()))->maskMessage($message);
 
+        // Guard the guard: the fixture must actually be present before masking, otherwise
+        // the assertion below would pass against a template that never contained it.
+        $this->assertStringContainsString($sensitive, $message);
         $this->assertStringNotContainsString($sensitive, $masked);
         $this->assertStringContainsString($expectedMask, $masked, 'Masked under the wrong label');
     }
@@ -236,38 +245,46 @@ final class MaskingBypassRegressionTest extends TestCase
      * them would have leaked unmasked PII silently. Each case gives a value that must be
      * masked and a near-miss that must not be.
      *
-     * @return array<string, array{string, string, string}>
+     * Same template/value split as embeddedValueProvider, which additionally lets this
+     * test assert the raw value is *gone* rather than only that the mask label appeared.
+     * These fixtures have no TestConstants entries; they are single-use values whose
+     * exact shape is the point of the case, so they stay inline.
+     *
+     * @return array<string, array{string, string, string, string}>
      */
     public static function uncoveredDefaultPatternProvider(): array
     {
         return [
-            // [masking value, expected mask, near-miss that must stay untouched]
-            'vehicle plate' => ['plate ABC-1234 seen', Mask::MASK_VEHICLE, 'plate AB seen'],
-            'vehicle reverse' => ['plate 123-ABC seen', Mask::MASK_VEHICLE, 'plate 12 seen'],
-            'uk national insurance' => ['ni AB123456C on file', Mask::MASK_UKNI, 'ni AB12345 on file'],
-            'canadian sin' => ['sin 123-456-789 filed', Mask::MASK_CASIN, 'sin 123-456 filed'],
-            'uk bank' => ['acct 123456-12345678 ok', Mask::MASK_UKBANK, 'acct 1234-5678 ok'],
-            'canadian bank' => ['acct 12345-1234567 ok', Mask::MASK_CABANK, 'acct 1234-123 ok'],
-            'medicare' => ['medicare 123 45 6789 ok', Mask::MASK_MEDICARE, 'medicare 12 34 ok'],
-            'ehic' => ['ehic 12-3456-7890-1234-5 ok', Mask::MASK_EHIC, 'ehic 12-3456 ok'],
-            'ipv6' => ['addr 2001:0db8:85a3:0000:0000:8a2e up', '***IPv6***', 'addr 2001 up'],
+            // [sentence template, sensitive value, expected mask, near-miss left untouched]
+            'vehicle plate' => ['plate %s seen', 'ABC-1234', Mask::MASK_VEHICLE, 'plate AB seen'],
+            'vehicle reverse' => ['plate %s seen', '123-ABC', Mask::MASK_VEHICLE, 'plate 12 seen'],
+            'uk national insurance' => ['ni %s on file', 'AB123456C', Mask::MASK_UKNI, 'ni AB12345 on file'],
+            'canadian sin' => ['sin %s filed', '123-456-789', Mask::MASK_CASIN, 'sin 123-456 filed'],
+            'uk bank' => ['acct %s ok', '123456-12345678', Mask::MASK_UKBANK, 'acct 1234-5678 ok'],
+            'canadian bank' => ['acct %s ok', '12345-1234567', Mask::MASK_CABANK, 'acct 1234-123 ok'],
+            'medicare' => ['medicare %s ok', '123 45 6789', Mask::MASK_MEDICARE, 'medicare 12 34 ok'],
+            'ehic' => ['ehic %s ok', '12-3456-7890-1234-5', Mask::MASK_EHIC, 'ehic 12-3456 ok'],
+            'ipv6' => ['addr %s up', '2001:0db8:85a3:0000:0000:8a2e', '***IPv6***', 'addr 2001 up'],
         ];
     }
 
     #[DataProvider('uncoveredDefaultPatternProvider')]
     #[Test]
     public function testPreviouslyUncoveredDefaultPatternsMaskAndDoNotOvermatch(
+        string $template,
         string $sensitive,
         string $expectedMask,
         string $nearMiss
     ): void {
         $processor = new GdprProcessor(patterns: DefaultPatterns::get());
+        $masked = $processor->maskMessage(sprintf($template, $sensitive));
 
         $this->assertStringContainsString(
             $expectedMask,
-            $processor->maskMessage($sensitive),
+            $masked,
             'Sensitive value was not masked under the expected label'
         );
+        $this->assertStringNotContainsString($sensitive, $masked, 'Sensitive value survived masking');
         $this->assertSame(
             $nearMiss,
             $processor->maskMessage($nearMiss),
