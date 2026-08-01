@@ -15,6 +15,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Tests\TestConstants;
 
 /**
  * Regressions for masking bypasses found by audit: every test here asserts that
@@ -24,8 +25,6 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(DefaultPatterns::class)]
 final class MaskingBypassRegressionTest extends TestCase
 {
-    private const EMAIL_PATTERN = '/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/';
-
     /**
      * @param array<string, mixed> $context
      */
@@ -48,19 +47,19 @@ final class MaskingBypassRegressionTest extends TestCase
     public function testFieldPathConfigDoesNotDisableRegexMaskingOfOtherFields(): void
     {
         $processor = new GdprProcessor(
-            patterns: [self::EMAIL_PATTERN => Mask::MASK_EMAIL],
-            fieldPaths: ['password' => FieldMaskConfig::remove()],
+            patterns: [TestConstants::PATTERN_EMAIL_SIMPLE => Mask::MASK_EMAIL],
+            fieldPaths: [TestConstants::CONTEXT_PASSWORD => FieldMaskConfig::remove()],
         );
 
         $result = $processor($this->record('x', [
             'note' => 'mail me at john@example.com',
-            'password' => 'hunter2',
+            TestConstants::CONTEXT_PASSWORD => 'hunter2',
             'deep' => ['inner' => 'bob@example.org'],
         ]));
 
         $this->assertSame('mail me at ' . Mask::MASK_EMAIL, $result->context['note']);
         $this->assertSame(Mask::MASK_EMAIL, $result->context['deep']['inner']);
-        $this->assertArrayNotHasKey('password', $result->context);
+        $this->assertArrayNotHasKey(TestConstants::CONTEXT_PASSWORD, $result->context);
     }
 
     /**
@@ -124,12 +123,12 @@ final class MaskingBypassRegressionTest extends TestCase
         $processor = new GdprProcessor(patterns: [
             // /u pattern that aborts on the malformed byte in the subject
             '/\bFI\d{16}\b/u' => Mask::MASK_IBAN,
-            self::EMAIL_PATTERN => Mask::MASK_EMAIL,
+            TestConstants::PATTERN_EMAIL_SIMPLE => Mask::MASK_EMAIL,
         ]);
 
         $masked = $processor->maskMessage("mail john@example.com raw=\xC3\x28");
 
-        $this->assertStringNotContainsString('john@example.com', $masked);
+        $this->assertStringNotContainsString(TestConstants::EMAIL_JOHN, $masked);
         $this->assertStringContainsString(Mask::MASK_EMAIL, $masked);
     }
 
@@ -142,15 +141,15 @@ final class MaskingBypassRegressionTest extends TestCase
     public static function embeddedValueProvider(): array
     {
         return [
-            'email' => ['user john.doe@example.com logged in', 'john.doe@example.com', Mask::MASK_EMAIL],
-            'phone' => ['called +358 40 1234567 today', '+358 40 1234567', Mask::MASK_PHONE],
-            'iban' => ['paid to FI21 1234 5600 0007 85 ok', 'FI21 1234 5600 0007 85', Mask::MASK_IBAN],
-            'us ssn' => ['ssn is 123-45-6789 here', '123-45-6789', Mask::MASK_USSSN],
+            'email' => ['user john.doe@example.com logged in', TestConstants::EMAIL_JOHN_DOE, Mask::MASK_EMAIL],
+            'phone' => ['called +358 40 1234567 today', TestConstants::PHONE_INTL, Mask::MASK_PHONE],
+            'iban' => ['paid to FI21 1234 5600 0007 85 ok', TestConstants::IBAN_FI, Mask::MASK_IBAN],
+            'us ssn' => ['ssn is 123-45-6789 here', TestConstants::SSN_US, Mask::MASK_USSSN],
             'bearer' => ['auth Bearer abcdefghijklmnop123 ok', 'abcdefghijklmnop123', Mask::MASK_TOKEN],
             'dob' => ['born 1985-03-12 in Turku', '1985-03-12', Mask::MASK_DOB],
-            'passport' => ['passport A123456 issued', 'A123456', Mask::MASK_PASSPORT],
+            'passport' => ['passport A123456 issued', TestConstants::PASSPORT, Mask::MASK_PASSPORT],
             'mac' => ['nic 00:1A:2B:3C:4D:5E up', '00:1A:2B:3C:4D:5E', Mask::MASK_MAC],
-            'hetu' => ['hetu 010190-123A logged', '010190-123A', Mask::MASK_HETU],
+            'hetu' => ['hetu 010190-123A logged', TestConstants::HETU, Mask::MASK_HETU],
         ];
     }
 
@@ -212,7 +211,7 @@ final class MaskingBypassRegressionTest extends TestCase
         string $json,
         string $expected
     ): void {
-        $processor = new GdprProcessor(patterns: ['/secret/' => '***']);
+        $processor = new GdprProcessor(patterns: [TestConstants::PATTERN_SECRET => Mask::MASK_GENERIC]);
 
         $this->assertSame($expected, $processor->regExpMessage($json));
     }
@@ -225,7 +224,7 @@ final class MaskingBypassRegressionTest extends TestCase
     #[Test]
     public function jsonShapeCasesAreNotSatisfiedByPlainSubstitution(): void
     {
-        $processor = new GdprProcessor(patterns: ['/secret/' => '***']);
+        $processor = new GdprProcessor(patterns: [TestConstants::PATTERN_SECRET => Mask::MASK_GENERIC]);
         $json = '{"meta": {}, "v": "secret"}';
 
         $this->assertSame('{"meta":{},"v":"***"}', $processor->regExpMessage($json));

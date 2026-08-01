@@ -197,7 +197,7 @@ final class GdprProcessorComprehensiveTest extends TestCase
         // Assert behaviour rather than the pattern literal: the defaults must mask a US
         // SSN and a HETU both standalone and embedded in a message.
         $processor = new GdprProcessor(patterns: $patterns);
-        $this->assertSame(Mask::MASK_USSSN, $processor->maskMessage('123-45-6789'));
+        $this->assertSame(Mask::MASK_USSSN, $processor->maskMessage(TestConstants::SSN_US));
         $this->assertSame(
             'ssn ' . Mask::MASK_USSSN . ' logged',
             $processor->maskMessage('ssn 123-45-6789 logged')

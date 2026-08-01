@@ -16,6 +16,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Tests\TestConstants;
 
 /**
  * The library ships two masking implementations: the pipeline GdprProcessor actually
@@ -46,7 +47,7 @@ final class MaskingPathParityTest extends TestCase
             context: []
         );
 
-        return $manager->maskValue($value, 'message', $record);
+        return $manager->maskValue($value, TestConstants::FIELD_MESSAGE, $record);
     }
 
     /**
@@ -56,7 +57,7 @@ final class MaskingPathParityTest extends TestCase
     {
         return [
             'email embedded' => ['user john.doe@example.com logged in'],
-            'email bare' => ['john.doe@example.com'],
+            'email bare' => [TestConstants::EMAIL_JOHN_DOE],
             'us ssn embedded' => ['ssn is 123-45-6789 here'],
             'credit card embedded' => ['card 4111111111111111 charged'],
             'hetu embedded' => ['hetu 010190-123A on file'],
