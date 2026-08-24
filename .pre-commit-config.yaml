@@ -57,7 +57,7 @@ repos:
         # src/, config/, demo/ and the workflows stay fully covered.
 
   - repo: https://github.com/bridgecrewio/checkov.git
-    rev: "3.3.11"
+    rev: "3.3.13"
     hooks:
       - id: checkov
         args:
